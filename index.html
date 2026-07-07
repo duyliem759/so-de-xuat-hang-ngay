@@ -1,0 +1,3136 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sổ Đề Xuất — Tổng Hợp Hằng Ngày</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<!-- ===== FIREBASE (bắt buộc phải điền config trước khi dùng — xem HUONG-DAN-CAI-DAT.md) ===== -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+  // BƯỚC QUAN TRỌNG: thay các giá trị bên dưới bằng config lấy từ Firebase Console của bạn
+  // (Project settings > Your apps > SDK setup and configuration > Config)
+  const firebaseConfig = {
+    apiKey: "AIzaSyBl4QpbO2imYQjvUMBFvSJvlKbIUgjz2qU",
+    authDomain: "so-de-xuat-hang-ngay.firebaseapp.com",
+    projectId: "so-de-xuat-hang-ngay",
+    storageBucket: "so-de-xuat-hang-ngay.firebasestorage.app",
+    messagingSenderId: "808463356073",
+    appId: "1:808463356073:web:c2cd112cc90939741c99b8"
+  };
+  if(firebaseConfig.apiKey.startsWith('DÁN_')){
+    document.addEventListener('DOMContentLoaded', ()=>{
+      document.body.innerHTML = '<div style="max-width:640px;margin:60px auto;padding:24px;border:2px solid #D6362C;border-radius:6px;font-family:sans-serif;color:#15263B;background:#FBDADA;">'
+        + '<h2 style="margin-top:0;">⚠️ Chưa cấu hình Firebase</h2>'
+        + '<p>Bạn cần điền thông tin cấu hình Firebase (firebaseConfig) vào đầu file HTML này trước khi sử dụng.</p>'
+        + '<p>Xem hướng dẫn chi tiết trong file <b>HUONG-DAN-CAI-DAT.md</b> đi kèm.</p></div>';
+    });
+  }
+  firebase.initializeApp(firebaseConfig);
+  const __db = firebase.firestore();
+  const __auth = firebase.auth();
+  const __COLLECTION = 'so_de_xuat'; // tên collection lưu dữ liệu trên Firestore
+</script>
+<!-- ===== HẾT PHẦN FIREBASE ===== -->
+<style>
+  :root{
+    --paper:#EEF2F1;
+    --ink:#15263B;
+    --ink-soft:#4C5C6E;
+    --line:#C3CDD3;
+    --teal:#0E7C7B;
+    --teal-deep:#0A5957;
+    --rust:#C1542A;
+    --red:#D6362C;
+    --red-bg:#FBDADA;
+    --yellow:#C99A00;
+    --yellow-bg:#FCF1C7;
+    --purple:#6A4C93;
+    --purple-bg:#EDE6F5;
+    --green:#1A7A3E;
+    --green-deep:#0E5C2C;
+    --green-bg:#DFF3E5;
+    --card:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(0deg, rgba(21,38,59,0.035) 0px, rgba(21,38,59,0.035) 1px, transparent 1px, transparent 28px),
+      repeating-linear-gradient(90deg, rgba(21,38,59,0.035) 0px, rgba(21,38,59,0.035) 1px, transparent 1px, transparent 28px),
+      var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    padding:28px 20px 80px;
+  }
+  .wrap{max-width:1320px;margin:0 auto;}
+
+  header.title-block{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    border-bottom:3px solid var(--ink);
+    padding-bottom:14px; margin-bottom:22px; gap:20px; flex-wrap:wrap;
+  }
+  .title-block .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.14em;
+    color:var(--teal-deep); text-transform:uppercase; margin-bottom:4px;
+  }
+  .title-block h1{
+    font-family:'IBM Plex Sans Condensed', sans-serif; font-weight:700;
+    font-size:30px; margin:0; letter-spacing:.01em;
+  }
+  .title-block .meta{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft); text-align:right;}
+  .header-actions{display:flex; gap:10px; align-items:flex-end;}
+
+  .panel{
+    background:var(--card); border:1px solid var(--line); border-radius:2px;
+    padding:18px 20px; margin-bottom:20px; position:relative;
+  }
+  .panel::before, .panel::after{
+    content:''; position:absolute; width:9px; height:9px; border:1.5px solid var(--ink);
+  }
+  .panel::before{top:-1px; left:-1px; border-right:0; border-bottom:0;}
+  .panel::after{bottom:-1px; right:-1px; border-left:0; border-top:0;}
+
+  .panel h2{
+    font-family:'IBM Plex Sans Condensed',sans-serif; font-size:15px; text-transform:uppercase;
+    letter-spacing:.08em; color:var(--teal-deep); margin:0 0 14px; padding-bottom:8px;
+    border-bottom:1px solid var(--line);
+  }
+
+  .date-row{display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-bottom:6px;}
+  .date-row label{font-size:12px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace;}
+  input[type=date], select, input[type=text], input[type=number]{
+    font-family:'IBM Plex Sans', sans-serif; font-size:13.5px;
+    border:1px solid var(--line); border-radius:2px; padding:7px 9px; background:#fff; color:var(--ink);
+  }
+  input:focus, select:focus, textarea:focus{outline:2px solid var(--teal); outline-offset:1px; border-color:var(--teal);}
+
+  .form-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:12px 14px;
+  }
+  .form-grid .field{display:flex; flex-direction:column; gap:4px;}
+  .form-grid .field label{font-size:11.5px; color:var(--ink-soft); font-weight:600;}
+  .form-grid .field.span2{grid-column:span 2;}
+  textarea{
+    font-family:'IBM Plex Sans', sans-serif; font-size:13.5px; border:1px solid var(--line);
+    border-radius:2px; padding:7px 9px; resize:vertical; min-height:38px;
+  }
+  .btn{
+    font-family:'IBM Plex Sans Condensed', sans-serif; font-weight:700; letter-spacing:.04em;
+    text-transform:uppercase; font-size:13px; border:none; border-radius:2px; padding:10px 18px;
+    cursor:pointer; background:var(--teal); color:#fff; transition:background .15s ease;
+  }
+  .btn:hover{background:var(--teal-deep);}
+  .btn.secondary{background:#fff; color:var(--ink); border:1px solid var(--line);}
+  .btn.secondary:hover{background:#f2f2f2;}
+  .btn.danger{background:#fff; color:var(--red); border:1px solid var(--red);}
+  .btn.danger:hover{background:var(--red-bg);}
+  .btn.excel{background:var(--rust);}
+  .btn.excel:hover{background:#9c4220;}
+  .btn.small{padding:6px 12px; font-size:11.5px;}
+  .form-actions{margin-top:14px; display:flex; gap:10px;}
+
+  table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  thead th{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase;
+    letter-spacing:.04em; color:#fff; background:var(--ink); padding:9px 7px; text-align:left;
+    position:sticky; top:0;
+  }
+  tbody td{padding:8px 7px; border-bottom:1px solid var(--line); vertical-align:top;}
+  tbody tr:hover{background:#F5F8F8;}
+  tbody tr.row-yellow{background:var(--yellow-bg);}
+  tbody tr.row-yellow:hover{background:#F9E9AE;}
+  tbody tr.row-green{background:var(--green-bg);}
+  tbody tr.row-green:hover{background:#C9EAD3;}
+  tbody tr.row-highlight{animation:rowFlash 1.8s ease;}
+  @keyframes rowFlash{
+    0%{background:#FCE9C7;} 60%{background:#FCE9C7;} 100%{background:inherit;}
+  }
+  .pipe-red{color:var(--red); font-weight:700; background:var(--red-bg); padding:2px 6px; border-radius:2px; display:inline-block; font-family:'IBM Plex Mono',monospace;}
+  .pipe-normal{font-family:'IBM Plex Mono',monospace;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .tag{
+    display:inline-block; padding:2px 7px; border-radius:2px; font-size:11px; font-weight:600;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .tag-wait{background:var(--yellow-bg); color:var(--yellow); border:1px solid var(--yellow);}
+  .tag-other{background:#E7EEEE; color:var(--teal-deep); border:1px solid var(--teal);}
+  .tag-chem{background:var(--purple-bg); color:var(--purple); border:1px solid var(--purple);}
+  .tag-approved{background:var(--green-bg); color:var(--green-deep); border:1px solid var(--green);}
+  a.link-out{color:var(--teal-deep); font-weight:600;}
+  .del-btn{background:none; border:none; color:var(--red); cursor:pointer; font-size:14px;}
+  .table-scroll{overflow-x:auto; border:1px solid var(--line);}
+  .empty-state{padding:30px; text-align:center; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; font-size:13px;}
+
+  .summary-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px;}
+  .stat-card{
+    border:1px solid var(--line); border-radius:2px; padding:14px 16px; background:#FBFCFC;
+  }
+  .stat-card .label{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace;}
+  .stat-card .value{font-family:'IBM Plex Sans Condensed',sans-serif; font-size:26px; font-weight:700; margin-top:4px;}
+  .stat-card .sub{font-size:11.5px; color:var(--ink-soft); margin-top:3px;}
+  .stat-card .breakdown{font-size:12px; margin-top:6px; color:var(--ink-soft); line-height:1.6;}
+  .stat-card.accent-red .value{color:var(--red);}
+  .stat-card.accent-yellow .value{color:var(--yellow);}
+  .stat-card.accent-teal .value{color:var(--teal-deep);}
+  .stat-card.accent-purple .value{color:var(--purple);}
+  .stat-card.accent-green .value{color:var(--green-deep);}
+
+  .region-bars{margin-top:6px;}
+  .region-bar-row{display:flex; align-items:center; gap:8px; margin-bottom:7px; font-size:12.5px;}
+  .region-bar-row .rname{width:130px; flex-shrink:0; font-weight:600;}
+  .region-bar-track{flex:1; height:14px; background:#E7EBEC; border-radius:2px; overflow:hidden;}
+  .region-bar-fill{height:100%; background:var(--teal);}
+  .region-bar-row.top .region-bar-fill{background:var(--rust);}
+  .region-bar-row .rcount{width:30px; text-align:right; font-family:'IBM Plex Mono',monospace; flex-shrink:0;}
+
+  .compare-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px;}
+  .cmp-card{border:1px solid var(--line); border-radius:2px; padding:14px 16px;}
+  .cmp-card .label{font-size:11px; text-transform:uppercase; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; letter-spacing:.06em;}
+  .cmp-row{display:flex; justify-content:space-between; align-items:baseline; margin-top:8px;}
+  .cmp-row .v{font-family:'IBM Plex Sans Condensed',sans-serif; font-weight:700; font-size:20px;}
+  .delta{font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600; padding:2px 6px; border-radius:2px;}
+  .delta.up{color:#1A7A3E; background:#E1F4E7;}
+  .delta.down{color:var(--red); background:var(--red-bg);}
+  .delta.flat{color:var(--ink-soft); background:#EEF1F1;}
+
+  .legend{display:flex; gap:18px; flex-wrap:wrap; font-size:12px; color:var(--ink-soft); margin-top:8px;}
+  .legend span{display:flex; align-items:center; gap:6px;}
+  .legend i{width:13px;height:13px;border-radius:2px;display:inline-block;}
+  .legend i.r{background:var(--red-bg); border:1px solid var(--red);}
+  .legend i.y{background:var(--yellow-bg); border:1px solid var(--yellow);}
+  .legend i.g{background:var(--green-bg); border:1px solid var(--green);}
+  .week-banner{
+    background:var(--green-bg); border:1px solid var(--green); border-radius:2px; padding:8px 12px;
+    font-size:12.5px; color:var(--green-deep); margin-bottom:14px; font-family:'IBM Plex Mono',monospace;
+  }
+
+  .tabs{display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;}
+  .tab-btn{
+    font-family:'IBM Plex Sans Condensed',sans-serif; font-weight:700; text-transform:uppercase;
+    letter-spacing:.04em; font-size:13px; padding:11px 20px; border:1px solid var(--line);
+    background:#fff; color:var(--ink-soft); cursor:pointer; border-radius:2px;
+  }
+  .tab-btn.active{background:var(--ink); color:#fff; border-color:var(--ink);}
+  .tab-btn .count{font-family:'IBM Plex Mono',monospace; font-weight:600; margin-left:6px; opacity:.8;}
+
+  .tab-section{display:none;}
+  .tab-section.active{display:block;}
+
+  .vattu-box{
+    margin-top:16px; border:1px dashed var(--line); border-radius:2px; padding:14px; background:#FAFBFB;
+  }
+  .vattu-box h3{
+    font-family:'IBM Plex Sans Condensed',sans-serif; font-size:13px; text-transform:uppercase;
+    letter-spacing:.06em; color:var(--purple); margin:0 0 10px;
+  }
+  .vattu-add-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; align-items:end;}
+  .vattu-list{margin-top:12px;}
+  .vattu-chip{
+    display:flex; gap:10px; align-items:center; justify-content:space-between;
+    background:#fff; border:1px solid var(--line); border-radius:2px; padding:7px 10px; margin-bottom:6px; font-size:12.5px;
+  }
+  .vattu-chip .vinfo b{color:var(--ink);}
+  .vattu-chip .vinfo .vsub{color:var(--ink-soft); font-size:11.5px;}
+  .vattu-chip .vremove{background:none; border:none; color:var(--red); cursor:pointer; font-size:14px;}
+  .vattu-empty{font-size:12px; color:var(--ink-soft); font-style:italic;}
+
+  .cost-cell{font-family:'IBM Plex Mono',monospace;}
+  .toast{
+    position:fixed; bottom:24px; right:24px; background:var(--ink); color:#fff; padding:10px 18px;
+    border-radius:2px; font-size:13px; font-family:'IBM Plex Mono',monospace; opacity:0; transform:translateY(8px);
+    transition:all .25s ease; pointer-events:none; z-index:999;
+  }
+  .toast.show{opacity:1; transform:translateY(0);}
+  ::placeholder{color:#9AA8AF;}
+
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(21,38,59,0.45); display:none;
+    align-items:center; justify-content:center; z-index:1000; padding:20px;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal-box{
+    background:var(--card); border:1px solid var(--ink); border-radius:2px;
+    max-width:480px; width:100%; padding:22px 24px; position:relative;
+    box-shadow:0 8px 24px rgba(21,38,59,0.25);
+  }
+  .modal-box::before, .modal-box::after{
+    content:''; position:absolute; width:9px; height:9px; border:1.5px solid var(--ink);
+  }
+  .modal-box::before{top:-1px; left:-1px; border-right:0; border-bottom:0;}
+  .modal-box::after{bottom:-1px; right:-1px; border-left:0; border-top:0;}
+  .modal-box .modal-title{
+    font-family:'IBM Plex Sans Condensed',sans-serif; font-weight:700; font-size:15px;
+    text-transform:uppercase; letter-spacing:.06em; color:var(--rust); margin:0 0 10px;
+  }
+  .modal-box .modal-actions{display:flex; justify-content:flex-end; gap:10px;}
+  .modal-detail-body{max-height:52vh; overflow-y:auto; margin:0 -4px 4px; padding:0 4px;}
+
+  .modal-box.wide{max-width:720px;}
+  .link-check-wrap{display:flex; flex-direction:column; gap:4px; align-items:flex-start;}
+  .link-check-wrap .btn.small{padding:4px 9px; font-size:10.5px;}
+  .link-status{font-family:'IBM Plex Mono',monospace; font-size:11px;}
+  .link-ok{color:var(--green-deep);}
+  .link-bad{color:var(--red);}
+  .link-pending{color:var(--ink-soft);}
+  .btn.cleanup{background:var(--purple);}
+  .btn.cleanup:hover{background:#523a72;}
+  .btn.linkcheck{background:var(--yellow); color:var(--ink);}
+  .btn.linkcheck:hover{background:#b18b00;}
+  .scan-empty{padding:20px; text-align:center; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; font-size:13px;}
+  .linkscan-row{border-bottom:1px dashed var(--line); padding:8px 0; font-size:12.5px;}
+  .linkscan-row .lr-title{font-weight:600; color:var(--ink);}
+  .linkscan-row .lr-meta{color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; font-size:11px; margin-top:2px;}
+  .linkscan-row .lr-url{word-break:break-all; color:var(--teal-deep); font-size:11.5px;}
+  .linkscan-summary{font-size:12.5px; margin-bottom:10px; color:var(--ink-soft);}
+
+  /* ---- Màn hình đăng nhập ---- */
+  #wrap-app{display:none;}
+  #loginOverlay{
+    position:fixed; inset:0; background:var(--paper); z-index:9999;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  #loginOverlay.hide{display:none;}
+  .login-box{
+    background:#fff; border:1px solid var(--line); border-radius:4px; padding:32px 30px;
+    max-width:360px; width:100%; position:relative;
+  }
+  .login-box::before, .login-box::after{
+    content:''; position:absolute; width:9px; height:9px; border:1.5px solid var(--ink);
+  }
+  .login-box::before{top:-1px; left:-1px; border-right:0; border-bottom:0;}
+  .login-box::after{bottom:-1px; right:-1px; border-left:0; border-top:0;}
+  .login-box .eyebrow{font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.14em; color:var(--teal-deep); text-transform:uppercase; margin-bottom:6px;}
+  .login-box h1{font-family:'IBM Plex Sans Condensed', sans-serif; font-size:22px; margin:0 0 20px;}
+  .login-box .field{display:flex; flex-direction:column; gap:5px; margin-bottom:14px;}
+  .login-box .field label{font-size:12px; color:var(--ink-soft); font-weight:600;}
+  .login-box input{width:100%;}
+  .login-box .btn{width:100%; margin-top:6px;}
+  .login-error{color:var(--red); font-size:12.5px; margin-top:10px; min-height:16px;}
+  .login-loading{color:var(--ink-soft); font-size:12.5px; margin-top:10px;}
+  .logout-btn{background:#fff; color:var(--ink-soft); border:1px solid var(--line);}
+  .logout-btn:hover{background:#f2f2f2; color:var(--red);}
+</style>
+</head>
+<body>
+
+<div id="loginOverlay">
+  <div class="login-box">
+    <div class="eyebrow">Hệ thống quản lý vận hành</div>
+    <h1>Đăng nhập</h1>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="loginEmail" autocomplete="username" placeholder="ten@congty.com">
+    </div>
+    <div class="field">
+      <label>Mật khẩu</label>
+      <input type="password" id="loginPassword" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <button class="btn" id="loginBtn" type="button">Đăng nhập</button>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-loading" id="loginLoading" style="display:none;">Đang kiểm tra đăng nhập...</div>
+  </div>
+</div>
+
+<div id="wrap-app">
+<div class="wrap">
+
+  <header class="title-block">
+    <div>
+      <div class="eyebrow">Hệ thống quản lý vận hành</div>
+      <h1>Sổ Đề Xuất Hằng Ngày</h1>
+    </div>
+    <div class="header-actions">
+      <div class="meta" id="headerMeta">—</div>
+      <input type="file" id="importExcelInput" accept=".xlsx" style="display:none;">
+      <button class="btn secondary" id="migrateOldBtn" type="button" title="Quét LocalStorage của trình duyệt này và gộp dữ liệu cũ (nếu có) lên Firebase">📤 Cập nhật dữ liệu cũ</button>
+      <button class="btn linkcheck" id="linkScanBtn" type="button">🔗 Kiểm tra link</button>
+      <button class="btn secondary" id="importExcelBtn">⬆ Nhập Excel</button>
+      <button class="btn excel" id="exportExcelBtn">⬇ Xuất Excel</button>
+      <button class="btn logout-btn" id="logoutBtn" type="button">Đăng xuất</button>
+    </div>
+  </header>
+
+  <div class="panel">
+    <h2>Chọn ngày làm việc</h2>
+    <div class="date-row">
+      <label>Ngày tổng hợp:</label>
+      <input type="date" id="selDate">
+      <button class="btn secondary" id="prevDayBtn">‹ Ngày trước</button>
+      <button class="btn secondary" id="todayBtn">Hôm nay</button>
+      <button class="btn secondary" id="nextDayBtn">Ngày sau ›</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="incident" id="tabBtnIncident">1 · Sự cố tuyến ống <span class="count" id="countIncident">(0)</span></button>
+    <button class="tab-btn" data-tab="material" id="tabBtnMaterial">2 · Thay thế / Mua mới / Vật tư / Hóa chất <span class="count" id="countMaterial">(0)</span></button>
+    <button class="tab-btn" data-tab="search" id="tabBtnSearch">3 · Tìm kiếm &amp; Bộ lọc</button>
+    <button class="tab-btn" data-tab="weekly" id="tabBtnWeekly">4 · Báo cáo tuần</button>
+  </div>
+
+  <!-- ===================== TAB 1: SỰ CỐ TUYẾN ỐNG ===================== -->
+  <div class="tab-section active" id="tab-incident">
+
+    <div class="panel">
+      <h2 id="incFormTitle">Thêm đề xuất sự cố tuyến ống</h2>
+      <div class="form-grid">
+        <div class="field"><label>Ngày đề xuất</label><input type="date" id="i_ngay"></div>
+        <div class="field"><label>STT</label><input type="text" id="i_stt" placeholder="Tự động"></div>
+        <div class="field">
+          <label>Cơ sở</label>
+          <select id="i_coso">
+            <option value="">— Chọn —</option>
+            <option value="coso1">Cơ sở 1 (Bà Rịa - Vũng Tàu)</option>
+            <option value="coso2">Cơ sở 2 (Bình Dương)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Chi nhánh</label>
+          <select id="i_chinhanh">
+            <option value="">— Chọn —</option>
+          </select>
+        </div>
+        <div class="field"><label>Khu vực</label><input type="text" id="i_khuvuc" placeholder="VD: Quận 7" list="i_khuvuc_list"><datalist id="i_khuvuc_list"></datalist></div>
+        <div class="field"><label>Mã đề xuất</label><input type="text" id="i_made" placeholder="VD: DX-0125"></div>
+        <div class="field"><label>Người đề xuất</label><input type="text" id="i_nguoi" placeholder="Họ tên"></div>
+        <div class="field span2"><label>Nội dung đề xuất</label><input type="text" id="i_noidung" placeholder="Mô tả ngắn gọn"></div>
+        <div class="field"><label>ID</label><input type="text" id="i_id" placeholder="ID hệ thống"></div>
+        <div class="field">
+          <label>Loại ống</label>
+          <select id="i_loaiong">
+            <option value="">— Chọn —</option>
+            <option>Gang dẻo</option>
+            <option>HDPE</option>
+            <option>PVC</option>
+            <option>Thép</option>
+            <option>Khác</option>
+          </select>
+        </div>
+        <div class="field"><label>Đường kính (mm)</label><input type="number" id="i_duongkinh" placeholder="VD: 200"></div>
+        <div class="field"><label>Thu phí (VNĐ)</label><input type="number" id="i_thuphi" placeholder="0 nếu không thu"></div>
+        <div class="field span2"><label>Nguyên nhân</label><input type="text" id="i_nguyennhan" placeholder="Nguyên nhân đề xuất"></div>
+        <div class="field">
+          <label>Tình trạng</label>
+          <select id="i_tinhtrang">
+            <option>Chưa đưa lên đề xuất</option>
+            <option>Đã đưa lên đề xuất</option>
+            <option>Đang xử lý</option>
+            <option>Đã duyệt</option>
+            <option>Lãnh đạo đơn vị đã duyệt</option>
+            <option>Đã thi công</option>
+            <option>Từ chối</option>
+          </select>
+        </div>
+        <div class="field" id="i_ngayduyet_field" style="display:none;"><label>Ngày Phòng đưa lên đề xuất</label><input type="date" id="i_ngayduyet"></div>
+        <div class="field"><label>Đơn vị thực hiện</label><input type="text" id="i_donvithuchien" placeholder="VD: Đội thi công 1"></div>
+        <div class="field"><label>Đơn vị theo dõi</label><input type="text" id="i_donvitheodoi" placeholder="VD: Phòng kỹ thuật"></div>
+        <div class="field span2"><label>Ghi chú (nếu có)</label><input type="text" id="i_ghichu" placeholder="Ghi chú thêm — bỏ trống nếu không có"></div>
+        <div class="field span2"><label>Link đề xuất</label><input type="text" id="i_link" placeholder="https://..."></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn" id="incSaveBtn">+ Lưu đề xuất</button>
+        <button class="btn secondary" id="incCancelBtn" style="display:none;">Hủy chỉnh sửa</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Danh sách sự cố tuyến ống trong ngày</h2>
+      <div class="legend">
+        <span><i class="r"></i> Ống lớn ≥ 200mm</span>
+        <span><i class="y"></i> Chưa đưa lên đề xuất</span>
+        <span><i class="g"></i> Lãnh đạo đơn vị đã duyệt</span>
+      </div>
+      <div class="table-scroll" style="margin-top:12px;">
+        <table>
+          <thead>
+            <tr>
+              <th>STT</th><th>Chi nhánh</th><th>Khu vực</th><th>Mã ĐX</th><th>Người ĐX</th><th>Nội dung</th>
+              <th>ID</th><th>Loại ống</th><th>Ø (mm)</th><th>Thu phí</th><th>Nguyên nhân</th>
+              <th>Tình trạng</th><th>Ngày Phòng đưa lên ĐX</th><th>ĐV thực hiện</th><th>ĐV theo dõi</th><th>Ghi chú</th><th>Link</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="incTableBody"></tbody>
+        </table>
+      </div>
+      <div id="incEmptyState" class="empty-state" style="display:none;">Chưa có đề xuất sự cố tuyến ống nào trong ngày này.</div>
+      <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
+        <button class="btn secondary" id="incSortBtn" type="button">⇅ Sắp xếp theo Mã đề xuất (tăng dần)</button>
+        <button class="btn cleanup" id="incDupScanBtn" type="button">🔁 Dò trùng lặp ID</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== TAB 2: VẬT TƯ / HÓA CHẤT ===================== -->
+  <div class="tab-section" id="tab-material">
+
+    <div class="panel">
+      <h2 id="matFormTitle">Thêm đề xuất thay thế / mua mới / vật tư / hóa chất</h2>
+      <div class="form-grid">
+        <div class="field"><label>Ngày đề xuất</label><input type="date" id="m_ngay"></div>
+        <div class="field"><label>Số thứ tự</label><input type="text" id="m_stt" placeholder="Tự động"></div>
+        <div class="field">
+          <label>Cơ sở</label>
+          <select id="m_coso">
+            <option value="">— Chọn —</option>
+            <option value="coso1">Cơ sở 1 (Bà Rịa - Vũng Tàu)</option>
+            <option value="coso2">Cơ sở 2 (Bình Dương)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Chi nhánh</label>
+          <select id="m_chinhanh">
+            <option value="">— Chọn —</option>
+          </select>
+        </div>
+        <div class="field"><label>Khu vực</label><input type="text" id="m_khuvuc" placeholder="VD: Quận 7" list="m_khuvuc_list"><datalist id="m_khuvuc_list"></datalist></div>
+        <div class="field"><label>Mã đề xuất</label><input type="text" id="m_made" placeholder="VD: DX-V-0125"></div>
+        <div class="field span2"><label>Nội dung đề xuất</label><input type="text" id="m_noidung" placeholder="Mô tả ngắn gọn"></div>
+        <div class="field"><label>Đơn vị cung ứng</label><input type="text" id="m_cungung" placeholder="Nếu có"></div>
+        <div class="field"><label>Đơn vị thực hiện</label><input type="text" id="m_donvithuchien" placeholder="VD: Đội vật tư"></div>
+        <div class="field"><label>Đơn vị theo dõi</label><input type="text" id="m_donvitheodoi" placeholder="VD: Phòng kỹ thuật"></div>
+        <div class="field">
+          <label>Tình trạng</label>
+          <select id="m_tinhtrang">
+            <option>Chưa đưa lên đề xuất</option>
+            <option>Đã đưa lên đề xuất</option>
+            <option>Đang xử lý</option>
+            <option>Đã duyệt</option>
+            <option>Lãnh đạo đơn vị đã duyệt</option>
+            <option>Đã cấp phát</option>
+            <option>Từ chối</option>
+          </select>
+        </div>
+        <div class="field" id="m_ngayduyet_field" style="display:none;"><label>Ngày Phòng đưa lên đề xuất</label><input type="date" id="m_ngayduyet"></div>
+        <div class="field span2"><label>Ghi chú (nếu có)</label><input type="text" id="m_ghichu" placeholder="Ghi chú thêm — bỏ trống nếu không có"></div>
+        <div class="field span2"><label>Link đề xuất</label><input type="text" id="m_link" placeholder="https://..."></div>
+      </div>
+
+      <div class="vattu-box">
+        <h3>Danh sách vật tư / hóa chất trong đề xuất này</h3>
+        <div class="vattu-add-grid">
+          <div class="field"><label>Tên vật tư</label><input type="text" id="v_ten" placeholder="VD: Van cổng D200"></div>
+          <div class="field">
+            <label>Phân loại</label>
+            <select id="v_loai">
+              <option>Vật tư</option>
+              <option>Hóa chất</option>
+              <option>Khác</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Hình thức</label>
+            <select id="v_hinhthuc">
+              <option>Mua mới</option>
+              <option>Sửa chữa</option>
+              <option>Xuất từ kho</option>
+              <option>Nhập vào kho</option>
+              <option>Khác</option>
+            </select>
+          </div>
+          <div class="field" id="v_khoxuat_field" style="display:none;"><label>Xuất từ kho nào</label><input type="text" id="v_khoxuat" placeholder="VD: Kho vật tư Hồ Tràm"></div>
+          <div class="field"><label>Đơn vị tính</label><input type="text" id="v_donvi" placeholder="VD: cái, kg, lít"></div>
+          <div class="field"><label>Số lượng</label><input type="number" id="v_soluong" placeholder="0"></div>
+          <div class="field"><label>Chi phí (VNĐ)</label><input type="number" id="v_chiphi" placeholder="0 nếu không có"></div>
+          <div class="field"><button class="btn small" id="addVatTuBtn" type="button">+ Thêm vào danh sách</button></div>
+        </div>
+        <div class="vattu-list" id="vattuList">
+          <div class="vattu-empty">Chưa có vật tư nào được thêm vào đề xuất này.</div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn" id="matSaveBtn">+ Lưu đề xuất</button>
+        <button class="btn secondary" id="matCancelBtn" style="display:none;">Hủy chỉnh sửa</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Danh sách đề xuất vật tư / hóa chất trong ngày</h2>
+      <div class="legend">
+        <span><i class="y"></i> Chưa đưa lên đề xuất</span>
+        <span><i class="g"></i> Lãnh đạo đơn vị đã duyệt</span>
+      </div>
+      <div class="table-scroll" style="margin-top:12px;">
+        <table>
+          <thead>
+            <tr>
+              <th>STT</th><th>Chi nhánh</th><th>Khu vực</th><th>Mã ĐX</th><th>Nội dung</th><th>Vật tư / Hóa chất</th>
+              <th>Tổng chi phí</th><th>ĐV cung ứng</th><th>ĐV thực hiện</th><th>ĐV theo dõi</th>
+              <th>Tình trạng</th><th>Ngày Phòng đưa lên ĐX</th><th>Ghi chú</th><th>Link</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="matTableBody"></tbody>
+        </table>
+      </div>
+      <div id="matEmptyState" class="empty-state" style="display:none;">Chưa có đề xuất vật tư / hóa chất nào trong ngày này.</div>
+      <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
+        <button class="btn secondary" id="matSortBtn" type="button">⇅ Sắp xếp theo Mã đề xuất (tăng dần)</button>
+        <button class="btn cleanup" id="matDupScanBtn" type="button">🔁 Dò trùng lặp toàn bộ danh sách vật tư</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== TAB 3: TÌM KIẾM & BỘ LỌC ===================== -->
+  <div class="tab-section" id="tab-search">
+    <div class="panel">
+      <h2>Tìm kiếm &amp; Bộ lọc nâng cao</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label>Kiểu lọc theo ngày</label>
+          <select id="f_datemode">
+            <option value="range">Khoảng thời gian</option>
+            <option value="single">Một ngày cụ thể</option>
+            <option value="all">Toàn bộ (không giới hạn)</option>
+          </select>
+        </div>
+        <div class="field" id="f_singledate_field"><label>Ngày cụ thể</label><input type="date" id="f_singledate"></div>
+        <div class="field" id="f_fromdate_field"><label>Từ ngày</label><input type="date" id="f_fromdate"></div>
+        <div class="field" id="f_todate_field"><label>Đến ngày</label><input type="date" id="f_todate"></div>
+        <div class="field">
+          <label>Loại đề xuất</label>
+          <select id="f_loai">
+            <option value="all">Cả 2 loại</option>
+            <option value="incident">Sự cố tuyến ống</option>
+            <option value="material">Thay thế / Mua mới / Vật tư / Hóa chất</option>
+          </select>
+        </div>
+        <div class="field span2">
+          <label>Bộ lọc Tình trạng</label>
+          <select id="f_tinhtrang">
+            <option value="all">Tất cả tình trạng</option>
+            <option value="waiting">Chưa đưa lên đề xuất</option>
+            <option value="rejected">Đã hủy (Từ chối)</option>
+            <option value="pending_approval">Đã đưa lên nhưng lãnh đạo đơn vị chưa duyệt</option>
+            <option value="approved">Lãnh đạo đơn vị đã duyệt</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Cơ sở</label>
+          <select id="f_coso">
+            <option value="all">Tất cả cơ sở</option>
+            <option value="coso1">Cơ sở 1 (Bà Rịa - Vũng Tàu)</option>
+            <option value="coso2">Cơ sở 2 (Bình Dương)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Chi nhánh</label>
+          <select id="f_chinhanh">
+            <option value="all">Tất cả chi nhánh</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Khu vực</label>
+          <select id="f_khuvuc">
+            <option value="all">Tất cả khu vực</option>
+          </select>
+        </div>
+        <div class="field span2"><label>Từ khóa (Mã ĐX / ID / Nội dung / Khu vực)</label><input type="text" id="f_keyword" placeholder="Nhập từ khóa để lọc thêm — có thể bỏ trống"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn" id="searchBtn">🔍 Tìm kiếm</button>
+        <button class="btn secondary" id="searchResetBtn">Đặt lại bộ lọc</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Kết quả tìm kiếm <span class="count" id="searchResultCount" style="color:var(--ink-soft);">(0)</span></h2>
+      <div class="table-scroll" style="margin-top:12px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Ngày</th><th>Loại</th><th>STT</th><th>Chi nhánh</th><th>Khu vực</th><th>Mã ĐX</th><th>ID</th>
+              <th>Nội dung</th><th>Tình trạng</th><th>Ghi chú</th><th>Link</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="searchTableBody"></tbody>
+        </table>
+      </div>
+      <div id="searchEmptyState" class="empty-state">Chưa có kết quả — hãy chọn bộ lọc và bấm Tìm kiếm.</div>
+    </div>
+  </div>
+
+  <!-- ===================== TAB 4: BÁO CÁO TUẦN ===================== -->
+  <div class="tab-section" id="tab-weekly">
+    <div class="panel">
+      <h2>Chọn kỳ báo cáo</h2>
+      <div class="date-row">
+        <label>Loại báo cáo:</label>
+        <select id="wk_reporttype">
+          <option value="week">Báo cáo tuần</option>
+          <option value="month">Báo cáo tháng</option>
+        </select>
+        <label>Cơ sở:</label>
+        <select id="wk_reportcoso">
+          <option value="all">Tất cả</option>
+          <option value="coso1">Cơ sở 1 (Bà Rịa - Vũng Tàu)</option>
+          <option value="coso2">Cơ sở 2 (Bình Dương)</option>
+        </select>
+      </div>
+      <div class="date-row" id="wkWeekControls">
+        <label>Chọn 1 ngày bất kỳ trong tuần:</label>
+        <input type="date" id="wkRefDate">
+        <button class="btn secondary" id="wkPrevBtn">‹ Tuần trước</button>
+        <button class="btn secondary" id="wkThisWeekBtn">Tuần này</button>
+        <button class="btn secondary" id="wkNextBtn">Tuần sau ›</button>
+      </div>
+      <div class="date-row" id="wkMonthControls" style="display:none;">
+        <label>Chọn tháng:</label>
+        <input type="month" id="wkRefMonth">
+        <button class="btn secondary" id="wkPrevMonthBtn">‹ Tháng trước</button>
+        <button class="btn secondary" id="wkThisMonthBtn">Tháng này</button>
+        <button class="btn secondary" id="wkNextMonthBtn">Tháng sau ›</button>
+      </div>
+      <div class="date-row">
+        <button class="btn" id="wkViewBtn">Xem báo cáo tuần</button>
+        <button class="btn excel" id="wkExportExcelBtn" type="button">⬇ Xuất Excel tuần</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="week-banner" id="weekBanner">Tổng hợp tuần</div>
+      <h2 id="wkPeriodHeading">Tổng hợp đề xuất trong tuần (Thứ 2 – Thứ 6)</h2>
+      <div class="summary-grid">
+        <div class="stat-card accent-teal">
+          <div class="label">Tổng số đề xuất trong tuần</div>
+          <div class="value" id="wkTotal">0</div>
+        </div>
+        <div class="stat-card accent-red">
+          <div class="label">Sự cố tuyến ống</div>
+          <div class="value" id="wkIncidentTotal">0</div>
+          <div class="breakdown" id="wkIncidentBreak">Ống lớn: 0 · Ống nhỏ: 0</div>
+        </div>
+        <div class="stat-card accent-purple">
+          <div class="label">Vật tư / Hóa chất / Khác</div>
+          <div class="value" id="wkMaterialTotal">0</div>
+          <div class="breakdown" id="wkMaterialBreak">Hóa chất: 0 · Vật tư: 0 · Khác: 0</div>
+        </div>
+        <div class="stat-card accent-yellow">
+          <div class="label">Chưa đưa lên đề xuất</div>
+          <div class="value" id="wkWaiting">0</div>
+        </div>
+        <div class="stat-card accent-teal">
+          <div class="label">Đã đưa lên đề xuất</div>
+          <div class="value" id="wkSubmitted">0</div>
+        </div>
+        <div class="stat-card accent-green">
+          <div class="label">Lãnh đạo đơn vị đã duyệt</div>
+          <div class="value" id="wkApproved">0</div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <h2 id="wkBranchHeading" style="margin-bottom:10px;">Sơ đồ chi nhánh nhiều đề xuất nhất trong tuần</h2>
+        <div class="region-bars" id="wkBranchBars"></div>
+        <div class="sub mono" id="wkTopBranchNote" style="margin-top:8px; font-size:12.5px; color:var(--ink-soft);"></div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <h2 id="wkCompareHeading" style="margin-bottom:10px;">So sánh với tuần trước</h2>
+        <div class="compare-grid" id="wkCompareGrid"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 id="wkRegionHeading">Tổng hợp theo khu vực trong tuần</h2>
+      <div class="sub" style="margin-bottom:12px;">Chọn Chi nhánh và/hoặc Khu vực để xem chi tiết từng đề xuất — phục vụ làm báo cáo.</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Lọc theo Chi nhánh</label>
+          <select id="wk_chinhanh">
+            <option value="all">Tất cả chi nhánh</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Lọc theo Khu vực</label>
+          <select id="wk_khuvuc">
+            <option value="all">Tất cả khu vực</option>
+          </select>
+        </div>
+        <div class="field" style="display:flex; align-items:flex-end;">
+          <button class="btn" id="wkKhuVucDetailBtn" style="width:100%;">Xem chi tiết đề xuất</button>
+        </div>
+      </div>
+
+      <div class="table-scroll" style="margin-top:14px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Khu vực</th><th>Chi nhánh</th><th>Tổng số ĐX</th><th>Sự cố tuyến ống</th>
+              <th>Vật tư / Hóa chất</th><th>Chưa đưa lên</th><th>Đã duyệt</th><th>Chi phí (VNĐ)</th>
+            </tr>
+          </thead>
+          <tbody id="wkRegionTableBody"></tbody>
+        </table>
+      </div>
+      <div id="wkRegionEmptyState" class="empty-state">Chưa có dữ liệu khu vực trong tuần này.</div>
+      <div class="sub" style="margin-top:8px; font-size:12px;">💡 Bấm vào một dòng để xem nhanh chi tiết đề xuất của khu vực đó.</div>
+
+      <div id="wkRegionDetailWrap" style="display:none; margin-top:20px;">
+        <h2 id="wkRegionDetailTitle" style="margin-bottom:10px;">Chi tiết đề xuất</h2>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Ngày</th><th>Loại</th><th>STT</th><th>Mã ĐX</th><th>Nội dung</th>
+                <th>Người / ĐV thực hiện</th><th>Tình trạng</th><th>Chi phí</th><th>Ghi chú</th><th>Link</th>
+              </tr>
+            </thead>
+            <tbody id="wkRegionDetailBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== TỔNG HỢP ===================== -->
+  <div class="panel">
+    <h2>Tổng hợp trong ngày</h2>
+    <div class="summary-grid">
+      <div class="stat-card accent-teal">
+        <div class="label">Tổng số đề xuất</div>
+        <div class="value" id="statTotal">0</div>
+      </div>
+      <div class="stat-card accent-red">
+        <div class="label">Đề xuất sự cố tuyến ống</div>
+        <div class="value" id="statIncidentTotal">0</div>
+        <div class="breakdown" id="statIncidentBreak">Ống lớn (≥200mm): 0 · Ống nhỏ: 0</div>
+      </div>
+      <div class="stat-card accent-purple">
+        <div class="label">Đề xuất vật tư / hóa chất</div>
+        <div class="value" id="statMaterialTotal">0</div>
+        <div class="breakdown" id="statMaterialBreak">Hóa chất: 0 mục · Vật tư/khác: 0 mục</div>
+      </div>
+      <div class="stat-card accent-yellow">
+        <div class="label">Chưa đưa lên đề xuất</div>
+        <div class="value" id="statWaiting">0</div>
+        <div class="breakdown" id="statWaitingBreak">Đã đưa lên: 0</div>
+      </div>
+      <div class="stat-card accent-green">
+        <div class="label">Lãnh đạo đơn vị đã duyệt</div>
+        <div class="value" id="statApproved">0</div>
+        <div class="breakdown" id="statApprovedBreak">—</div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <h2 style="margin-bottom:10px;">Tổng chi phí trong ngày</h2>
+      <div class="summary-grid">
+        <div class="stat-card">
+          <div class="label">Thu phí tuyến ống</div>
+          <div class="value" id="statFeeIncident">0 ₫</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Chi phí vật tư / hóa chất</div>
+          <div class="value" id="statFeeMaterial">0 ₫</div>
+        </div>
+        <div class="stat-card accent-teal">
+          <div class="label">Tổng cộng</div>
+          <div class="value" id="statFeeTotal">0 ₫</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <h2 style="margin-bottom:10px;">Số đề xuất theo khu vực (cả 2 loại)</h2>
+      <div class="region-bars" id="regionBars"></div>
+      <div class="sub mono" id="topRegionNote" style="margin-top:8px; font-size:12.5px; color:var(--ink-soft);"></div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <h2 style="margin-bottom:10px;">Thu/chi theo khu vực</h2>
+      <div id="feeByRegion" class="mono" style="font-size:12.5px; line-height:1.9;"></div>
+      <div class="sub" id="feeMaxMinNote" style="margin-top:8px; font-size:12.5px; font-weight:600;"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>So sánh với ngày hôm trước</h2>
+    <div class="compare-grid" id="compareGrid"></div>
+  </div>
+
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="linkScanModalOverlay">
+  <div class="modal-box wide">
+    <div class="modal-title">🔗 Kết quả kiểm tra link</div>
+    <div class="linkscan-summary" id="linkScanSummary"></div>
+    <div class="modal-detail-body" id="linkScanModalBody"></div>
+    <div class="modal-actions">
+      <button class="btn secondary" id="linkScanModalCloseBtn">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="dupModalOverlay">
+  <div class="modal-box wide">
+    <div class="modal-title" id="dupModalTitle">🔁 Kết quả dò trùng lặp</div>
+    <div class="linkscan-summary" id="dupModalSummary"></div>
+    <div class="modal-detail-body">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:30px;"><input type="checkbox" id="dupSelectAll"></th>
+              <th>Nhóm</th><th>Ngày</th><th>Chi nhánh</th><th>Khu vực</th><th>Mã ĐX</th>
+              <th>Nội dung</th><th>Chi tiết trùng</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="dupTableBody"></tbody>
+        </table>
+      </div>
+      <div id="dupEmptyState" class="scan-empty" style="display:none;">Không phát hiện trùng lặp nào 🎉</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn danger" id="dupDeleteSelectedBtn">Xóa mục đã chọn</button>
+      <button class="btn secondary" id="dupModalCloseBtn">Đóng</button>
+    </div>
+  </div>
+</div>
+</div>
+
+
+<script>
+const $ = id => document.getElementById(id);
+let editingIncidentId = null;
+let editingIncidentSourceDate = null;
+let editingMaterialId = null;
+let editingMaterialSourceDate = null;
+let currentDate = todayStr();
+let currentVatTuRows = [];
+let activeTab = 'incident';
+
+// ---------- CƠ SỞ / CHI NHÁNH / KHU VỰC DATA ----------
+const COSO_DATA = {
+  coso1: {
+    label: 'Cơ sở 1 (Bà Rịa - Vũng Tàu)',
+    branches: {
+      'Hồ Tràm': [],
+      'Đất Đỏ': [],
+      'Xuân Sơn': [],
+      'Châu Pha': []
+    }
+  },
+  coso2: {
+    label: 'Cơ sở 2 (Bình Dương)',
+    branches: {
+      'Phước Hòa': ['Phước Hòa','Tân Bình','Bình Mỹ','Tân Lập','An Bình','Vĩnh Hòa','Tam Lập','Tân Hiệp','Tân Long','An Long','Phước Sang','An Thái','An Linh','Trừ Văn Thố'],
+      'Định Hiệp': ['Long Tân','Long Hòa','An Lập','Thanh Tuyền','Thanh An','Minh Tân','Minh Thạnh','Định Thành','Định Hiệp','Định Lộc','Minh Hòa','Định An'],
+      'Bạch Đằng': ['Cây Dừng (Hiếu Liêm 1)','Cây Dâu (Hiếu Liêm 2)','Lạc An','Thường Tân-Tân Mỹ','Bạch Đằng','Thạnh Hội']
+    }
+  }
+};
+const BRANCH_TO_COSO = {};
+Object.keys(COSO_DATA).forEach(cid=>{
+  Object.keys(COSO_DATA[cid].branches).forEach(b=>{ BRANCH_TO_COSO[b] = cid; });
+});
+function cosoLabel(cid){ return COSO_DATA[cid] ? COSO_DATA[cid].label : ''; }
+function getCosoOfBranch(branch){ return BRANCH_TO_COSO[branch] || ''; }
+function getBranchesForCoso(cid){
+  if(!cid || cid==='all') return Object.keys(BRANCH_TO_COSO);
+  return COSO_DATA[cid] ? Object.keys(COSO_DATA[cid].branches) : [];
+}
+function getKhuVucSuggestions(branch){
+  const cid = getCosoOfBranch(branch);
+  if(!cid) return [];
+  return COSO_DATA[cid].branches[branch] || [];
+}
+// Điền option Chi nhánh vào 1 thẻ <select> dựa theo Cơ sở đã chọn.
+// mode 'entry' -> dùng cho form nhập (không có "Tất cả"); mode 'filter' -> dùng cho bộ lọc (có "Tất cả chi nhánh")
+function populateChiNhanhSelect(selectEl, cosoVal, mode, keepValue){
+  const prev = keepValue!==undefined ? keepValue : selectEl.value;
+  let html = '';
+  if(mode==='filter') html += '<option value="all">Tất cả chi nhánh</option>';
+  else html += '<option value="">— Chọn —</option>';
+  if(!cosoVal || cosoVal==='all'){
+    Object.keys(COSO_DATA).forEach(cid=>{
+      html += `<optgroup label="${escapeHtml(COSO_DATA[cid].label)}">`;
+      Object.keys(COSO_DATA[cid].branches).forEach(b=>{ html += `<option>${escapeHtml(b)}</option>`; });
+      html += '</optgroup>';
+    });
+  } else {
+    getBranchesForCoso(cosoVal).forEach(b=>{ html += `<option>${escapeHtml(b)}</option>`; });
+  }
+  selectEl.innerHTML = html;
+  const values = Array.from(selectEl.options).map(o=>o.value);
+  if(values.includes(prev)) selectEl.value = prev;
+}
+function updateKhuVucDatalist(datalistEl, branch){
+  const list = getKhuVucSuggestions(branch);
+  datalistEl.innerHTML = list.map(v=>`<option value="${escapeHtml(v)}"></option>`).join('');
+}
+
+function pad2(n){ return String(n).padStart(2,'0'); }
+function todayStr(){
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+}
+function parseDateUTC(d){
+  const [y,m,day] = d.split('-').map(Number);
+  return new Date(Date.UTC(y, m-1, day));
+}
+function fmtDateUTC(dt){
+  return `${dt.getUTCFullYear()}-${pad2(dt.getUTCMonth()+1)}-${pad2(dt.getUTCDate())}`;
+}
+function shiftDateStr(d, delta){
+  const dt = parseDateUTC(d);
+  dt.setUTCDate(dt.getUTCDate()+delta);
+  return fmtDateUTC(dt);
+}
+function prevDateStr(d){ return shiftDateStr(d, -1); }
+function nextDateStr(d){ return shiftDateStr(d, 1); }
+function getISODay(d){ const wd = parseDateUTC(d).getUTCDay(); return wd===0 ? 7 : wd; } // Mon=1..Sun=7
+function fmtDateVN(d){ if(!d) return ''; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; }
+function getWeekDates(d){
+  const iso = getISODay(d);
+  const monday = parseDateUTC(d);
+  monday.setUTCDate(monday.getUTCDate() - (iso-1));
+  const days = [];
+  for(let i=0;i<5;i++){ const x = new Date(monday); x.setUTCDate(monday.getUTCDate()+i); days.push(fmtDateUTC(x)); }
+  return days;
+}
+function currentMonthStr(){ const d=new Date(); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}`; }
+function getMonthDates(monthStr){
+  const [y,m] = monthStr.split('-').map(Number);
+  const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const days = [];
+  for(let d=1; d<=daysInMonth; d++){ days.push(`${y}-${pad2(m)}-${pad2(d)}`); }
+  return days;
+}
+function shiftMonthStr(monthStr, delta){
+  const [y,m] = monthStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m-1+delta, 1));
+  return `${dt.getUTCFullYear()}-${pad2(dt.getUTCMonth()+1)}`;
+}
+function fmtMonthVN(monthStr){ const [y,m] = monthStr.split('-'); return `Tháng ${m}/${y}`; }
+function fmtVND(n){ if(!n) return '0 ₫'; return Number(n).toLocaleString('vi-VN') + ' ₫'; }
+function showToast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+
+// ---- Bộ nhớ đệm để giảm số lần đọc Firestore trong 1 phiên làm việc ----
+const __cache = new Map();
+
+async function loadKey(key){
+  if(__cache.has(key)) return __cache.get(key);
+  try{
+    const snap = await __db.collection(__COLLECTION).doc(key).get();
+    const arr = (snap.exists && Array.isArray(snap.data().items)) ? snap.data().items : [];
+    __cache.set(key, arr);
+    return arr;
+  }catch(e){
+    console.error('loadKey error', key, e);
+    showToast('Lỗi tải dữ liệu từ máy chủ (kiểm tra kết nối mạng / cấu hình Firebase)');
+    return [];
+  }
+}
+async function saveKey(key, arr){
+  try{
+    await __db.collection(__COLLECTION).doc(key).set({
+      items: arr,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    __cache.set(key, arr);
+    __allKeysCache = null; // dữ liệu có thể có key mới, làm mới cache danh sách key
+  }catch(e){
+    console.error('saveKey error', key, e);
+    showToast('Lỗi lưu dữ liệu lên máy chủ (kiểm tra kết nối mạng / cấu hình Firebase)');
+  }
+}
+const incidentKey = d => 'incidents:' + d;
+const materialKey = d => 'materials:' + d;
+
+// ---------- CẬP NHẬT (GỘP) DỮ LIỆU CŨ TỪ LOCALSTORAGE LÊN FIREBASE ----------
+// Dùng cho trường hợp máy này còn dữ liệu của bản HTML cũ (trước khi có Firebase),
+// lưu trong LocalStorage của trình duyệt với các key dạng "incidents:YYYY-MM-DD"
+// và "materials:YYYY-MM-DD". Hàm này KHÔNG xoá dữ liệu đã có trên Firebase,
+// chỉ thêm vào những đề xuất (theo uid) chưa từng tồn tại trên đó.
+function scanLocalStorageOldData(){
+  const found = [];
+  for(let i=0; i<localStorage.length; i++){
+    const k = localStorage.key(i);
+    if(!k || !(k.startsWith('incidents:') || k.startsWith('materials:'))) continue;
+    try{
+      const arr = JSON.parse(localStorage.getItem(k));
+      if(Array.isArray(arr) && arr.length) found.push({key:k, items:arr});
+    }catch(e){ console.warn('Bỏ qua key LocalStorage không đọc được:', k, e); }
+  }
+  return found;
+}
+
+async function migrateOldLocalData(){
+  const found = scanLocalStorageOldData();
+  if(!found.length){
+    showToast('Không tìm thấy dữ liệu cũ nào trong LocalStorage của trình duyệt này.');
+    return;
+  }
+  const totalItems = found.reduce((s,f)=>s+f.items.length, 0);
+  const ok = confirm(
+    `Tìm thấy dữ liệu cũ của ${found.length} ngày (tổng ${totalItems} đề xuất) đang lưu trong trình duyệt này (LocalStorage).\n\n`+
+    `Dữ liệu này sẽ được GỘP vào Firebase — KHÔNG xoá dữ liệu đang có, chỉ thêm những đề xuất chưa tồn tại. Tiếp tục?`
+  );
+  if(!ok) return;
+
+  showToast('Đang cập nhật dữ liệu cũ lên Firebase, vui lòng đợi...');
+  const btn = $('migrateOldBtn');
+  if(btn) btn.disabled = true;
+  let addedTotal = 0, skippedTotal = 0, errorTotal = 0;
+  for(const f of found){
+    let cloudArr = [];
+    try{
+      const snap = await __db.collection(__COLLECTION).doc(f.key).get();
+      cloudArr = (snap.exists && Array.isArray(snap.data().items)) ? snap.data().items : [];
+    }catch(e){
+      console.error('Lỗi đọc dữ liệu Firebase cho key', f.key, e);
+      errorTotal++;
+      continue;
+    }
+    const existingUids = new Set(cloudArr.map(x=>x && x.uid));
+    const toAdd = f.items.filter(x=> x && x.uid && !existingUids.has(x.uid));
+    skippedTotal += (f.items.length - toAdd.length);
+    if(toAdd.length){
+      try{
+        await saveKey(f.key, [...cloudArr, ...toAdd]);
+        addedTotal += toAdd.length;
+      }catch(e){
+        console.error('Lỗi lưu dữ liệu lên Firebase cho key', f.key, e);
+        errorTotal++;
+      }
+    }
+  }
+  if(btn) btn.disabled = false;
+  __allKeysCache = null; // danh sách key có thể đã thay đổi
+  let msg = `✅ Đã cập nhật xong: thêm ${addedTotal} đề xuất mới lên Firebase`;
+  if(skippedTotal) msg += `, bỏ qua ${skippedTotal} mục đã tồn tại`;
+  if(errorTotal) msg += `, ${errorTotal} mục lỗi (xem Console)`;
+  showToast(msg + '.');
+  render();
+}
+$('migrateOldBtn').addEventListener('click', migrateOldLocalData);
+
+// ---------- TAB SWITCH ----------
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    activeTab = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b===btn));
+    $('tab-incident').classList.toggle('active', activeTab==='incident');
+    $('tab-material').classList.toggle('active', activeTab==='material');
+    $('tab-search').classList.toggle('active', activeTab==='search');
+    $('tab-weekly').classList.toggle('active', activeTab==='weekly');
+    if(activeTab==='weekly'){
+      if(!$('wkRefDate').value) $('wkRefDate').value = currentDate;
+      if(!$('wkRefMonth').value) $('wkRefMonth').value = currentMonthStr();
+      refreshReportView();
+    }
+    if(activeTab==='search'){ refreshSearchKhuVucOptions(); }
+  });
+});
+
+// ---------- TOGGLE "Ngày Phòng đưa lên đề xuất" FIELD ----------
+function toggleNgayDuyetField(selectId, fieldId){
+  const isApproved = $(selectId).value === 'Lãnh đạo đơn vị đã duyệt';
+  $(fieldId).style.display = isApproved ? '' : 'none';
+  if(!isApproved){
+    const inputId = fieldId.replace('_field','');
+    $(inputId).value = '';
+  }
+}
+$('i_tinhtrang').addEventListener('change', ()=>toggleNgayDuyetField('i_tinhtrang','i_ngayduyet_field'));
+$('m_tinhtrang').addEventListener('change', ()=>toggleNgayDuyetField('m_tinhtrang','m_ngayduyet_field'));
+
+// ---------- CƠ SỞ → CHI NHÁNH → KHU VỰC (cascading) CHO FORM NHẬP ----------
+$('i_coso').addEventListener('change', ()=>{
+  populateChiNhanhSelect($('i_chinhanh'), $('i_coso').value, 'entry', '');
+  updateKhuVucDatalist($('i_khuvuc_list'), $('i_chinhanh').value);
+});
+$('i_chinhanh').addEventListener('change', ()=>{
+  updateKhuVucDatalist($('i_khuvuc_list'), $('i_chinhanh').value);
+});
+$('m_coso').addEventListener('change', ()=>{
+  populateChiNhanhSelect($('m_chinhanh'), $('m_coso').value, 'entry', '');
+  updateKhuVucDatalist($('m_khuvuc_list'), $('m_chinhanh').value);
+});
+$('m_chinhanh').addEventListener('change', ()=>{
+  updateKhuVucDatalist($('m_khuvuc_list'), $('m_chinhanh').value);
+});
+
+// ---------- TOGGLE "Xuất từ kho nào" FIELD ----------
+function toggleKhoXuatField(){
+  const isXuatKho = $('v_hinhthuc').value === 'Xuất từ kho';
+  $('v_khoxuat_field').style.display = isXuatKho ? '' : 'none';
+  if(!isXuatKho) $('v_khoxuat').value = '';
+}
+$('v_hinhthuc').addEventListener('change', toggleKhoXuatField);
+
+// ---------- FORM RESET ----------
+function clearIncidentForm(){
+  ['i_stt','i_khuvuc','i_made','i_nguoi','i_noidung','i_id','i_duongkinh','i_thuphi','i_nguyennhan','i_donvithuchien','i_donvitheodoi','i_ghichu','i_link','i_ngayduyet'].forEach(id=>$(id).value='');
+  $('i_loaiong').value='';
+  $('i_coso').value='';
+  populateChiNhanhSelect($('i_chinhanh'), '', 'entry', '');
+  updateKhuVucDatalist($('i_khuvuc_list'), '');
+  $('i_tinhtrang').value='Chưa đưa lên đề xuất';
+  $('i_ngay').value = currentDate;
+  editingIncidentId = null;
+  editingIncidentSourceDate = null;
+  $('incFormTitle').textContent = 'Thêm đề xuất sự cố tuyến ống';
+  $('incCancelBtn').style.display = 'none';
+  toggleNgayDuyetField('i_tinhtrang','i_ngayduyet_field');
+}
+function clearMaterialForm(){
+  ['m_stt','m_khuvuc','m_made','m_noidung','m_donvithuchien','m_donvitheodoi','m_ghichu','m_link','m_cungung','m_ngayduyet'].forEach(id=>$(id).value='');
+  $('m_coso').value='';
+  populateChiNhanhSelect($('m_chinhanh'), '', 'entry', '');
+  updateKhuVucDatalist($('m_khuvuc_list'), '');
+  $('m_tinhtrang').value='Chưa đưa lên đề xuất';
+  $('m_ngay').value = currentDate;
+  editingMaterialId = null;
+  editingMaterialSourceDate = null;
+  currentVatTuRows = [];
+  renderVatTuList();
+  $('matFormTitle').textContent = 'Thêm đề xuất thay thế / mua mới / vật tư / hóa chất';
+  $('matCancelBtn').style.display = 'none';
+  clearVatTuInputs();
+  toggleNgayDuyetField('m_tinhtrang','m_ngayduyet_field');
+}
+function clearVatTuInputs(){
+  ['v_ten','v_donvi','v_soluong','v_chiphi','v_khoxuat'].forEach(id=>$(id).value='');
+  $('v_loai').value='Vật tư';
+  $('v_hinhthuc').value='Mua mới';
+  toggleKhoXuatField();
+}
+
+// ---------- VAT TU SUB-LIST ----------
+function renderVatTuList(){
+  const box = $('vattuList');
+  if(!currentVatTuRows.length){
+    box.innerHTML = '<div class="vattu-empty">Chưa có vật tư nào được thêm vào đề xuất này.</div>';
+    return;
+  }
+  box.innerHTML = currentVatTuRows.map((v,idx) => `
+    <div class="vattu-chip">
+      <div class="vinfo">
+        <b>${v.ten}</b> <span class="tag ${v.loai==='Hóa chất'?'tag-chem':'tag-other'}">${v.loai}</span>
+        <div class="vsub">${v.hinhthuc}${v.khoXuat ? ' — Kho: '+v.khoXuat : ''} · ${v.soluong||0} ${v.donvi||''} · ${fmtVND(v.chiphi)}</div>
+      </div>
+      <button class="vremove" data-idx="${idx}">✕</button>
+    </div>
+  `).join('');
+  box.querySelectorAll('.vremove').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      currentVatTuRows.splice(Number(b.dataset.idx),1);
+      renderVatTuList();
+    });
+  });
+}
+$('addVatTuBtn').addEventListener('click', ()=>{
+  const ten = $('v_ten').value.trim();
+  if(!ten){ showToast('Nhập tên vật tư trước khi thêm'); return; }
+  currentVatTuRows.push({
+    ten, loai: $('v_loai').value, hinhthuc: $('v_hinhthuc').value,
+    khoXuat: $('v_hinhthuc').value === 'Xuất từ kho' ? $('v_khoxuat').value.trim() : '',
+    donvi: $('v_donvi').value.trim(), soluong: $('v_soluong').value,
+    chiphi: $('v_chiphi').value
+  });
+  clearVatTuInputs();
+  renderVatTuList();
+});
+
+// ---------- INCIDENT CRUD ----------
+function escapeHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function linkCell(item, ctx){
+  if(!item.link) return '';
+  const cid = `lnkstat_${ctx}_${item.uid}`;
+  return `<div class="link-check-wrap">
+    <a class="link-out" href="${escapeHtml(item.link)}" target="_blank" rel="noopener">${escapeHtml(item.link)} ↗</a>
+    <button class="btn small secondary link-check-btn" data-url="${escapeHtml(item.link)}" data-target="${cid}" type="button">Check</button>
+    <span class="link-status" id="${cid}"></span>
+  </div>`;
+}
+function linkCellShort(item, ctx){
+  if(!item.link) return '';
+  const cid = `lnkstat_${ctx}_${item.uid}`;
+  return `<div class="link-check-wrap">
+    <a class="link-out" href="${escapeHtml(item.link)}" target="_blank" rel="noopener">Mở ↗</a>
+    <button class="btn small secondary link-check-btn" data-url="${escapeHtml(item.link)}" data-target="${cid}" type="button">Check</button>
+    <span class="link-status" id="${cid}"></span>
+  </div>`;
+}
+$('incSaveBtn').addEventListener('click', async ()=>{
+  const targetUid = editingIncidentId;
+  const sourceDate = targetUid ? (editingIncidentSourceDate || currentDate) : currentDate;
+  const targetDate = $('i_ngay').value || currentDate;
+  const made = $('i_made').value.trim();
+  const noidung = $('i_noidung').value.trim();
+
+  const sourceList = targetUid ? await loadKey(incidentKey(sourceDate)) : [];
+  const existing = targetUid ? sourceList.find(x=>x.uid===targetUid) : null;
+  const destList = (targetUid && targetDate===sourceDate) ? sourceList : await loadKey(incidentKey(targetDate));
+
+  const stt = $('i_stt').value.trim() || (existing ? existing.stt : String(destList.length+1));
+
+  const data = {
+    uid: targetUid || ('i_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)),
+    stt, khuvuc:$('i_khuvuc').value.trim(), chinhanh:$('i_chinhanh').value, made, nguoi:$('i_nguoi').value.trim(),
+    noidung, id:$('i_id').value.trim(), loaiong:$('i_loaiong').value,
+    duongkinh:$('i_duongkinh').value, thuphi:$('i_thuphi').value, nguyennhan:$('i_nguyennhan').value.trim(),
+    tinhtrang:$('i_tinhtrang').value, ngayduyet:$('i_ngayduyet').value, donvithuchien:$('i_donvithuchien').value.trim(),
+    donvitheodoi:$('i_donvitheodoi').value.trim(), ghichu:$('i_ghichu').value.trim(), link:$('i_link').value.trim(),
+    updatedAt: Date.now()
+  };
+  if(!data.khuvuc && !data.made){ showToast('Vui lòng nhập ít nhất Khu vực hoặc Mã đề xuất'); return; }
+
+  if(targetUid){
+    if(targetDate !== sourceDate){
+      await saveKey(incidentKey(sourceDate), sourceList.filter(x=>x.uid!==targetUid));
+      await saveKey(incidentKey(targetDate), [...destList, data]);
+      showToast(`Đã cập nhật và chuyển đề xuất sang ngày ${fmtDateVN(targetDate)}`);
+    } else {
+      await saveKey(incidentKey(targetDate), destList.map(x=>x.uid===targetUid?data:x));
+      showToast('Đã cập nhật đề xuất');
+    }
+  } else {
+    await saveKey(incidentKey(targetDate), [...destList, data]);
+    showToast('Đã thêm đề xuất sự cố tuyến ống');
+  }
+  currentDate = targetDate;
+  clearIncidentForm();
+  render();
+});
+$('incCancelBtn').addEventListener('click', clearIncidentForm);
+
+// ---------- MATERIAL CRUD ----------
+$('matSaveBtn').addEventListener('click', async ()=>{
+  if(!currentVatTuRows.length){ showToast('Vui lòng thêm ít nhất một vật tư / hóa chất'); return; }
+  const targetUid = editingMaterialId;
+  const sourceDate = targetUid ? (editingMaterialSourceDate || currentDate) : currentDate;
+  const targetDate = $('m_ngay').value || currentDate;
+  const made = $('m_made').value.trim();
+  const noidung = $('m_noidung').value.trim();
+
+  const sourceList = targetUid ? await loadKey(materialKey(sourceDate)) : [];
+  const existing = targetUid ? sourceList.find(x=>x.uid===targetUid) : null;
+  const destList = (targetUid && targetDate===sourceDate) ? sourceList : await loadKey(materialKey(targetDate));
+
+  const stt = $('m_stt').value.trim() || (existing ? existing.stt : String(destList.length+1));
+
+  const data = {
+    uid: targetUid || ('m_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)),
+    stt, khuvuc:$('m_khuvuc').value.trim(), chinhanh:$('m_chinhanh').value, made, noidung,
+    vattu: [...currentVatTuRows], cungung:$('m_cungung').value.trim(),
+    donvithuchien:$('m_donvithuchien').value.trim(), donvitheodoi:$('m_donvitheodoi').value.trim(),
+    tinhtrang:$('m_tinhtrang').value, ngayduyet:$('m_ngayduyet').value, ghichu:$('m_ghichu').value.trim(), link:$('m_link').value.trim(),
+    updatedAt: Date.now()
+  };
+  if(!data.khuvuc && !data.made){ showToast('Vui lòng nhập ít nhất Khu vực hoặc Mã đề xuất'); return; }
+
+  if(targetUid){
+    if(targetDate !== sourceDate){
+      await saveKey(materialKey(sourceDate), sourceList.filter(x=>x.uid!==targetUid));
+      await saveKey(materialKey(targetDate), [...destList, data]);
+      showToast(`Đã cập nhật và chuyển đề xuất sang ngày ${fmtDateVN(targetDate)}`);
+    } else {
+      await saveKey(materialKey(targetDate), destList.map(x=>x.uid===targetUid?data:x));
+      showToast('Đã cập nhật đề xuất');
+    }
+  } else {
+    await saveKey(materialKey(targetDate), [...destList, data]);
+    showToast('Đã thêm đề xuất vật tư / hóa chất');
+  }
+  currentDate = targetDate;
+  clearMaterialForm();
+  render();
+});
+$('matCancelBtn').addEventListener('click', clearMaterialForm);
+
+// ---------- SORT (persist ascending order + renumber STT) ----------
+function naturalSttCompare(a,b){
+  const na = parseFloat(String(a==null?'':a).replace(',', '.'));
+  const nb = parseFloat(String(b==null?'':b).replace(',', '.'));
+  const aNum = !isNaN(na), bNum = !isNaN(nb);
+  if(aNum && bNum) return na-nb;
+  return String(a||'').localeCompare(String(b||''), undefined, {numeric:true});
+}
+function naturalMaDeXuatCompare(a,b){
+  return String(a||'').localeCompare(String(b||''), undefined, {numeric:true, sensitivity:'base'});
+}
+$('incSortBtn').addEventListener('click', async ()=>{
+  const list = await loadKey(incidentKey(currentDate));
+  if(!list.length){ showToast('Không có đề xuất nào để sắp xếp'); return; }
+  list.sort((a,b)=>naturalMaDeXuatCompare(a.made,b.made));
+  list.forEach((x,i)=>{ x.stt = String(i+1); });
+  await saveKey(incidentKey(currentDate), list);
+  showToast('Đã sắp xếp theo Mã đề xuất và đánh lại STT theo thứ tự tăng dần');
+  render();
+});
+$('matSortBtn').addEventListener('click', async ()=>{
+  const list = await loadKey(materialKey(currentDate));
+  if(!list.length){ showToast('Không có đề xuất nào để sắp xếp'); return; }
+  list.sort((a,b)=>naturalMaDeXuatCompare(a.made,b.made));
+  list.forEach((x,i)=>{ x.stt = String(i+1); });
+  await saveKey(materialKey(currentDate), list);
+  showToast('Đã sắp xếp theo Mã đề xuất và đánh lại Số thứ tự theo thứ tự tăng dần');
+  render();
+});
+
+
+function loadIncidentIntoForm(item){
+  $('i_ngay').value = currentDate; $('i_stt').value=item.stt||''; $('i_khuvuc').value=item.khuvuc||'';
+  $('i_coso').value = getCosoOfBranch(item.chinhanh||'') || '';
+  populateChiNhanhSelect($('i_chinhanh'), $('i_coso').value, 'entry', item.chinhanh||'');
+  updateKhuVucDatalist($('i_khuvuc_list'), item.chinhanh||'');
+  $('i_made').value=item.made||''; $('i_nguoi').value=item.nguoi||''; $('i_noidung').value=item.noidung||'';
+  $('i_id').value=item.id||''; $('i_loaiong').value=item.loaiong||''; $('i_duongkinh').value=item.duongkinh||'';
+  $('i_thuphi').value=item.thuphi||''; $('i_nguyennhan').value=item.nguyennhan||'';
+  $('i_tinhtrang').value=item.tinhtrang||'Chưa đưa lên đề xuất'; $('i_ngayduyet').value=item.ngayduyet||''; $('i_donvithuchien').value=item.donvithuchien||'';
+  $('i_donvitheodoi').value=item.donvitheodoi||''; $('i_ghichu').value=item.ghichu||''; $('i_link').value=item.link||'';
+  editingIncidentId = item.uid;
+  editingIncidentSourceDate = currentDate;
+  $('incFormTitle').textContent = 'Chỉnh sửa đề xuất — '+(item.made||'');
+  $('incCancelBtn').style.display='inline-block';
+  toggleNgayDuyetField('i_tinhtrang','i_ngayduyet_field');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function loadMaterialIntoForm(item){
+  $('m_ngay').value=currentDate; $('m_stt').value=item.stt||''; $('m_khuvuc').value=item.khuvuc||'';
+  $('m_coso').value = getCosoOfBranch(item.chinhanh||'') || '';
+  populateChiNhanhSelect($('m_chinhanh'), $('m_coso').value, 'entry', item.chinhanh||'');
+  updateKhuVucDatalist($('m_khuvuc_list'), item.chinhanh||'');
+  $('m_made').value=item.made||''; $('m_noidung').value=item.noidung||''; $('m_cungung').value=item.cungung||'';
+  $('m_donvithuchien').value=item.donvithuchien||'';
+  $('m_donvitheodoi').value=item.donvitheodoi||''; $('m_tinhtrang').value=item.tinhtrang||'Chưa đưa lên đề xuất';
+  $('m_ngayduyet').value=item.ngayduyet||'';
+  $('m_ghichu').value=item.ghichu||''; $('m_link').value=item.link||'';
+  currentVatTuRows = (item.vattu||[]).map(v=>({...v}));
+  renderVatTuList();
+  editingMaterialId = item.uid;
+  editingMaterialSourceDate = currentDate;
+  $('matFormTitle').textContent = 'Chỉnh sửa đề xuất — '+(item.made||'');
+  $('matCancelBtn').style.display='inline-block';
+  toggleNgayDuyetField('m_tinhtrang','m_ngayduyet_field');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function materialTotalCost(item){
+  return (item.vattu||[]).reduce((s,v)=>s+(Number(v.chiphi)||0),0);
+}
+
+// ---------- RENDER ----------
+async function render(){
+  $('selDate').value = currentDate;
+  $('i_ngay').value = currentDate;
+  $('m_ngay').value = currentDate;
+  $('headerMeta').textContent = 'Ngày: ' + currentDate;
+
+  const incidents = await loadKey(incidentKey(currentDate));
+  const materials = await loadKey(materialKey(currentDate));
+  incidents.sort((a,b)=>(a.stt||'').localeCompare(b.stt||'',undefined,{numeric:true}));
+  materials.sort((a,b)=>(a.stt||'').localeCompare(b.stt||'',undefined,{numeric:true}));
+
+  $('countIncident').textContent = `(${incidents.length})`;
+  $('countMaterial').textContent = `(${materials.length})`;
+
+  // ----- Incident table -----
+  const incBody = $('incTableBody'); incBody.innerHTML='';
+  $('incEmptyState').style.display = incidents.length ? 'none' : 'block';
+  incidents.forEach(e=>{
+    const isBig = Number(e.duongkinh) >= 200;
+    const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
+    const isApproved = e.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
+    const tr = document.createElement('tr');
+    tr.dataset.uid = e.uid;
+    if(isApproved) tr.classList.add('row-green');
+    else if(isWaiting) tr.classList.add('row-yellow');
+    let tinhtrangCell = e.tinhtrang||'';
+    const tagCls = isApproved ? 'tag-approved' : (isWaiting ? 'tag-wait' : 'tag-other');
+    tr.innerHTML = `
+      <td class="mono">${e.stt||''}</td><td>${e.chinhanh||''}</td><td>${e.khuvuc||''}</td><td class="mono">${e.made||''}</td>
+      <td>${e.nguoi||''}</td><td>${e.noidung||''}</td><td class="mono">${e.id||''}</td><td>${e.loaiong||''}</td>
+      <td>${e.duongkinh ? `<span class="${isBig?'pipe-red':'pipe-normal'}">${e.duongkinh}</span>` : ''}</td>
+      <td class="mono">${fmtVND(e.thuphi)}</td><td>${e.nguyennhan||''}</td>
+      <td><span class="tag ${tagCls}">${tinhtrangCell}</span></td>
+      <td>${isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : ''}</td>
+      <td>${e.donvithuchien||''}</td><td>${e.donvitheodoi||''}</td><td>${e.ghichu||''}</td>
+      <td>${linkCellShort(e,'inc')}</td>
+      <td><button class="del-btn" data-act="edit" data-id="${e.uid}" title="Sửa">✎</button>
+      <button class="del-btn" data-act="del" data-id="${e.uid}" title="Xóa">✕</button></td>
+    `;
+    incBody.appendChild(tr);
+  });
+  incBody.querySelectorAll('button[data-act]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const list = await loadKey(incidentKey(currentDate));
+      if(btn.dataset.act==='del'){
+        await saveKey(incidentKey(currentDate), list.filter(x=>x.uid!==btn.dataset.id));
+        showToast('Đã xóa đề xuất'); render();
+      } else {
+        const item = list.find(x=>x.uid===btn.dataset.id);
+        if(item) loadIncidentIntoForm(item);
+      }
+    });
+  });
+
+  // ----- Material table -----
+  const matBody = $('matTableBody'); matBody.innerHTML='';
+  $('matEmptyState').style.display = materials.length ? 'none' : 'block';
+  materials.forEach(e=>{
+    const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
+    const isApproved = e.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
+    const total = materialTotalCost(e);
+    const vattuHtml = (e.vattu||[]).map(v=>`${v.ten}${v.loai==='Hóa chất'?' <span class="tag tag-chem">HC</span>':(v.loai==='Khác'?' <span class="tag tag-other">Khác</span>':' <span class="tag tag-other">VT</span>')} <span class="mono" style="color:var(--ink-soft)">(${v.hinhthuc}${v.khoXuat?' — kho: '+v.khoXuat:''}, ${v.soluong||0} ${v.donvi||''})</span>`).join('<br>');
+    const tr = document.createElement('tr');
+    tr.dataset.uid = e.uid;
+    if(isApproved) tr.classList.add('row-green');
+    else if(isWaiting) tr.classList.add('row-yellow');
+    let tinhtrangCell = e.tinhtrang||'';
+    const tagCls = isApproved ? 'tag-approved' : (isWaiting ? 'tag-wait' : 'tag-other');
+    tr.innerHTML = `
+      <td class="mono">${e.stt||''}</td><td>${e.chinhanh||''}</td><td>${e.khuvuc||''}</td><td class="mono">${e.made||''}</td>
+      <td>${e.noidung||''}</td><td>${vattuHtml||''}</td><td class="cost-cell">${fmtVND(total)}</td>
+      <td>${e.cungung||''}</td><td>${e.donvithuchien||''}</td><td>${e.donvitheodoi||''}</td>
+      <td><span class="tag ${tagCls}">${tinhtrangCell}</span></td>
+      <td>${isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : ''}</td>
+      <td>${e.ghichu||''}</td>
+      <td>${linkCellShort(e,'mat')}</td>
+      <td><button class="del-btn" data-act="edit" data-id="${e.uid}" title="Sửa">✎</button>
+      <button class="del-btn" data-act="del" data-id="${e.uid}" title="Xóa">✕</button></td>
+    `;
+    matBody.appendChild(tr);
+  });
+  matBody.querySelectorAll('button[data-act]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const list = await loadKey(materialKey(currentDate));
+      if(btn.dataset.act==='del'){
+        await saveKey(materialKey(currentDate), list.filter(x=>x.uid!==btn.dataset.id));
+        showToast('Đã xóa đề xuất'); render();
+      } else {
+        const item = list.find(x=>x.uid===btn.dataset.id);
+        if(item) loadMaterialIntoForm(item);
+      }
+    });
+  });
+
+  // ----- Summary -----
+  const total = incidents.length + materials.length;
+  const bigPipe = incidents.filter(e=>Number(e.duongkinh)>=200).length;
+  const smallPipe = incidents.length - bigPipe;
+  const feeIncident = incidents.reduce((s,e)=>s+(Number(e.thuphi)||0),0);
+  const feeMaterial = materials.reduce((s,e)=>s+materialTotalCost(e),0);
+
+  let chemCount=0, vatTuCount=0, otherCount=0;
+  materials.forEach(e=>(e.vattu||[]).forEach(v=>{
+    if(v.loai==='Hóa chất') chemCount++;
+    else if(v.loai==='Khác') otherCount++;
+    else vatTuCount++;
+  }));
+
+  const waitingCount = incidents.filter(e=>e.tinhtrang==='Chưa đưa lên đề xuất').length
+                     + materials.filter(e=>e.tinhtrang==='Chưa đưa lên đề xuất').length;
+  const approvedCount = incidents.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length
+                       + materials.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length;
+  const submittedCount = total - waitingCount;
+
+  $('statTotal').textContent = total;
+  $('statIncidentTotal').textContent = incidents.length;
+  $('statIncidentBreak').textContent = `Ống lớn (≥200mm): ${bigPipe} · Ống nhỏ: ${smallPipe}`;
+  $('statMaterialTotal').textContent = materials.length;
+  $('statMaterialBreak').textContent = `Hóa chất: ${chemCount} mục · Vật tư: ${vatTuCount} mục · Khác: ${otherCount} mục`;
+  $('statWaiting').textContent = waitingCount;
+  $('statWaitingBreak').textContent = `Đã đưa lên: ${submittedCount}`;
+  $('statApproved').textContent = approvedCount;
+  $('statApprovedBreak').textContent = approvedCount ? `${approvedCount} đề xuất đã được LĐ đơn vị duyệt` : 'Chưa có đề xuất nào được duyệt';
+  $('statFeeIncident').textContent = fmtVND(feeIncident);
+  $('statFeeMaterial').textContent = fmtVND(feeMaterial);
+  $('statFeeTotal').textContent = fmtVND(feeIncident + feeMaterial);
+
+  // Region (combined)
+  const regionCount = {}, regionMoney = {};
+  incidents.forEach(e=>{ const r=e.khuvuc||'Chưa rõ'; regionCount[r]=(regionCount[r]||0)+1; regionMoney[r]=(regionMoney[r]||0)+(Number(e.thuphi)||0); });
+  materials.forEach(e=>{ const r=e.khuvuc||'Chưa rõ'; regionCount[r]=(regionCount[r]||0)+1; regionMoney[r]=(regionMoney[r]||0)+materialTotalCost(e); });
+  const regions = Object.keys(regionCount);
+  const maxCount = Math.max(1, ...Object.values(regionCount));
+  const topRegion = regions.length ? regions.sort((a,b)=>regionCount[b]-regionCount[a])[0] : null;
+
+  $('regionBars').innerHTML = regions.length ? regions.sort((a,b)=>regionCount[b]-regionCount[a]).map(r=>`
+    <div class="region-bar-row ${r===topRegion?'top':''}">
+      <div class="rname">${r}</div>
+      <div class="region-bar-track"><div class="region-bar-fill" style="width:${(regionCount[r]/maxCount*100)}%"></div></div>
+      <div class="rcount">${regionCount[r]}</div>
+    </div>`).join('') : '<div class="empty-state">Không có dữ liệu</div>';
+  $('topRegionNote').textContent = regions.length ? `→ Khu vực nhiều đề xuất nhất: ${topRegion} (${regionCount[topRegion]} đề xuất)` : '';
+
+  const feeRows = regions.sort((a,b)=>regionMoney[b]-regionMoney[a]).map(r=>`${r}: <strong>${fmtVND(regionMoney[r])}</strong>`).join('<br>');
+  $('feeByRegion').innerHTML = feeRows || 'Không có dữ liệu';
+  if(regions.length){
+    const maxR = regions.reduce((a,b)=>regionMoney[a]>=regionMoney[b]?a:b);
+    const minR = regions.reduce((a,b)=>regionMoney[a]<=regionMoney[b]?a:b);
+    $('feeMaxMinNote').innerHTML = `→ Thu/chi nhiều nhất: <span style="color:var(--teal-deep)">${maxR} (${fmtVND(regionMoney[maxR])})</span> &nbsp;|&nbsp; Ít nhất: <span style="color:var(--ink-soft)">${minR} (${fmtVND(regionMoney[minR])})</span>`;
+  } else { $('feeMaxMinNote').textContent=''; }
+
+  // Comparison with previous day
+  const prevDate = prevDateStr(currentDate);
+  const prevIncidents = await loadKey(incidentKey(prevDate));
+  const prevMaterials = await loadKey(materialKey(prevDate));
+  const prevTotal = prevIncidents.length + prevMaterials.length;
+  const prevBig = prevIncidents.filter(e=>Number(e.duongkinh)>=200).length;
+  const prevFee = prevIncidents.reduce((s,e)=>s+(Number(e.thuphi)||0),0) + prevMaterials.reduce((s,e)=>s+materialTotalCost(e),0);
+
+  $('compareGrid').innerHTML = [
+    cmpCard('Tổng đề xuất', total, prevTotal, prevDate, ''),
+    cmpCard('Ống lớn (≥200mm) xử lý', bigPipe, prevBig, prevDate, ''),
+    cmpCard('Tổng chi phí (tuyến ống + vật tư)', feeIncident+feeMaterial, prevFee, prevDate, '₫')
+  ].join('');
+
+}
+
+async function aggregateRange(dateList){
+  const agg = { incidents:[], materials:[] };
+  for(const d of dateList){
+    (await loadKey(incidentKey(d))).forEach(e=>agg.incidents.push({...e, __date:d}));
+    (await loadKey(materialKey(d))).forEach(e=>agg.materials.push({...e, __date:d}));
+  }
+  return agg;
+}
+
+async function renderWeeklySummary(dateStr){
+  if(!dateStr) dateStr = currentDate;
+  $('wkRefDate').value = dateStr;
+  const weekDates = getWeekDates(dateStr);
+  const bannerLabel = `Tuần từ ${fmtDateVN(weekDates[0])} đến ${fmtDateVN(weekDates[4])} (Thứ 2 → Thứ 6)`;
+  const prevWeekDates = getWeekDates(shiftDateStr(dateStr, -7));
+  const prevLabel = `${fmtDateVN(prevWeekDates[0])}–${fmtDateVN(prevWeekDates[4])}`;
+  await renderPeriodSummary(weekDates, bannerLabel, 'week', prevWeekDates, prevLabel, 'trong tuần');
+}
+
+async function renderMonthlySummary(monthStr){
+  if(!monthStr) monthStr = currentMonthStr();
+  $('wkRefMonth').value = monthStr;
+  const monthDates = getMonthDates(monthStr);
+  const bannerLabel = `${fmtMonthVN(monthStr)} (${fmtDateVN(monthDates[0])} – ${fmtDateVN(monthDates[monthDates.length-1])})`;
+  const prevMonth = shiftMonthStr(monthStr, -1);
+  const prevMonthDates = getMonthDates(prevMonth);
+  const prevLabel = fmtMonthVN(prevMonth);
+  await renderPeriodSummary(monthDates, bannerLabel, 'month', prevMonthDates, prevLabel, 'trong tháng');
+}
+
+async function renderPeriodSummary(periodDates, bannerLabel, kind, prevPeriodDates, prevLabel, periodWord){
+  $('weekBanner').textContent = bannerLabel;
+  if($('wkPeriodHeading')) $('wkPeriodHeading').textContent = kind==='month' ? 'Tổng hợp đề xuất trong tháng' : 'Tổng hợp đề xuất trong tuần (Thứ 2 – Thứ 6)';
+  if($('wkBranchHeading')) $('wkBranchHeading').textContent = `Sơ đồ chi nhánh nhiều đề xuất nhất ${periodWord}`;
+  if($('wkCompareHeading')) $('wkCompareHeading').textContent = kind==='month' ? 'So sánh với tháng trước' : 'So sánh với tuần trước';
+  if($('wkRegionHeading')) $('wkRegionHeading').textContent = `Tổng hợp theo khu vực ${periodWord}`;
+
+  const cosoFilter = $('wk_reportcoso') ? $('wk_reportcoso').value : 'all';
+  let { incidents: wkIncidents, materials: wkMaterials } = await aggregateRange(periodDates);
+  if(cosoFilter && cosoFilter!=='all'){
+    wkIncidents = wkIncidents.filter(e=>getCosoOfBranch(e.chinhanh)===cosoFilter);
+    wkMaterials = wkMaterials.filter(e=>getCosoOfBranch(e.chinhanh)===cosoFilter);
+  }
+  const wkTotal = wkIncidents.length + wkMaterials.length;
+  const wkBig = wkIncidents.filter(e=>Number(e.duongkinh)>=200).length;
+  const wkSmall = wkIncidents.length - wkBig;
+  let wkChem=0, wkVatTu=0, wkKhac=0;
+  wkMaterials.forEach(e=>(e.vattu||[]).forEach(v=>{
+    if(v.loai==='Hóa chất') wkChem++; else if(v.loai==='Khác') wkKhac++; else wkVatTu++;
+  }));
+  const wkWaiting = wkIncidents.filter(e=>e.tinhtrang==='Chưa đưa lên đề xuất').length
+                  + wkMaterials.filter(e=>e.tinhtrang==='Chưa đưa lên đề xuất').length;
+  const wkApproved = wkIncidents.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length
+                    + wkMaterials.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length;
+  const wkSubmitted = wkTotal - wkWaiting;
+
+  $('wkTotal').textContent = wkTotal;
+  $('wkIncidentTotal').textContent = wkIncidents.length;
+  $('wkIncidentBreak').textContent = `Ống lớn: ${wkBig} · Ống nhỏ: ${wkSmall}`;
+  $('wkMaterialTotal').textContent = wkMaterials.length;
+  $('wkMaterialBreak').textContent = `Hóa chất: ${wkChem} mục · Vật tư: ${wkVatTu} mục · Khác: ${wkKhac} mục`;
+  $('wkWaiting').textContent = wkWaiting;
+  $('wkSubmitted').textContent = wkSubmitted;
+  $('wkApproved').textContent = wkApproved;
+
+  // Branch breakdown (chi nhánh) — giới hạn theo Cơ sở đang lọc
+  const branches = getBranchesForCoso(cosoFilter);
+  const branchCount = {}; branches.forEach(b=>branchCount[b]=0);
+  const branchRegionCount = {}; branches.forEach(b=>branchRegionCount[b]={});
+  [...wkIncidents, ...wkMaterials].forEach(e=>{
+    const b = e.chinhanh;
+    if(b && branchCount.hasOwnProperty(b)){
+      branchCount[b]++;
+      const r = e.khuvuc || 'Chưa rõ';
+      branchRegionCount[b][r] = (branchRegionCount[b][r]||0) + 1;
+    }
+  });
+  const maxBranchCount = Math.max(1, ...Object.values(branchCount));
+  const sortedBranches = [...branches].sort((a,b)=>branchCount[b]-branchCount[a]);
+  const topBranch = branchCount[sortedBranches[0]] > 0 ? sortedBranches[0] : null;
+
+  $('wkBranchBars').innerHTML = sortedBranches.map(b=>`
+    <div class="region-bar-row ${b===topBranch?'top':''}">
+      <div class="rname">${b}</div>
+      <div class="region-bar-track"><div class="region-bar-fill" style="width:${(branchCount[b]/maxBranchCount*100)}%"></div></div>
+      <div class="rcount">${branchCount[b]}</div>
+    </div>`).join('');
+
+  if(topBranch){
+    const regs = branchRegionCount[topBranch];
+    const topRegionInBranch = Object.keys(regs).length ? Object.keys(regs).sort((a,b)=>regs[b]-regs[a])[0] : null;
+    $('wkTopBranchNote').textContent = `→ Chi nhánh nhiều đề xuất nhất: ${topBranch} (${branchCount[topBranch]} đề xuất)`
+      + (topRegionInBranch ? ` — khu vực nổi bật: ${topRegionInBranch} (${regs[topRegionInBranch]} đề xuất)` : '');
+  } else {
+    $('wkTopBranchNote').textContent = `Chưa có dữ liệu chi nhánh ${periodWord} này.`;
+  }
+
+  // Compare with previous period
+  let { incidents: pwIncidents, materials: pwMaterials } = await aggregateRange(prevPeriodDates);
+  if(cosoFilter && cosoFilter!=='all'){
+    pwIncidents = pwIncidents.filter(e=>getCosoOfBranch(e.chinhanh)===cosoFilter);
+    pwMaterials = pwMaterials.filter(e=>getCosoOfBranch(e.chinhanh)===cosoFilter);
+  }
+  const pwTotal = pwIncidents.length + pwMaterials.length;
+  const pwBig = pwIncidents.filter(e=>Number(e.duongkinh)>=200).length;
+  const pwApproved = pwIncidents.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length
+                    + pwMaterials.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length;
+  const pwFee = pwIncidents.reduce((s,e)=>s+(Number(e.thuphi)||0),0) + pwMaterials.reduce((s,e)=>s+materialTotalCost(e),0);
+  const wkFee = wkIncidents.reduce((s,e)=>s+(Number(e.thuphi)||0),0) + wkMaterials.reduce((s,e)=>s+materialTotalCost(e),0);
+
+  const totalLabel = kind==='month' ? 'Tổng đề xuất trong tháng' : 'Tổng đề xuất trong tuần';
+  const feeLabel = kind==='month' ? 'Tổng chi phí trong tháng' : 'Tổng chi phí trong tuần';
+  $('wkCompareGrid').innerHTML = [
+    cmpCard(totalLabel, wkTotal, pwTotal, prevLabel, ''),
+    cmpCard('Ống lớn (≥200mm)', wkBig, pwBig, prevLabel, ''),
+    cmpCard('Lãnh đạo đơn vị đã duyệt', wkApproved, pwApproved, prevLabel, ''),
+    cmpCard(feeLabel, wkFee, pwFee, prevLabel, '₫')
+  ].join('');
+
+  // Sắp xếp mã đề xuất tăng dần + đánh lại STT hiển thị (phục vụ báo cáo)
+  wkIncidents.sort((a,b)=>naturalMaDeXuatCompare(a.made,b.made));
+  wkMaterials.sort((a,b)=>naturalMaDeXuatCompare(a.made,b.made));
+  wkIncidents.forEach((e,i)=>{ e.__reportStt = i+1; });
+  wkMaterials.forEach((e,i)=>{ e.__reportStt = i+1; });
+
+  // Cache for the khu-vực filter panel below
+  weeklyDataCache = { incidents: wkIncidents, materials: wkMaterials, weekDates: periodDates, kind, bannerLabel, cosoFilter };
+  populateChiNhanhSelect($('wk_chinhanh'), cosoFilter, 'filter');
+  $('wkRegionDetailWrap').style.display = 'none';
+  refreshWkKhuVucOptions();
+  renderWkRegionTable();
+}
+
+
+// ---------- WEEKLY: TỔNG HỢP THEO KHU VỰC ----------
+let weeklyDataCache = { incidents: [], materials: [], weekDates: [] };
+
+function wkFilteredEntries(chinhanhFilter){
+  const all = [
+    ...weeklyDataCache.incidents.map(e=>({...e, __loai:'incident'})),
+    ...weeklyDataCache.materials.map(e=>({...e, __loai:'material'}))
+  ];
+  if(!chinhanhFilter || chinhanhFilter==='all') return all;
+  return all.filter(e => (e.chinhanh||'')===chinhanhFilter);
+}
+
+function refreshWkKhuVucOptions(){
+  const chinhanhFilter = $('wk_chinhanh').value;
+  const prevSelected = $('wk_khuvuc').value;
+  const entries = wkFilteredEntries(chinhanhFilter);
+  const set = new Set();
+  entries.forEach(e=>{ if(e.khuvuc && e.khuvuc.trim()) set.add(e.khuvuc.trim()); });
+  const options = Array.from(set).sort((a,b)=>a.localeCompare(b,'vi'));
+  $('wk_khuvuc').innerHTML = '<option value="all">Tất cả khu vực</option>'
+    + options.map(o=>`<option>${escapeHtml(o)}</option>`).join('');
+  if(options.includes(prevSelected)) $('wk_khuvuc').value = prevSelected;
+}
+
+function renderWkRegionTable(){
+  const chinhanhFilter = $('wk_chinhanh').value;
+  const entries = wkFilteredEntries(chinhanhFilter);
+
+  const groups = {}; // key: khuvuc -> stats
+  entries.forEach(e=>{
+    const kv = (e.khuvuc||'').trim() || 'Chưa rõ';
+    if(!groups[kv]) groups[kv] = { khuvuc: kv, chinhanhs: new Set(), total:0, incident:0, material:0, waiting:0, approved:0, cost:0 };
+    const g = groups[kv];
+    g.total++;
+    if(e.chinhanh) g.chinhanhs.add(e.chinhanh);
+    if(e.__loai==='incident'){ g.incident++; g.cost += Number(e.thuphi)||0; }
+    else { g.material++; g.cost += materialTotalCost(e); }
+    if(e.tinhtrang==='Chưa đưa lên đề xuất') g.waiting++;
+    if(e.tinhtrang==='Lãnh đạo đơn vị đã duyệt') g.approved++;
+  });
+  const rows = Object.values(groups).sort((a,b)=>b.total-a.total);
+
+  const body = $('wkRegionTableBody'); body.innerHTML = '';
+  $('wkRegionEmptyState').style.display = rows.length ? 'none' : 'block';
+  rows.forEach(g=>{
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    tr.dataset.khuvuc = g.khuvuc;
+    tr.innerHTML = `
+      <td>${escapeHtml(g.khuvuc)}</td>
+      <td>${escapeHtml(Array.from(g.chinhanhs).join(', ') || '—')}</td>
+      <td class="mono">${g.total}</td>
+      <td class="mono">${g.incident}</td>
+      <td class="mono">${g.material}</td>
+      <td class="mono">${g.waiting}</td>
+      <td class="mono">${g.approved}</td>
+      <td class="cost-cell">${fmtVND(g.cost)}</td>
+    `;
+    tr.addEventListener('click', ()=>{
+      $('wk_khuvuc').value = Array.from($('wk_khuvuc').options).some(o=>o.value===g.khuvuc) ? g.khuvuc : 'all';
+      renderWkRegionDetail($('wk_khuvuc').value, chinhanhFilter);
+    });
+    body.appendChild(tr);
+  });
+}
+
+function renderWkRegionDetail(khuvucFilter, chinhanhFilter){
+  let entries = wkFilteredEntries(chinhanhFilter);
+  if(khuvucFilter && khuvucFilter!=='all'){
+    entries = entries.filter(e => (e.khuvuc||'').trim() === khuvucFilter);
+  }
+  // Sắp xếp theo Mã đề xuất tăng dần rồi đánh lại STT tăng dần để phục vụ báo cáo
+  entries.sort((a,b)=> naturalMaDeXuatCompare(a.made,b.made));
+
+  const parts = [];
+  if(chinhanhFilter && chinhanhFilter!=='all') parts.push(`Chi nhánh: ${chinhanhFilter}`);
+  parts.push(khuvucFilter && khuvucFilter!=='all' ? `Khu vực: ${khuvucFilter}` : 'Tất cả khu vực');
+  $('wkRegionDetailTitle').textContent = `Chi tiết đề xuất — ${parts.join(' · ')} (${entries.length} đề xuất)`;
+
+  const body = $('wkRegionDetailBody'); body.innerHTML = '';
+  entries.forEach((e,idx)=>{
+    const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
+    const isApproved = e.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
+    const tagCls = isApproved ? 'tag-approved' : (isWaiting ? 'tag-wait' : 'tag-other');
+    const cost = e.__loai==='incident' ? (Number(e.thuphi)||0) : materialTotalCost(e);
+    const nguoiOrDv = e.__loai==='incident' ? (e.nguoi||'') : (e.donvithuchien||'');
+    const tr = document.createElement('tr');
+    if(isApproved) tr.classList.add('row-green');
+    else if(isWaiting) tr.classList.add('row-yellow');
+    tr.innerHTML = `
+      <td class="mono">${fmtDateVN(e.__date || '')}</td>
+      <td>${e.__loai==='incident' ? 'Sự cố tuyến ống' : 'Vật tư / Hóa chất'}</td>
+      <td class="mono">${idx+1}</td>
+      <td class="mono">${escapeHtml(e.made)}</td>
+      <td>${escapeHtml(e.noidung)}</td>
+      <td>${escapeHtml(nguoiOrDv)}</td>
+      <td><span class="tag ${tagCls}">${escapeHtml(e.tinhtrang)}</span></td>
+      <td class="cost-cell">${fmtVND(cost)}</td>
+      <td>${escapeHtml(e.ghichu)}</td>
+      <td>${linkCellShort(e,'wk')}</td>
+    `;
+    body.appendChild(tr);
+  });
+  $('wkRegionDetailWrap').style.display = '';
+}
+
+$('wk_chinhanh').addEventListener('change', ()=>{
+  refreshWkKhuVucOptions();
+  renderWkRegionTable();
+  $('wkRegionDetailWrap').style.display = 'none';
+});
+$('wkKhuVucDetailBtn').addEventListener('click', ()=>{
+  renderWkRegionDetail($('wk_khuvuc').value, $('wk_chinhanh').value);
+});
+
+function cmpCard(label, today, prev, prevDate, unit){
+  const diff = today - prev;
+  let cls='flat', arrow='→';
+  if(diff>0){cls='up';arrow='▲';} else if(diff<0){cls='down';arrow='▼';}
+  const diffText = unit==='₫' ? fmtVND(Math.abs(diff)) : Math.abs(diff);
+  const todayText = unit==='₫' ? fmtVND(today) : today;
+  const prevText = unit==='₫' ? fmtVND(prev) : prev;
+  return `<div class="cmp-card"><div class="label">${label}</div>
+    <div class="cmp-row"><span>Hôm nay</span><span class="v">${todayText}</span></div>
+    <div class="cmp-row"><span style="font-size:11px;color:var(--ink-soft)">Hôm trước (${prevDate})</span><span style="font-size:13px;color:var(--ink-soft)">${prevText}</span></div>
+    <div style="margin-top:10px;"><span class="delta ${cls}">${arrow} ${diffText}</span></div></div>`;
+}
+
+// ---------- DATE NAV ----------
+$('selDate').addEventListener('change', e=>{ currentDate=e.target.value; clearIncidentForm(); clearMaterialForm(); render(); });
+// Đồng bộ "Ngày đề xuất" trong form với "Ngày làm việc" ở thanh điều hướng —
+// đổi ngày ở form sẽ tự cập nhật ngày làm việc (và ngược lại), tránh lệch ngày khi lưu.
+function syncWorkingDateFromForm(newDate){
+  if(!newDate || newDate === currentDate) return;
+  currentDate = newDate;
+  render();
+}
+$('i_ngay').addEventListener('change', e=> syncWorkingDateFromForm(e.target.value));
+$('m_ngay').addEventListener('change', e=> syncWorkingDateFromForm(e.target.value));
+$('prevDayBtn').addEventListener('click', ()=>{ currentDate=prevDateStr(currentDate); clearIncidentForm(); clearMaterialForm(); render(); });
+$('nextDayBtn').addEventListener('click', ()=>{ currentDate=nextDateStr(currentDate); clearIncidentForm(); clearMaterialForm(); render(); });
+$('todayBtn').addEventListener('click', ()=>{ currentDate=todayStr(); clearIncidentForm(); clearMaterialForm(); render(); });
+
+// ---------- WEEKLY / MONTHLY REPORT TAB NAV ----------
+function currentReportKind(){ return $('wk_reporttype').value; }
+function refreshReportView(){
+  if(currentReportKind()==='month') renderMonthlySummary($('wkRefMonth').value || currentMonthStr());
+  else renderWeeklySummary($('wkRefDate').value || currentDate);
+}
+function updatePeriodControlsVisibility(){
+  const isMonth = currentReportKind()==='month';
+  $('wkWeekControls').style.display = isMonth ? 'none' : '';
+  $('wkMonthControls').style.display = isMonth ? '' : 'none';
+  $('wkViewBtn').textContent = isMonth ? 'Xem báo cáo tháng' : 'Xem báo cáo tuần';
+  $('wkExportExcelBtn').textContent = isMonth ? '⬇ Xuất Excel tháng' : '⬇ Xuất Excel tuần';
+}
+$('wk_reporttype').addEventListener('change', ()=>{
+  updatePeriodControlsVisibility();
+  refreshReportView();
+});
+$('wk_reportcoso').addEventListener('change', refreshReportView);
+$('wkViewBtn').addEventListener('click', refreshReportView);
+$('wkThisWeekBtn').addEventListener('click', ()=>{ renderWeeklySummary(todayStr()); });
+$('wkPrevBtn').addEventListener('click', ()=>{ renderWeeklySummary(shiftDateStr($('wkRefDate').value || currentDate, -7)); });
+$('wkNextBtn').addEventListener('click', ()=>{ renderWeeklySummary(shiftDateStr($('wkRefDate').value || currentDate, 7)); });
+$('wkThisMonthBtn').addEventListener('click', ()=>{ renderMonthlySummary(currentMonthStr()); });
+$('wkPrevMonthBtn').addEventListener('click', ()=>{ renderMonthlySummary(shiftMonthStr($('wkRefMonth').value || currentMonthStr(), -1)); });
+$('wkNextMonthBtn').addEventListener('click', ()=>{ renderMonthlySummary(shiftMonthStr($('wkRefMonth').value || currentMonthStr(), 1)); });
+
+// ---------- SEARCH & FILTER ----------
+function toggleDateModeFields(){
+  const mode = $('f_datemode').value;
+  $('f_singledate_field').style.display = mode==='single' ? '' : 'none';
+  $('f_fromdate_field').style.display = mode==='range' ? '' : 'none';
+  $('f_todate_field').style.display = mode==='range' ? '' : 'none';
+}
+$('f_datemode').addEventListener('change', toggleDateModeFields);
+
+// ---- Cache danh sách toàn bộ document ID trên Firestore (làm mới khi saveKey ghi key mới) ----
+let __allKeysCache = null;
+async function __getAllKeys(){
+  if(__allKeysCache) return __allKeysCache;
+  try{
+    const snap = await __db.collection(__COLLECTION).get();
+    __allKeysCache = snap.docs.map(d=>d.id);
+  }catch(e){
+    console.error('__getAllKeys error', e);
+    showToast('Lỗi tải danh sách dữ liệu từ máy chủ');
+    __allKeysCache = [];
+  }
+  return __allKeysCache;
+}
+
+async function getAllStoredDates(){
+  const keys = await __getAllKeys();
+  const seen = new Set();
+  keys.forEach(k=>{
+    if(k && (k.startsWith('incidents:') || k.startsWith('materials:'))) seen.add(k.split(':')[1]);
+  });
+  return Array.from(seen).sort();
+}
+
+async function refreshSearchKhuVucOptions(){
+  const cosoFilter = $('f_coso').value;
+  const chinhanhFilter = $('f_chinhanh').value;
+  const prevSelected = $('f_khuvuc').value;
+  const dates = await getAllStoredDates();
+  const set = new Set();
+  for(const d of dates){
+    const entries = [...(await loadKey(incidentKey(d))), ...(await loadKey(materialKey(d)))];
+    entries.forEach(e=>{
+      if(!e.khuvuc || !e.khuvuc.trim()) return;
+      if(cosoFilter!=='all' && getCosoOfBranch(e.chinhanh)!==cosoFilter) return;
+      if(chinhanhFilter!=='all' && (e.chinhanh||'')!==chinhanhFilter) return;
+      set.add(e.khuvuc.trim());
+    });
+  }
+  const options = Array.from(set).sort((a,b)=>a.localeCompare(b,'vi'));
+  $('f_khuvuc').innerHTML = '<option value="all">Tất cả khu vực</option>'
+    + options.map(o=>`<option>${escapeHtml(o)}</option>`).join('');
+  if(options.includes(prevSelected)) $('f_khuvuc').value = prevSelected;
+}
+$('f_coso').addEventListener('change', ()=>{
+  populateChiNhanhSelect($('f_chinhanh'), $('f_coso').value, 'filter');
+  refreshSearchKhuVucOptions();
+});
+$('f_chinhanh').addEventListener('change', refreshSearchKhuVucOptions);
+
+function dateRangeList(from, to){
+  const list = []; let d = from; let guard = 0;
+  while(d <= to && guard < 3660){ list.push(d); d = nextDateStr(d); guard++; }
+  return list;
+}
+
+function matchesStatusFilter(tinhtrang, filter){
+  if(filter === 'all') return true;
+  if(filter === 'waiting') return tinhtrang === 'Chưa đưa lên đề xuất';
+  if(filter === 'rejected') return tinhtrang === 'Từ chối';
+  if(filter === 'approved') return tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
+  if(filter === 'pending_approval') return ['Đã đưa lên đề xuất','Đang xử lý','Đã duyệt'].includes(tinhtrang);
+  return true;
+}
+
+async function runSearch(){
+  const mode = $('f_datemode').value;
+  let dates = [];
+  if(mode === 'single'){
+    dates = [$('f_singledate').value || currentDate];
+  } else if(mode === 'range'){
+    const from = $('f_fromdate').value, to = $('f_todate').value;
+    if(!from || !to){ showToast('Vui lòng chọn Từ ngày và Đến ngày'); return; }
+    if(from > to){ showToast('Từ ngày phải trước Đến ngày'); return; }
+    dates = dateRangeList(from, to);
+  } else {
+    dates = await getAllStoredDates();
+  }
+
+  const loaiFilter = $('f_loai').value;
+  const statusFilter = $('f_tinhtrang').value;
+  const cosoFilter = $('f_coso').value;
+  const chinhanhFilter = $('f_chinhanh').value;
+  const khuvucFilter = $('f_khuvuc').value;
+  const keyword = $('f_keyword').value.trim().toLowerCase();
+
+  let results = [];
+  for(const d of dates){
+    if(loaiFilter !== 'material'){
+      (await loadKey(incidentKey(d))).forEach(e => results.push({...e, __date: d, __loai: 'incident'}));
+    }
+    if(loaiFilter !== 'incident'){
+      (await loadKey(materialKey(d))).forEach(e => results.push({...e, __date: d, __loai: 'material'}));
+    }
+  }
+  results = results.filter(e => matchesStatusFilter(e.tinhtrang, statusFilter));
+  if(cosoFilter !== 'all'){
+    results = results.filter(e => getCosoOfBranch(e.chinhanh)===cosoFilter);
+  }
+  if(chinhanhFilter !== 'all'){
+    results = results.filter(e => (e.chinhanh||'')===chinhanhFilter);
+  }
+  if(khuvucFilter !== 'all'){
+    results = results.filter(e => (e.khuvuc||'').trim()===khuvucFilter);
+  }
+  if(keyword){
+    results = results.filter(e =>
+      (e.made||'').toLowerCase().includes(keyword) ||
+      (e.noidung||'').toLowerCase().includes(keyword) ||
+      (e.khuvuc||'').toLowerCase().includes(keyword) ||
+      (e.id||'').toLowerCase().includes(keyword)
+    );
+  }
+  results.sort((a,b) => a.__date===b.__date ? 0 : (a.__date<b.__date?1:-1));
+  renderSearchResults(results);
+}
+
+function renderSearchResults(results){
+  $('searchResultCount').textContent = `(${results.length})`;
+  const body = $('searchTableBody'); body.innerHTML = '';
+  $('searchEmptyState').style.display = results.length ? 'none' : 'block';
+  results.forEach(e => {
+    const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
+    const isApproved = e.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
+    const tagCls = isApproved ? 'tag-approved' : (isWaiting ? 'tag-wait' : 'tag-other');
+    const tr = document.createElement('tr');
+    if(isApproved) tr.classList.add('row-green');
+    else if(isWaiting) tr.classList.add('row-yellow');
+    tr.innerHTML = `
+      <td class="mono">${fmtDateVN(e.__date)}</td>
+      <td>${e.__loai==='incident' ? 'Sự cố tuyến ống' : 'Vật tư / Hóa chất'}</td>
+      <td class="mono">${e.stt||''}</td><td>${e.chinhanh||''}</td><td>${e.khuvuc||''}</td>
+      <td class="mono">${e.made||''}</td><td class="mono">${e.__loai==='incident' ? (e.id||'') : ''}</td><td>${e.noidung||''}</td>
+      <td><span class="tag ${tagCls}">${e.tinhtrang||''}</span></td>
+      <td>${e.ghichu||''}</td>
+      <td>${linkCellShort(e,'srch')}</td>
+      <td class="mono">
+        <button class="btn small secondary" data-act="goto" data-date="${e.__date}" data-loai="${e.__loai}" data-uid="${e.uid}">Đi tới ngày &amp; Sửa</button>
+        <button class="btn small cleanup" data-act="del" data-date="${e.__date}" data-loai="${e.__loai}" data-uid="${e.uid}" title="Xóa đề xuất này">✕ Xóa</button>
+      </td>
+    `;
+    body.appendChild(tr);
+  });
+  body.querySelectorAll('button[data-act="goto"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      currentDate = btn.dataset.date;
+      activeTab = btn.dataset.loai;
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===activeTab));
+      $('tab-incident').classList.toggle('active', activeTab==='incident');
+      $('tab-material').classList.toggle('active', activeTab==='material');
+      $('tab-search').classList.remove('active');
+      $('tab-weekly').classList.remove('active');
+      clearIncidentForm(); clearMaterialForm();
+      await render();
+      const uid = btn.dataset.uid;
+      if(activeTab==='incident'){
+        const list = await loadKey(incidentKey(currentDate));
+        const item = list.find(x=>x.uid===uid);
+        if(item) loadIncidentIntoForm(item);
+      } else {
+        const list = await loadKey(materialKey(currentDate));
+        const item = list.find(x=>x.uid===uid);
+        if(item) loadMaterialIntoForm(item);
+      }
+      showToast('Đã tải đề xuất vào form — chỉnh sửa rồi bấm Lưu để cập nhật');
+    });
+  });
+  body.querySelectorAll('button[data-act="del"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!confirm('Xóa đề xuất này? Hành động không thể hoàn tác.')) return;
+      const key = btn.dataset.loai==='incident' ? incidentKey(btn.dataset.date) : materialKey(btn.dataset.date);
+      const arr = await loadKey(key);
+      await saveKey(key, arr.filter(x=>x.uid!==btn.dataset.uid));
+      showToast('Đã xóa đề xuất');
+      if(currentDate === btn.dataset.date) render();
+      runSearch();
+    });
+  });
+}
+
+$('searchBtn').addEventListener('click', runSearch);
+$('searchResetBtn').addEventListener('click', ()=>{
+  $('f_datemode').value='range'; toggleDateModeFields();
+  $('f_singledate').value=''; $('f_fromdate').value=''; $('f_todate').value='';
+  $('f_loai').value='all'; $('f_tinhtrang').value='all'; $('f_keyword').value='';
+  $('f_coso').value='all'; populateChiNhanhSelect($('f_chinhanh'), 'all', 'filter');
+  $('f_chinhanh').value='all'; refreshSearchKhuVucOptions().then(()=>{ $('f_khuvuc').value='all'; });
+  $('searchTableBody').innerHTML=''; $('searchResultCount').textContent='(0)';
+  $('searchEmptyState').style.display='block';
+});
+
+// ---------- EXCEL EXPORT ----------
+async function exportExcel(){
+  if(typeof ExcelJS === 'undefined'){ showToast('Không tải được thư viện Excel'); return; }
+  showToast('Đang tạo file Excel...');
+  const incidents = await loadKey(incidentKey(currentDate));
+  const materials = await loadKey(materialKey(currentDate));
+
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'Sổ Đề Xuất Hằng Ngày';
+  wb.created = new Date();
+
+  const headerFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FF15263B'} };
+  const headerFont = { color:{argb:'FFFFFFFF'}, bold:true, size:10, name:'Arial' };
+  const thinBorder = { top:{style:'thin',color:{argb:'FFC3CDD3'}}, left:{style:'thin',color:{argb:'FFC3CDD3'}}, bottom:{style:'thin',color:{argb:'FFC3CDD3'}}, right:{style:'thin',color:{argb:'FFC3CDD3'}} };
+  const redFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFFBDADA'} };
+  const yellowFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFFCF1C7'} };
+  const greenFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFDFF3E5'} };
+  const titleFont = { bold:true, size:14, name:'Arial', color:{argb:'FF15263B'} };
+
+  function styleHeaderRow(row){
+    row.eachCell(c=>{ c.fill=headerFill; c.font=headerFont; c.alignment={vertical:'middle',horizontal:'center',wrapText:true}; c.border=thinBorder; });
+    row.height = 26;
+  }
+  function applyBodyStyle(row){
+    row.eachCell(c=>{ c.border=thinBorder; c.alignment={vertical:'top',wrapText:true}; c.font={name:'Arial',size:10}; });
+  }
+
+  // ---- SHEET 1: Sự cố tuyến ống ----
+  const ws1 = wb.addWorksheet('Sự cố tuyến ống');
+  ws1.mergeCells('A1:Q1');
+  ws1.getCell('A1').value = `SỰ CỐ TUYẾN ỐNG — Ngày ${currentDate}`;
+  ws1.getCell('A1').font = titleFont;
+  ws1.getCell('A1').alignment = {horizontal:'left'};
+  ws1.addRow([]);
+  const inc_cols = ['STT','Chi nhánh','Khu vực','Mã đề xuất','Người đề xuất','Nội dung đề xuất','ID','Loại ống','Đường kính (mm)','Thu phí (VNĐ)','Nguyên nhân','Tình trạng','Ngày Phòng đưa lên ĐX','Đơn vị thực hiện','Đơn vị theo dõi','Ghi chú','Link đề xuất'];
+  const incHeaderRow = ws1.addRow(inc_cols);
+  styleHeaderRow(incHeaderRow);
+  ws1.columns = [
+    {width:7},{width:14},{width:14},{width:14},{width:16},{width:32},{width:12},{width:12},{width:14},{width:14},{width:24},{width:20},{width:14},{width:16},{width:16},{width:26},{width:22}
+  ];
+  incidents.forEach(e=>{
+    const isApproved = e.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
+    const row = ws1.addRow([
+      e.stt, e.chinhanh, e.khuvuc, e.made, e.nguoi, e.noidung, e.id, e.loaiong,
+      e.duongkinh?Number(e.duongkinh):null, e.thuphi?Number(e.thuphi):0, e.nguyennhan,
+      e.tinhtrang, isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : '', e.donvithuchien, e.donvitheodoi, e.ghichu, e.link
+    ]);
+    applyBodyStyle(row);
+    row.getCell(10).numFmt = '#,##0 "₫"';
+    const isBig = Number(e.duongkinh) >= 200;
+    const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
+    if(isBig){ row.getCell(9).fill = redFill; row.getCell(9).font = {bold:true, color:{argb:'FFD6362C'}, name:'Arial', size:10}; }
+    if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); }
+    else if(isWaiting){ row.eachCell(c=>{ c.fill = yellowFill; }); }
+    if(e.link){ row.getCell(17).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(17).alignment = {horizontal:'center'}; row.getCell(17).value = {text:'Mở ↗', hyperlink:e.link}; }
+  });
+  ws1.views = [{state:'frozen', ySplit:3}];
+  ws1.autoFilter = {from:{row:3,column:1}, to:{row:3,column:inc_cols.length}};
+
+  // ---- SHEET 2: Vật tư / Hóa chất (mỗi vật tư 1 dòng) ----
+  const ws2 = wb.addWorksheet('Vật tư - Hóa chất');
+  ws2.mergeCells('A1:S1');
+  ws2.getCell('A1').value = `THAY THẾ / MUA MỚI / VẬT TƯ / HÓA CHẤT — Ngày ${currentDate}`;
+  ws2.getCell('A1').font = titleFont;
+  ws2.addRow([]);
+  const mat_cols = ['STT','Chi nhánh','Khu vực','Mã đề xuất','Nội dung đề xuất','Tên vật tư','Phân loại','Hình thức','Xuất từ kho','Đơn vị tính','Số lượng','Chi phí (VNĐ)','Đơn vị cung ứng','Đơn vị thực hiện','Đơn vị theo dõi','Tình trạng','Ngày Phòng đưa lên ĐX','Ghi chú','Link đề xuất'];
+  const matHeaderRow = ws2.addRow(mat_cols);
+  styleHeaderRow(matHeaderRow);
+  ws2.columns = [
+    {width:7},{width:14},{width:14},{width:16},{width:30},{width:22},{width:11},{width:16},{width:18},{width:11},{width:10},{width:14},{width:18},{width:16},{width:16},{width:18},{width:14},{width:24},{width:22}
+  ];
+  materials.forEach(e=>{
+    const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
+    const isApproved = e.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
+    const items = e.vattu && e.vattu.length ? e.vattu : [{}];
+    items.forEach((v, idx)=>{
+      const row = ws2.addRow([
+        idx===0 ? e.stt : '', idx===0 ? e.chinhanh : '', idx===0 ? e.khuvuc : '', idx===0 ? e.made : '', idx===0 ? e.noidung : '',
+        v.ten||'', v.loai||'', v.hinhthuc||'', v.khoXuat||'', v.donvi||'', v.soluong?Number(v.soluong):null, v.chiphi?Number(v.chiphi):0,
+        idx===0 ? e.cungung : '', idx===0 ? e.donvithuchien : '', idx===0 ? e.donvitheodoi : '', idx===0 ? e.tinhtrang : '',
+        idx===0 && isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : '',
+        idx===0 ? e.ghichu : '', idx===0 ? e.link : ''
+      ]);
+      applyBodyStyle(row);
+      row.getCell(12).numFmt = '#,##0 "₫"';
+      if(v.loai === 'Hóa chất'){ row.getCell(7).font = {bold:true, color:{argb:'FF6A4C93'}, name:'Arial', size:10}; }
+      if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); }
+      else if(isWaiting){ row.eachCell(c=>{ c.fill = yellowFill; }); }
+      if(idx===0 && e.link){ row.getCell(19).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(19).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(19).alignment = {horizontal:'center'}; }
+    });
+  });
+  ws2.views = [{state:'frozen', ySplit:3}];
+  ws2.autoFilter = {from:{row:3,column:1}, to:{row:3,column:mat_cols.length}};
+
+  // ---- SHEET 3: Tổng hợp ----
+  const ws3 = wb.addWorksheet('Tổng hợp');
+  ws3.getColumn(1).width = 40;
+  ws3.getColumn(2).width = 22;
+  ws3.mergeCells('A1:B1');
+  ws3.getCell('A1').value = `TỔNG HỢP ĐỀ XUẤT — Ngày ${currentDate}`;
+  ws3.getCell('A1').font = titleFont;
+  ws3.addRow([]);
+
+  const bigPipe = incidents.filter(e=>Number(e.duongkinh)>=200).length;
+  const smallPipe = incidents.length - bigPipe;
+  let chemCount=0, vatTuCount=0, otherCount=0;
+  materials.forEach(e=>(e.vattu||[]).forEach(v=>{
+    if(v.loai==='Hóa chất') chemCount++; else if(v.loai==='Khác') otherCount++; else vatTuCount++;
+  }));
+  const feeIncident = incidents.reduce((s,e)=>s+(Number(e.thuphi)||0),0);
+  const feeMaterial = materials.reduce((s,e)=>s+materialTotalCost(e),0);
+  const waitingCount = incidents.filter(e=>e.tinhtrang==='Chưa đưa lên đề xuất').length + materials.filter(e=>e.tinhtrang==='Chưa đưa lên đề xuất').length;
+  const approvedCount = incidents.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length + materials.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length;
+  const submittedCount = incidents.length + materials.length - waitingCount;
+
+  const summaryRows = [
+    ['Tổng số đề xuất', incidents.length + materials.length],
+    ['— Đề xuất sự cố tuyến ống', incidents.length],
+    ['    + Ống lớn (≥200mm)', bigPipe],
+    ['    + Ống nhỏ (<200mm)', smallPipe],
+    ['— Đề xuất vật tư / hóa chất / khác', materials.length],
+    ['    + Hóa chất (số mục)', chemCount],
+    ['    + Vật tư (số mục)', vatTuCount],
+    ['    + Khác (số mục)', otherCount],
+    ['Chưa đưa lên đề xuất', waitingCount],
+    ['Đã đưa lên đề xuất', submittedCount],
+    ['Lãnh đạo đơn vị đã duyệt', approvedCount],
+    ['Thu phí tuyến ống', feeIncident],
+    ['Chi phí vật tư / hóa chất', feeMaterial],
+    ['TỔNG CHI PHÍ', feeIncident + feeMaterial]
+  ];
+  summaryRows.forEach(([label,val])=>{
+    const row = ws3.addRow([label, val]);
+    row.eachCell(c=>{ c.border=thinBorder; c.font={name:'Arial', size:11}; });
+    if(typeof val === 'number' && label.toLowerCase().includes('phí')){ row.getCell(2).numFmt = '#,##0 "₫"'; }
+    if(label === 'TỔNG CHI PHÍ' || label === 'Tổng số đề xuất'){
+      row.eachCell(c=>{ c.font={bold:true, size:11, name:'Arial'}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEEF2F1'}}; });
+    }
+    if(label === 'Lãnh đạo đơn vị đã duyệt'){
+      row.eachCell(c=>{ c.fill = greenFill; c.font = {bold:true, size:11, name:'Arial', color:{argb:'FF0E5C2C'}}; });
+    }
+  });
+
+  // Region breakdown
+  ws3.addRow([]);
+  const regHeaderRow = ws3.addRow(['Khu vực','Số đề xuất','Tổng thu/chi (VNĐ)']);
+  ws3.getColumn(3).width = 20;
+  styleHeaderRow(regHeaderRow);
+  const regionCount={}, regionMoney={};
+  incidents.forEach(e=>{ const r=e.khuvuc||'Chưa rõ'; regionCount[r]=(regionCount[r]||0)+1; regionMoney[r]=(regionMoney[r]||0)+(Number(e.thuphi)||0); });
+  materials.forEach(e=>{ const r=e.khuvuc||'Chưa rõ'; regionCount[r]=(regionCount[r]||0)+1; regionMoney[r]=(regionMoney[r]||0)+materialTotalCost(e); });
+  Object.keys(regionCount).sort((a,b)=>regionCount[b]-regionCount[a]).forEach(r=>{
+    const row = ws3.addRow([r, regionCount[r], regionMoney[r]]);
+    row.eachCell(c=>{ c.border=thinBorder; c.font={name:'Arial', size:10}; });
+    row.getCell(3).numFmt = '#,##0 "₫"';
+  });
+
+  // Branch (chi nhánh) breakdown
+  ws3.addRow([]);
+  const branchHeaderRow = ws3.addRow(['Chi nhánh','Số đề xuất','Tổng thu/chi (VNĐ)']);
+  styleHeaderRow(branchHeaderRow);
+  const branchCount={}, branchMoney={};
+  incidents.forEach(e=>{ if(!e.chinhanh) return; branchCount[e.chinhanh]=(branchCount[e.chinhanh]||0)+1; branchMoney[e.chinhanh]=(branchMoney[e.chinhanh]||0)+(Number(e.thuphi)||0); });
+  materials.forEach(e=>{ if(!e.chinhanh) return; branchCount[e.chinhanh]=(branchCount[e.chinhanh]||0)+1; branchMoney[e.chinhanh]=(branchMoney[e.chinhanh]||0)+materialTotalCost(e); });
+  Object.keys(branchCount).sort((a,b)=>branchCount[b]-branchCount[a]).forEach(r=>{
+    const row = ws3.addRow([r, branchCount[r], branchMoney[r]]);
+    row.eachCell(c=>{ c.border=thinBorder; c.font={name:'Arial', size:10}; });
+    row.getCell(3).numFmt = '#,##0 "₫"';
+  });
+
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], {type:'application/octet-stream'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `De-xuat-${currentDate}.xlsx`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Đã xuất file Excel');
+}
+$('exportExcelBtn').addEventListener('click', exportExcel);
+
+// ---------- WEEKLY EXCEL EXPORT (kèm sơ đồ chi nhánh/khu vực) ----------
+function drawBarChartPNG(labels, values, opts={}){
+  const width = opts.width || 640, height = opts.height || 320;
+  const canvas = document.createElement('canvas');
+  canvas.width = width; canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0,0,width,height);
+  const longLabels = labels.some(l=>String(l).length>7);
+  const padding = {top:44, right:20, bottom: longLabels ? 76 : 50, left:50};
+  const chartW = width - padding.left - padding.right;
+  const chartH = height - padding.top - padding.bottom;
+  const maxVal = Math.max(1, ...values);
+
+  ctx.fillStyle = '#15263B';
+  ctx.font = 'bold 15px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText(opts.title || '', padding.left, 24);
+
+  ctx.strokeStyle = '#C3CDD3';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padding.left, padding.top);
+  ctx.lineTo(padding.left, padding.top+chartH);
+  ctx.lineTo(padding.left+chartW, padding.top+chartH);
+  ctx.stroke();
+
+  const n = labels.length || 1;
+  const gap = 14;
+  const barW = Math.max(16, (chartW - gap*(n+1)) / n);
+  const palette = ['#0E7C7B','#0A5957','#6A4C93','#1A7A3E','#C99A00','#4C5C6E','#0E7C7B','#6A4C93','#1A7A3E','#C99A00'];
+  labels.forEach((lb, i)=>{
+    const val = values[i] || 0;
+    const barH = maxVal ? (val/maxVal) * (chartH - 14) : 0;
+    const x = padding.left + gap + i*(barW+gap);
+    const y = padding.top + chartH - barH;
+    ctx.fillStyle = opts.highlightIndex===i ? '#C1542A' : palette[i % palette.length];
+    ctx.fillRect(x, y, barW, barH);
+    ctx.fillStyle = '#15263B';
+    ctx.font = '11px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(String(val), x+barW/2, y-6);
+    ctx.save();
+    ctx.translate(x+barW/2, padding.top+chartH+14);
+    if(longLabels){ ctx.rotate(-0.5); ctx.textAlign='right'; } else { ctx.textAlign='center'; }
+    ctx.font = '11px Arial';
+    ctx.fillStyle = '#4C5C6E';
+    ctx.fillText(String(lb), 0, 0);
+    ctx.restore();
+  });
+  ctx.textAlign = 'left';
+  return canvas.toDataURL('image/png');
+}
+
+async function exportWeeklyExcel(){
+  if(typeof ExcelJS === 'undefined'){ showToast('Không tải được thư viện Excel'); return; }
+  const isMonth = currentReportKind()==='month';
+  if(isMonth) await renderMonthlySummary($('wkRefMonth').value || currentMonthStr());
+  else await renderWeeklySummary($('wkRefDate').value || currentDate);
+  showToast(isMonth ? 'Đang tạo file Excel báo cáo tháng...' : 'Đang tạo file Excel báo cáo tuần...');
+
+  const { incidents: wkIncidents, materials: wkMaterials, weekDates, kind, bannerLabel, cosoFilter } = weeklyDataCache;
+  const periodWord = kind==='month' ? 'Tháng' : 'Tuần';
+  const periodLabel = bannerLabel || `${fmtDateVN(weekDates[0])} - ${fmtDateVN(weekDates[weekDates.length-1])}`;
+  const scopeSuffix = cosoFilter && cosoFilter!=='all' ? ` — ${cosoLabel(cosoFilter)}` : '';
+
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'Sổ Đề Xuất Hằng Ngày';
+  wb.created = new Date();
+
+  const headerFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FF15263B'} };
+  const headerFont = { color:{argb:'FFFFFFFF'}, bold:true, size:10, name:'Arial' };
+  const thinBorder = { top:{style:'thin',color:{argb:'FFC3CDD3'}}, left:{style:'thin',color:{argb:'FFC3CDD3'}}, bottom:{style:'thin',color:{argb:'FFC3CDD3'}}, right:{style:'thin',color:{argb:'FFC3CDD3'}} };
+  const redFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFFBDADA'} };
+  const yellowFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFFCF1C7'} };
+  const greenFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFDFF3E5'} };
+  const orangeFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFF6DDCB'} };
+  const cosoFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFDCE7E6'} };
+  const titleFont = { bold:true, size:14, name:'Arial', color:{argb:'FF15263B'} };
+
+  function styleHeaderRow(row){
+    row.eachCell(c=>{ c.fill=headerFill; c.font=headerFont; c.alignment={vertical:'middle',horizontal:'center',wrapText:true}; c.border=thinBorder; });
+    row.height = 26;
+  }
+  function applyBodyStyle(row){
+    row.eachCell(c=>{ c.border=thinBorder; c.alignment={vertical:'top',wrapText:true}; c.font={name:'Arial',size:10}; });
+  }
+  // Dữ liệu đã được sắp xếp theo Mã đề xuất tăng dần (renderPeriodSummary).
+  // Khi xem "Tất cả" cơ sở: tách riêng thành 2 khối Cơ sở 1 / Cơ sở 2, mỗi khối tự đánh lại STT.
+  // Khi đã lọc theo 1 Cơ sở cụ thể (báo cáo tuần/tháng theo cơ sở đó): gộp thành 1 danh sách liền mạch.
+  function buildCosoGroups(entries){
+    if(cosoFilter && cosoFilter!=='all'){
+      return [{ key:cosoFilter, label:null, list: entries }];
+    }
+    return Object.keys(COSO_DATA)
+      .map(cid=>({ key:cid, label:COSO_DATA[cid].label, list: entries.filter(e=>getCosoOfBranch(e.chinhanh)===cid) }))
+      .filter(g=>g.list.length);
+  }
+  function addSectionHeaderRow(ws, colCount, label){
+    const row = ws.addRow([label]);
+    ws.mergeCells(`A${row.number}:${ws.getColumn(colCount).letter}${row.number}`);
+    row.eachCell(c=>{ c.font={bold:true, size:11, name:'Arial', color:{argb:'FF0A5957'}}; c.fill=cosoFill; c.border=thinBorder; });
+    return row;
+  }
+
+  // ---- SHEET 1: Sự cố tuyến ống ----
+  const ws1 = wb.addWorksheet(`Sự cố tuyến ống (${kind==='month'?'tháng':'tuần'})`);
+  const inc_cols = ['STT','Chi nhánh','Cơ sở','Khu vực','Mã đề xuất','Ngày','Người đề xuất','Nội dung đề xuất','ID','Loại ống','Đường kính (mm)','Thu phí (VNĐ)','Nguyên nhân','Tình trạng','Ngày Phòng đưa lên ĐX','Đơn vị thực hiện','Đơn vị theo dõi','Ghi chú','Link đề xuất'];
+  ws1.mergeCells(`A1:${String.fromCharCode(64+inc_cols.length)}1`);
+  ws1.getCell('A1').value = `SỰ CỐ TUYẾN ỐNG — ${periodWord} ${periodLabel}${scopeSuffix}`;
+  ws1.getCell('A1').font = titleFont;
+  ws1.addRow([]);
+  const incHeaderRow = ws1.addRow(inc_cols);
+  styleHeaderRow(incHeaderRow);
+  ws1.columns = [{width:7},{width:14},{width:22},{width:14},{width:14},{width:12},{width:16},{width:32},{width:12},{width:12},{width:14},{width:14},{width:24},{width:20},{width:14},{width:16},{width:16},{width:26},{width:22}];
+  const incGroups = buildCosoGroups(wkIncidents);
+  incGroups.forEach(group=>{
+    if(group.label) addSectionHeaderRow(ws1, inc_cols.length, `CƠ SỞ: ${group.label} (${group.list.length} đề xuất)`);
+    group.list.forEach((e,idx)=>{
+      const isApproved = e.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
+      const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
+      const row = ws1.addRow([
+        idx+1, e.chinhanh, cosoLabel(getCosoOfBranch(e.chinhanh)), e.khuvuc, e.made, fmtDateVN(e.__date), e.nguoi, e.noidung, e.id, e.loaiong,
+        e.duongkinh?Number(e.duongkinh):null, e.thuphi?Number(e.thuphi):0, e.nguyennhan,
+        e.tinhtrang, isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : '', e.donvithuchien, e.donvitheodoi, e.ghichu, e.link
+      ]);
+      applyBodyStyle(row);
+      row.getCell(12).numFmt = '#,##0 "₫"';
+      const isBig = Number(e.duongkinh) >= 200;
+      if(isBig){ row.getCell(11).fill = redFill; row.getCell(11).font = {bold:true, color:{argb:'FFD6362C'}, name:'Arial', size:10}; }
+      if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); }
+      else if(isWaiting){ row.eachCell(c=>{ c.fill = yellowFill; }); }
+      if(e.link){ row.getCell(19).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(19).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(19).alignment = {horizontal:'center'}; }
+    });
+  });
+  ws1.views = [{state:'frozen', ySplit:3}];
+  ws1.autoFilter = {from:{row:3,column:1}, to:{row:3,column:inc_cols.length}};
+
+  // ---- SHEET 2: Vật tư / Hóa chất ----
+  const ws2 = wb.addWorksheet(`Vật tư - Hóa chất (${kind==='month'?'tháng':'tuần'})`);
+  const mat_cols = ['STT','Chi nhánh','Cơ sở','Khu vực','Mã đề xuất','Ngày','Nội dung đề xuất','Tên vật tư','Phân loại','Hình thức','Xuất từ kho','Đơn vị tính','Số lượng','Chi phí (VNĐ)','Đơn vị cung ứng','Đơn vị thực hiện','Đơn vị theo dõi','Tình trạng','Ngày Phòng đưa lên ĐX','Ghi chú','Link đề xuất'];
+  ws2.mergeCells(`A1:${ws2.getColumn(mat_cols.length).letter}1`);
+  ws2.getCell('A1').value = `THAY THẾ / MUA MỚI / VẬT TƯ / HÓA CHẤT — ${periodWord} ${periodLabel}${scopeSuffix}`;
+  ws2.getCell('A1').font = titleFont;
+  ws2.addRow([]);
+  const matHeaderRow = ws2.addRow(mat_cols);
+  styleHeaderRow(matHeaderRow);
+  ws2.columns = [{width:7},{width:14},{width:22},{width:14},{width:16},{width:12},{width:30},{width:22},{width:11},{width:16},{width:18},{width:11},{width:10},{width:14},{width:18},{width:16},{width:16},{width:18},{width:14},{width:24},{width:22}];
+  const matGroups = buildCosoGroups(wkMaterials);
+  matGroups.forEach(group=>{
+    if(group.label) addSectionHeaderRow(ws2, mat_cols.length, `CƠ SỞ: ${group.label} (${group.list.length} đề xuất)`);
+    group.list.forEach((e,idx)=>{
+      const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
+      const isApproved = e.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
+      const items = e.vattu && e.vattu.length ? e.vattu : [{}];
+      items.forEach((v, vidx)=>{
+        const row = ws2.addRow([
+          vidx===0 ? idx+1 : '', vidx===0 ? e.chinhanh : '', vidx===0 ? cosoLabel(getCosoOfBranch(e.chinhanh)) : '', vidx===0 ? e.khuvuc : '', vidx===0 ? e.made : '', vidx===0 ? fmtDateVN(e.__date) : '', vidx===0 ? e.noidung : '',
+          v.ten||'', v.loai||'', v.hinhthuc||'', v.khoXuat||'', v.donvi||'', v.soluong?Number(v.soluong):null, v.chiphi?Number(v.chiphi):0,
+          vidx===0 ? e.cungung : '', vidx===0 ? e.donvithuchien : '', vidx===0 ? e.donvitheodoi : '', vidx===0 ? e.tinhtrang : '',
+          vidx===0 && isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : '',
+          vidx===0 ? e.ghichu : '', vidx===0 ? e.link : ''
+        ]);
+        applyBodyStyle(row);
+        row.getCell(14).numFmt = '#,##0 "₫"';
+        if(v.loai === 'Hóa chất'){ row.getCell(9).font = {bold:true, color:{argb:'FF6A4C93'}, name:'Arial', size:10}; }
+        if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); }
+        else if(isWaiting){ row.eachCell(c=>{ c.fill = yellowFill; }); }
+        if(vidx===0 && e.link){ row.getCell(21).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(21).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(21).alignment = {horizontal:'center'}; }
+      });
+    });
+  });
+  ws2.views = [{state:'frozen', ySplit:3}];
+  ws2.autoFilter = {from:{row:3,column:1}, to:{row:3,column:mat_cols.length}};
+
+  // ---- SHEET 3: Tổng hợp (+ chi nhánh + khu vực + cơ sở + sơ đồ) ----
+  const ws3 = wb.addWorksheet(`Tổng hợp ${kind==='month'?'tháng':'tuần'}`);
+  ws3.getColumn(1).width = 42;
+  ws3.getColumn(2).width = 20;
+  ws3.getColumn(3).width = 20;
+  ws3.getColumn(4).width = 42;
+  ws3.mergeCells('A1:D1');
+  ws3.getCell('A1').value = `BÁO CÁO TỔNG HỢP ${periodWord.toUpperCase()} — ${periodLabel}${scopeSuffix}`;
+  ws3.getCell('A1').font = titleFont;
+  ws3.addRow([]);
+
+  const wkBig = wkIncidents.filter(e=>Number(e.duongkinh)>=200).length;
+  const wkSmall = wkIncidents.length - wkBig;
+  let wkChem=0, wkVatTu=0, wkKhac=0;
+  wkMaterials.forEach(e=>(e.vattu||[]).forEach(v=>{
+    if(v.loai==='Hóa chất') wkChem++; else if(v.loai==='Khác') wkKhac++; else wkVatTu++;
+  }));
+  const wkFeeIncident = wkIncidents.reduce((s,e)=>s+(Number(e.thuphi)||0),0);
+  const wkFeeMaterial = wkMaterials.reduce((s,e)=>s+materialTotalCost(e),0);
+  const wkWaiting = wkIncidents.filter(e=>e.tinhtrang==='Chưa đưa lên đề xuất').length + wkMaterials.filter(e=>e.tinhtrang==='Chưa đưa lên đề xuất').length;
+  const wkApproved = wkIncidents.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length + wkMaterials.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length;
+  const wkSubmitted = wkIncidents.length + wkMaterials.length - wkWaiting;
+
+  const summaryRows = [
+    [`Tổng số đề xuất trong ${kind==='month'?'tháng':'tuần'}`, wkIncidents.length + wkMaterials.length],
+    ['— Đề xuất sự cố tuyến ống', wkIncidents.length],
+    ['    + Ống lớn (≥200mm)', wkBig],
+    ['    + Ống nhỏ (<200mm)', wkSmall],
+    ['— Đề xuất vật tư / hóa chất / khác', wkMaterials.length],
+    ['    + Hóa chất (số mục)', wkChem],
+    ['    + Vật tư (số mục)', wkVatTu],
+    ['    + Khác (số mục)', wkKhac],
+    ['Chưa đưa lên đề xuất', wkWaiting],
+    ['Đã đưa lên đề xuất', wkSubmitted],
+    ['Lãnh đạo đơn vị đã duyệt', wkApproved],
+    ['Thu phí tuyến ống', wkFeeIncident],
+    ['Chi phí vật tư / hóa chất', wkFeeMaterial],
+    [`TỔNG CHI PHÍ TRONG ${kind==='month'?'THÁNG':'TUẦN'}`, wkFeeIncident + wkFeeMaterial]
+  ];
+  summaryRows.forEach(([label,val])=>{
+    const row = ws3.addRow([label, val]);
+    row.eachCell(c=>{ c.border=thinBorder; c.font={name:'Arial', size:11}; });
+    if(typeof val === 'number' && label.toLowerCase().includes('phí')){ row.getCell(2).numFmt = '#,##0 "₫"'; }
+    if(label.startsWith('TỔNG CHI PHÍ') || label.startsWith('Tổng số đề xuất')){
+      row.eachCell(c=>{ c.font={bold:true, size:11, name:'Arial'}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEEF2F1'}}; });
+    }
+    if(label === 'Lãnh đạo đơn vị đã duyệt'){
+      row.eachCell(c=>{ c.fill = greenFill; c.font = {bold:true, size:11, name:'Arial', color:{argb:'FF0E5C2C'}}; });
+    }
+  });
+
+  // ---- Cơ sở breakdown ----
+  ws3.addRow([]);
+  const cosoIdsForBreakdown = cosoFilter && cosoFilter!=='all' ? [cosoFilter] : Object.keys(COSO_DATA);
+  const cosoCount = {}, cosoMoney = {}; cosoIdsForBreakdown.forEach(c=>{cosoCount[c]=0; cosoMoney[c]=0;});
+  [...wkIncidents.map(e=>({...e,__cost:Number(e.thuphi)||0})), ...wkMaterials.map(e=>({...e,__cost:materialTotalCost(e)}))].forEach(e=>{
+    const c = getCosoOfBranch(e.chinhanh);
+    if(c && cosoCount.hasOwnProperty(c)){ cosoCount[c]++; cosoMoney[c]+=e.__cost; }
+  });
+  const cosoHeaderRow = ws3.addRow(['Cơ sở','Số đề xuất','Tổng thu/chi (VNĐ)']);
+  styleHeaderRow(cosoHeaderRow);
+  cosoIdsForBreakdown.forEach(cid=>{
+    const row = ws3.addRow([cosoLabel(cid), cosoCount[cid], cosoMoney[cid]]);
+    row.eachCell(c=>{ c.border=thinBorder; c.font={name:'Arial', size:10}; });
+    row.getCell(3).numFmt = '#,##0 "₫"';
+  });
+
+  // ---- Chi nhánh breakdown + xác định chi nhánh nổi bật ----
+  ws3.addRow([]);
+  const branches = getBranchesForCoso(cosoFilter);
+  const branchCount = {}; branches.forEach(b=>branchCount[b]=0);
+  const branchMoney = {}; branches.forEach(b=>branchMoney[b]=0);
+  const branchRegionCount = {}; branches.forEach(b=>branchRegionCount[b]={});
+  [...wkIncidents.map(e=>({...e,__cost:Number(e.thuphi)||0})), ...wkMaterials.map(e=>({...e,__cost:materialTotalCost(e)}))].forEach(e=>{
+    const b = e.chinhanh;
+    if(b && branchCount.hasOwnProperty(b)){
+      branchCount[b]++;
+      branchMoney[b] += e.__cost;
+      const r = e.khuvuc && e.khuvuc.trim() ? e.khuvuc.trim() : 'Chưa rõ';
+      branchRegionCount[b][r] = (branchRegionCount[b][r]||0) + 1;
+    }
+  });
+  const sortedBranches = [...branches].sort((a,b)=>branchCount[b]-branchCount[a]);
+  const topBranch = branchCount[sortedBranches[0]] > 0 ? sortedBranches[0] : null;
+  const topBranchRegions = topBranch ? branchRegionCount[topBranch] : {};
+  const sortedTopBranchRegions = Object.keys(topBranchRegions).sort((a,b)=>topBranchRegions[b]-topBranchRegions[a]);
+  const topRegionInBranch = sortedTopBranchRegions.length ? sortedTopBranchRegions[0] : null;
+
+  const branchHeaderRow = ws3.addRow(['Chi nhánh','Số đề xuất','Tổng thu/chi (VNĐ)']);
+  styleHeaderRow(branchHeaderRow);
+  sortedBranches.forEach(b=>{
+    const row = ws3.addRow([b, branchCount[b], branchMoney[b]]);
+    row.eachCell(c=>{ c.border=thinBorder; c.font={name:'Arial', size:10}; });
+    row.getCell(3).numFmt = '#,##0 "₫"';
+    if(b===topBranch){ row.eachCell(c=>{ c.fill = orangeFill; c.font = {bold:true, name:'Arial', size:10}; }); }
+  });
+
+  // ---- Khu vực breakdown (toàn kỳ) ----
+  ws3.addRow([]);
+  const regionCount = {}, regionMoney = {};
+  [...wkIncidents.map(e=>({...e,__cost:Number(e.thuphi)||0})), ...wkMaterials.map(e=>({...e,__cost:materialTotalCost(e)}))].forEach(e=>{
+    const r = e.khuvuc && e.khuvuc.trim() ? e.khuvuc.trim() : 'Chưa rõ';
+    regionCount[r]=(regionCount[r]||0)+1; regionMoney[r]=(regionMoney[r]||0)+e.__cost;
+  });
+  const sortedRegions = Object.keys(regionCount).sort((a,b)=>regionCount[b]-regionCount[a]);
+  const regHeaderRow = ws3.addRow([`Khu vực (toàn ${kind==='month'?'tháng':'tuần'})`,'Số đề xuất','Tổng thu/chi (VNĐ)']);
+  styleHeaderRow(regHeaderRow);
+  sortedRegions.forEach(r=>{
+    const row = ws3.addRow([r, regionCount[r], regionMoney[r]]);
+    row.eachCell(c=>{ c.border=thinBorder; c.font={name:'Arial', size:10}; });
+    row.getCell(3).numFmt = '#,##0 "₫"';
+    if(topBranch && r===topRegionInBranch){ row.eachCell(c=>{ c.fill = orangeFill; }); }
+  });
+
+  // ---- Nổi bật: Chi nhánh nhiều đề xuất nhất + Khu vực nổi bật trong chi nhánh đó ----
+  ws3.addRow([]);
+  const highlightHeaderRow = ws3.addRow([`★ CHI NHÁNH & KHU VỰC NỔI BẬT TRONG ${kind==='month'?'THÁNG':'TUẦN'}`, '', '']);
+  ws3.mergeCells(`A${highlightHeaderRow.number}:C${highlightHeaderRow.number}`);
+  highlightHeaderRow.eachCell(c=>{ c.font={bold:true, size:12, name:'Arial', color:{argb:'FFC1542A'}}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF6DDCB'}}; c.border=thinBorder; });
+
+  if(topBranch){
+    const r1 = ws3.addRow(['Chi nhánh nhiều đề xuất nhất', topBranch, `${branchCount[topBranch]} đề xuất`]);
+    r1.eachCell(c=>{ c.border=thinBorder; c.font={bold:true, name:'Arial', size:11}; });
+    const r2 = ws3.addRow(['Khu vực nổi bật trong chi nhánh đó', topRegionInBranch || '—', topRegionInBranch ? `${topBranchRegions[topRegionInBranch]} đề xuất` : '']);
+    r2.eachCell(c=>{ c.border=thinBorder; c.font={bold:true, name:'Arial', size:11}; c.fill=orangeFill; });
+  } else {
+    const r1 = ws3.addRow([`Chưa có dữ liệu chi nhánh trong ${kind==='month'?'tháng':'tuần'} này`,'','']);
+    r1.eachCell(c=>{ c.border=thinBorder; c.font={italic:true, name:'Arial', size:11, color:{argb:'FF4C5C6E'}}; });
+  }
+
+  // ---- Chi tiết đề xuất trong Chi nhánh + Khu vực nổi bật ----
+  if(topBranch && topRegionInBranch){
+    ws3.addRow([]);
+    const detailTitleRow = ws3.addRow([`Chi tiết đề xuất — ${topBranch} · ${topRegionInBranch}`,'','']);
+    ws3.mergeCells(`A${detailTitleRow.number}:C${detailTitleRow.number}`);
+    detailTitleRow.eachCell(c=>{ c.font={bold:true, size:11, name:'Arial', color:{argb:'FF0A5957'}}; });
+
+    const detailEntries = [
+      ...wkIncidents.filter(e=>e.chinhanh===topBranch && (e.khuvuc||'').trim()===topRegionInBranch).map(e=>({...e,__loai:'Sự cố tuyến ống'})),
+      ...wkMaterials.filter(e=>e.chinhanh===topBranch && (e.khuvuc||'').trim()===topRegionInBranch).map(e=>({...e,__loai:'Vật tư/Hóa chất'}))
+    ].sort((a,b)=>naturalMaDeXuatCompare(a.made,b.made));
+
+    const detailHeaderRow = ws3.addRow(['Ngày','Loại','Mã ĐX','Nội dung đề xuất','Tình trạng']);
+    styleHeaderRow(detailHeaderRow);
+    detailEntries.forEach(e=>{
+      const isApproved = e.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
+      const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
+      const row = ws3.addRow([fmtDateVN(e.__date), e.__loai, e.made||'', e.noidung||'', e.tinhtrang||'']);
+      row.eachCell(c=>{ c.border=thinBorder; c.font={name:'Arial', size:10}; c.alignment={wrapText:true, vertical:'top'}; });
+      if(isApproved){ row.eachCell(c=>{ c.fill=greenFill; }); }
+      else if(isWaiting){ row.eachCell(c=>{ c.fill=yellowFill; }); }
+    });
+  }
+
+  // ---- Sơ đồ trực quan (chi nhánh + khu vực) ----
+  ws3.addRow([]);
+  const chartTitleRow = ws3.addRow(['📊 SƠ ĐỒ TRỰC QUAN — CHI NHÁNH / KHU VỰC','','']);
+  chartTitleRow.getCell(1).font = {bold:true, size:12, name:'Arial', color:{argb:'FF0A5957'}};
+  ws3.addRow([]);
+
+  const branchChartImg = drawBarChartPNG(sortedBranches, sortedBranches.map(b=>branchCount[b]), {
+    title:`Số đề xuất theo Chi nhánh (trong ${kind==='month'?'tháng':'tuần'})`, highlightIndex: topBranch ? sortedBranches.indexOf(topBranch) : -1
+  });
+  const branchImgId = wb.addImage({base64:branchChartImg, extension:'png'});
+  let imgRow = ws3.rowCount;
+  ws3.addImage(branchImgId, { tl:{col:0, row:imgRow}, ext:{width:520, height:280} });
+
+  const regionLabels = sortedRegions.slice(0,10);
+  const regionChartImg = drawBarChartPNG(regionLabels, regionLabels.map(r=>regionCount[r]), {
+    title:`Số đề xuất theo Khu vực (trong ${kind==='month'?'tháng':'tuần'}, top 10)`, highlightIndex: topRegionInBranch ? regionLabels.indexOf(topRegionInBranch) : -1
+  });
+  const regionImgId = wb.addImage({base64:regionChartImg, extension:'png'});
+  ws3.addImage(regionImgId, { tl:{col:0, row: imgRow + 16}, ext:{width:520, height:280} });
+
+  for(let i=0;i<34;i++) ws3.addRow([]);
+
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], {type:'application/octet-stream'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const fileScope = cosoFilter && cosoFilter!=='all' ? `-${cosoFilter}` : '';
+  a.href = url;
+  a.download = kind==='month'
+    ? `Bao-cao-thang-${$('wkRefMonth').value || currentMonthStr()}${fileScope}.xlsx`
+    : `Bao-cao-tuan-${weekDates[0]}_${weekDates[weekDates.length-1]}${fileScope}.xlsx`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(kind==='month' ? 'Đã xuất file Excel báo cáo tháng' : 'Đã xuất file Excel báo cáo tuần');
+}
+$('wkExportExcelBtn').addEventListener('click', exportWeeklyExcel);
+
+
+// ---------- EXCEL IMPORT ----------
+function cellVal(row, idx){
+  if(!idx) return '';
+  const c = row.getCell(idx);
+  let v = c.value;
+  if(v === null || v === undefined) return '';
+  if(typeof v === 'object'){
+    if(v instanceof Date){
+      return `${v.getUTCFullYear()}-${pad2(v.getUTCMonth()+1)}-${pad2(v.getUTCDate())}`;
+    }
+    if(v.text !== undefined) return String(v.text).trim();
+    if(v.result !== undefined && v.result !== null) return String(v.result).trim();
+    if(v.hyperlink !== undefined) return String(v.hyperlink).trim();
+    if(v.richText) return v.richText.map(t=>t.text).join('').trim();
+    return '';
+  }
+  return String(v).trim();
+}
+function findHeaderRow(ws, mustHave){
+  for(let r=1; r<=8; r++){
+    const row = ws.getRow(r);
+    let found = false;
+    row.eachCell(c=>{ if(String(c.value||'').trim()===mustHave) found = true; });
+    if(found) return r;
+  }
+  return null;
+}
+function buildColMap(ws, headerRowNum){
+  const map = {};
+  ws.getRow(headerRowNum).eachCell((c, colNum)=>{
+    const label = String(c.value||'').trim();
+    if(label) map[label] = colNum;
+  });
+  return map;
+}
+function rowIsEmpty(row, colMap){
+  return Object.values(colMap).every(idx => cellVal(row, idx) === '');
+}
+function extractDateFromTitle(ws){
+  const a1 = String(ws.getCell('A1').value || '');
+  let m = a1.match(/(\d{4}-\d{2}-\d{2})/);
+  if(m) return m[1];
+  m = a1.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+  if(m) return `${m[3]}-${m[2]}-${m[1]}`;
+  return null;
+}
+
+async function importExcel(file){
+  if(typeof ExcelJS === 'undefined'){ showToast('Không tải được thư viện Excel'); return; }
+  showToast('Đang đọc file Excel...');
+  let wb;
+  try{
+    const buf = await file.arrayBuffer();
+    wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buf);
+  }catch(e){ showToast('Không đọc được file Excel'); return; }
+
+  const ws1 = wb.getWorksheet('Sự cố tuyến ống') || wb.worksheets[0];
+  const ws2 = wb.getWorksheet('Vật tư - Hóa chất') || wb.worksheets[1];
+
+  let targetDate = (ws1 && extractDateFromTitle(ws1)) || (ws2 && extractDateFromTitle(ws2)) || currentDate;
+
+  const incImported = [];
+  if(ws1){
+    const incFieldMap = {
+      'STT':'stt','Khu vực':'khuvuc','Chi nhánh':'chinhanh','Mã đề xuất':'made','Người đề xuất':'nguoi',
+      'Nội dung đề xuất':'noidung','ID':'id','Loại ống':'loaiong','Đường kính (mm)':'duongkinh',
+      'Thu phí (VNĐ)':'thuphi','Nguyên nhân':'nguyennhan','Tình trạng':'tinhtrang',
+      'Đơn vị thực hiện':'donvithuchien','Đơn vị theo dõi':'donvitheodoi','Ghi chú':'ghichu','Link đề xuất':'link'
+    };
+    const headerRow = findHeaderRow(ws1, 'STT');
+    if(headerRow){
+      const colMap = buildColMap(ws1, headerRow);
+      let r = headerRow + 1;
+      let emptyStreak = 0;
+      while(r <= ws1.rowCount && emptyStreak < 3){
+        const row = ws1.getRow(r);
+        if(rowIsEmpty(row, colMap)){ emptyStreak++; r++; continue; }
+        emptyStreak = 0;
+        const item = { uid: 'i_'+Date.now()+'_'+Math.random().toString(36).slice(2,7) };
+        Object.entries(incFieldMap).forEach(([label, key])=>{ item[key] = cellVal(row, colMap[label]); });
+        incImported.push(item);
+        r++;
+      }
+    }
+  }
+
+  const matImported = [];
+  if(ws2){
+    const headerRow = findHeaderRow(ws2, 'STT');
+    if(headerRow){
+      const colMap = buildColMap(ws2, headerRow);
+      let current = null;
+      let r = headerRow + 1;
+      let emptyStreak = 0;
+      while(r <= ws2.rowCount && emptyStreak < 3){
+        const row = ws2.getRow(r);
+        if(rowIsEmpty(row, colMap)){ emptyStreak++; r++; continue; }
+        emptyStreak = 0;
+        const stt = cellVal(row, colMap['STT']);
+        const made = cellVal(row, colMap['Mã đề xuất']);
+        const isNewGroup = stt !== '' || made !== '' || !current;
+        if(isNewGroup){
+          if(current) matImported.push(current);
+          current = {
+            uid: 'm_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+            stt, khuvuc: cellVal(row, colMap['Khu vực']), chinhanh: cellVal(row, colMap['Chi nhánh']),
+            made, noidung: cellVal(row, colMap['Nội dung đề xuất']),
+            cungung: cellVal(row, colMap['Đơn vị cung ứng']),
+            donvithuchien: cellVal(row, colMap['Đơn vị thực hiện']), donvitheodoi: cellVal(row, colMap['Đơn vị theo dõi']),
+            tinhtrang: cellVal(row, colMap['Tình trạng']) || 'Chưa đưa lên đề xuất',
+            ghichu: cellVal(row, colMap['Ghi chú']), link: cellVal(row, colMap['Link đề xuất']),
+            vattu: []
+          };
+        }
+        const ten = cellVal(row, colMap['Tên vật tư']);
+        if(ten){
+          current.vattu.push({
+            ten, loai: cellVal(row, colMap['Phân loại']) || 'Vật tư',
+            hinhthuc: cellVal(row, colMap['Hình thức']) || 'Mua mới',
+            khoXuat: cellVal(row, colMap['Xuất từ kho']),
+            donvi: cellVal(row, colMap['Đơn vị tính']), soluong: cellVal(row, colMap['Số lượng']),
+            chiphi: cellVal(row, colMap['Chi phí (VNĐ)'])
+          });
+        }
+        r++;
+      }
+      if(current) matImported.push(current);
+    }
+  }
+
+  if(!incImported.length && !matImported.length){
+    showToast('Không tìm thấy dữ liệu hợp lệ trong file');
+    return;
+  }
+
+  const existingInc = await loadKey(incidentKey(targetDate));
+  const existingMat = await loadKey(materialKey(targetDate));
+  if((existingInc.length || existingMat.length)){
+    const ok = confirm(`Ngày ${targetDate} đã có ${existingInc.length + existingMat.length} đề xuất sẵn có. Nhập từ Excel sẽ THAY THẾ toàn bộ dữ liệu ngày này. Tiếp tục?`);
+    if(!ok){ showToast('Đã hủy nhập Excel'); return; }
+  }
+
+  if(incImported.length) await saveKey(incidentKey(targetDate), incImported);
+  if(matImported.length) await saveKey(materialKey(targetDate), matImported);
+
+  currentDate = targetDate;
+  clearIncidentForm(); clearMaterialForm();
+  render();
+  showToast(`Đã nhập ${incImported.length + matImported.length} đề xuất từ Excel (ngày ${targetDate})`);
+}
+
+$('importExcelBtn').addEventListener('click', ()=> $('importExcelInput').click());
+$('importExcelInput').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(file) await importExcel(file);
+  e.target.value = '';
+});
+
+// ---------- CROSS-DATE HELPERS ----------
+async function getAllDateKeysByPrefix(prefix){
+  const allKeys = await __getAllKeys();
+  return allKeys.filter(k => k && k.startsWith(prefix));
+}
+async function collectAllItems(type){
+  const prefix = type==='incident' ? 'incidents:' : 'materials:';
+  const keys = await getAllDateKeysByPrefix(prefix);
+  const all = [];
+  for(const k of keys){
+    const date = k.slice(prefix.length);
+    const arr = await loadKey(k);
+    arr.forEach(item=>all.push({item, date, key:k}));
+  }
+  return all;
+}
+
+// ---------- LINK CHECK ----------
+// Lưu ý: do giới hạn bảo mật CORS của trình duyệt, việc kiểm tra chỉ có thể phát hiện chắc chắn
+// các link bị lỗi mạng (domain không tồn tại, server không phản hồi, hết thời gian chờ...).
+// Link còn tồn tại server nhưng trả về lỗi 404 nội bộ có thể không luôn bị phát hiện.
+async function pingUrl(url, timeoutMs=7000){
+  if(!/^https?:\/\//i.test(url)) return {ok:false, reason:'invalid'};
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), timeoutMs);
+  try{
+    await fetch(url, {mode:'no-cors', method:'GET', signal: ctrl.signal, cache:'no-store'});
+    clearTimeout(t);
+    return {ok:true};
+  }catch(err){
+    clearTimeout(t);
+    return {ok:false, reason: err.name==='AbortError' ? 'timeout' : 'network'};
+  }
+}
+async function checkSingleLink(url, targetId, btn){
+  const span = $(targetId);
+  if(btn){ btn.disabled = true; btn.textContent = '...'; }
+  if(span) span.innerHTML = '<span class="link-pending">Đang kiểm tra…</span>';
+  const res = await pingUrl(url);
+  if(btn){ btn.disabled = false; btn.textContent = 'Check'; }
+  if(span){
+    span.innerHTML = res.ok
+      ? '<span class="link-ok">✔ Truy cập được</span>'
+      : `<span class="link-bad">✕ Không truy cập được${res.reason==='timeout'?' (hết thời gian chờ)':''}</span>`;
+  }
+  return res;
+}
+document.addEventListener('click', async (e)=>{
+  const btn = e.target.closest('.link-check-btn');
+  if(!btn) return;
+  await checkSingleLink(btn.dataset.url, btn.dataset.target, btn);
+});
+
+function buildLinkScanRowHtml(entry){
+  const e = entry.item;
+  const reasonTxt = entry.result.reason==='timeout' ? 'Hết thời gian chờ' : (entry.result.reason==='invalid' ? 'URL không hợp lệ' : 'Không thể kết nối');
+  return `<div class="linkscan-row">
+    <div class="lr-title">${entry.__loai} · ${escapeHtml(e.made||'(không mã)')} — ${escapeHtml(e.khuvuc||'')}</div>
+    <div class="lr-meta">Ngày: ${fmtDateVN(entry.date)} · Lỗi: ${reasonTxt}</div>
+    <div class="lr-url">${escapeHtml(e.link)}</div>
+  </div>`;
+}
+async function runFullLinkScan(){
+  showToast('Đang quét toàn bộ link, vui lòng chờ...');
+  const incEntries = (await collectAllItems('incident')).map(x=>({...x, __loai:'Sự cố tuyến ống'}));
+  const matEntries = (await collectAllItems('material')).map(x=>({...x, __loai:'Vật tư / Hóa chất'}));
+  const all = [...incEntries, ...matEntries].filter(x=>x.item.link && x.item.link.trim());
+  if(!all.length){ showToast('Không có link nào trong dữ liệu để kiểm tra'); return; }
+
+  const results = [];
+  const CONC = 5;
+  let idx = 0;
+  async function worker(){
+    while(idx < all.length){
+      const cur = all[idx++];
+      const r = await pingUrl(cur.item.link);
+      results.push({...cur, result:r});
+    }
+  }
+  await Promise.all(Array.from({length: Math.min(CONC, all.length)}, worker));
+
+  const broken = results.filter(r=>!r.result.ok);
+  $('linkScanSummary').innerHTML = `Đã kiểm tra <b>${results.length}</b> link · <span style="color:var(--red)">${broken.length} link nghi ngờ không truy cập được</span> · <span style="color:var(--green-deep)">${results.length-broken.length} link phản hồi bình thường</span>.<br>Lưu ý: do giới hạn bảo mật của trình duyệt, chỉ các link mất kết nối/hết thời gian chờ mới được phát hiện chắc chắn; hãy bấm nút "Mở ↗" để tự kiểm tra thêm nếu cần.`;
+  $('linkScanModalBody').innerHTML = broken.length
+    ? broken.map(buildLinkScanRowHtml).join('')
+    : '<div class="scan-empty">Không phát hiện link nào bị lỗi kết nối 🎉</div>';
+  $('linkScanModalOverlay').classList.add('show');
+  showToast(broken.length ? `Phát hiện ${broken.length} link có thể không truy cập được` : 'Tất cả link đều phản hồi bình thường');
+}
+$('linkScanBtn').addEventListener('click', runFullLinkScan);
+$('linkScanModalCloseBtn').addEventListener('click', ()=> $('linkScanModalOverlay').classList.remove('show'));
+$('linkScanModalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='linkScanModalOverlay') $('linkScanModalOverlay').classList.remove('show'); });
+
+// ---------- DUPLICATE DETECTION ----------
+function normStr(s){ return String(s==null?'':s).trim().toLowerCase(); }
+let currentDupRows = [];
+
+async function scanIncidentIdDuplicates(){
+  const all = await collectAllItems('incident');
+  const groups = {};
+  all.forEach(entry=>{
+    const idVal = normStr(entry.item.id);
+    if(!idVal) return;
+    (groups[idVal] = groups[idVal] || []).push(entry);
+  });
+  const dupGroups = Object.values(groups).filter(g=>g.length>1);
+  const rows = [];
+  dupGroups.forEach((g, gi)=>{
+    g.forEach(entry=>{
+      rows.push({
+        rowId: `inc_${entry.item.uid}`, type:'incident', uid: entry.item.uid, date: entry.date, key: entry.key,
+        made: entry.item.made, khuvuc: entry.item.khuvuc, chinhanh: entry.item.chinhanh,
+        noidung: entry.item.noidung, groupIndex: gi+1, detail: 'ID trùng: ' + (entry.item.id||'')
+      });
+    });
+  });
+  return rows;
+}
+
+// So khớp toàn bộ danh sách vật tư/hóa chất của 1 đề xuất: chỉ tính là trùng khi
+// TẤT CẢ các mục (tên + đơn vị tính + số lượng) của đề xuất này khớp đầy đủ,
+// đúng số lượng mục, với một đề xuất khác. Đề xuất có 3 vật tư chỉ trùng nếu
+// đề xuất kia cũng có đúng 3 vật tư với nội dung giống hệt (không tính thứ tự).
+function vatTuListSignature(vattu){
+  if(!vattu || !vattu.length) return null;
+  const items = vattu.map(v => `${normStr(v.ten)}|${normStr(v.donvi)}|${normStr(v.soluong)}`);
+  if(items.some(x => x.split('|')[0] === '')) return null; // bỏ qua nếu có mục thiếu tên
+  items.sort();
+  return items.join('##');
+}
+async function scanMaterialVatTuDuplicates(){
+  const all = await collectAllItems('material');
+  const groups = {};
+  all.forEach(entry=>{
+    const sig = vatTuListSignature(entry.item.vattu);
+    if(!sig) return;
+    (groups[sig] = groups[sig] || []).push(entry);
+  });
+  const dupGroups = Object.values(groups).filter(arr=>arr.length>1);
+  const rows = [];
+  dupGroups.forEach((g, gi)=>{
+    const itemCount = (g[0].item.vattu||[]).length;
+    const itemsSummary = (g[0].item.vattu||[]).map(v=>`${v.ten||''} (${v.soluong||0} ${v.donvi||''})`).join(', ');
+    g.forEach(entry=>{
+      rows.push({
+        rowId: `mat_${entry.item.uid}`, type:'material', uid: entry.item.uid, date: entry.date, key: entry.key,
+        made: entry.item.made, khuvuc: entry.item.khuvuc, chinhanh: entry.item.chinhanh,
+        noidung: entry.item.noidung, groupIndex: gi+1,
+        detail: `Trùng toàn bộ ${itemCount} mục vật tư: ${itemsSummary}`
+      });
+    });
+  });
+  return rows;
+}
+
+function buildDupRowHtml(row){
+  return `<tr data-rowid="${row.rowId}">
+    <td><input type="checkbox" class="dup-row-check" data-rowid="${row.rowId}"></td>
+    <td class="mono">#${row.groupIndex}</td>
+    <td class="mono">${fmtDateVN(row.date)}</td>
+    <td>${escapeHtml(row.chinhanh||'')}</td>
+    <td>${escapeHtml(row.khuvuc||'')}</td>
+    <td class="mono">${escapeHtml(row.made||'')}</td>
+    <td>${escapeHtml(row.noidung||'')}</td>
+    <td>${escapeHtml(row.detail||'')}</td>
+    <td style="white-space:nowrap;">
+      <button class="del-btn" data-dupact="edit" data-rowid="${row.rowId}" title="Sửa đề xuất">✎</button>
+      <button class="del-btn" data-dupact="del" data-rowid="${row.rowId}" title="Xóa đề xuất">✕</button>
+    </td>
+  </tr>`;
+}
+
+function openDupModal(title, rows, emptyMsg){
+  currentDupRows = rows;
+  $('dupModalTitle').textContent = title;
+  $('dupSelectAll').checked = false;
+  const body = $('dupTableBody');
+  if(!rows.length){
+    body.innerHTML = '';
+    $('dupEmptyState').style.display = 'block';
+    $('dupEmptyState').textContent = emptyMsg || 'Không phát hiện trùng lặp nào 🎉';
+    $('dupModalSummary').textContent = '';
+  } else {
+    $('dupEmptyState').style.display = 'none';
+    const groupCount = new Set(rows.map(r=>r.groupIndex)).size;
+    $('dupModalSummary').innerHTML = `Phát hiện <b>${groupCount}</b> nhóm trùng lặp, tổng cộng <b>${rows.length}</b> đề xuất liên quan. Tick chọn các dòng cần xóa rồi bấm "Xóa mục đã chọn", hoặc bấm ✎ để sửa từng đề xuất.`;
+    body.innerHTML = rows.map(buildDupRowHtml).join('');
+  }
+  $('dupModalOverlay').classList.add('show');
+}
+
+$('incDupScanBtn').addEventListener('click', async ()=>{
+  showToast('Đang quét trùng lặp ID trên toàn bộ dữ liệu...');
+  const rows = await scanIncidentIdDuplicates();
+  openDupModal('🔁 Trùng lặp ID — Sự cố tuyến ống', rows, 'Không phát hiện ID trùng lặp nào 🎉');
+});
+$('matDupScanBtn').addEventListener('click', async ()=>{
+  showToast('Đang quét trùng lặp toàn bộ danh sách vật tư trên toàn bộ dữ liệu...');
+  const rows = await scanMaterialVatTuDuplicates();
+  openDupModal('🔁 Trùng lặp toàn bộ danh sách vật tư / hóa chất', rows, 'Không phát hiện đề xuất nào có danh sách vật tư trùng khớp hoàn toàn 🎉');
+});
+
+$('dupModalCloseBtn').addEventListener('click', ()=> $('dupModalOverlay').classList.remove('show'));
+$('dupModalOverlay').addEventListener('click', (e)=>{ if(e.target.id==='dupModalOverlay') $('dupModalOverlay').classList.remove('show'); });
+$('dupSelectAll').addEventListener('change', ()=>{
+  document.querySelectorAll('.dup-row-check').forEach(cb=> cb.checked = $('dupSelectAll').checked);
+});
+
+async function deleteDupRow(row){
+  const list = await loadKey(row.key);
+  await saveKey(row.key, list.filter(x=>x.uid!==row.uid));
+}
+
+document.addEventListener('click', async (e)=>{
+  const btn = e.target.closest('button[data-dupact]');
+  if(!btn) return;
+  const row = currentDupRows.find(r=>r.rowId===btn.dataset.rowid);
+  if(!row) return;
+  if(btn.dataset.dupact==='edit'){
+    $('dupModalOverlay').classList.remove('show');
+    currentDate = row.date;
+    activeTab = row.type;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===activeTab));
+    $('tab-incident').classList.toggle('active', activeTab==='incident');
+    $('tab-material').classList.toggle('active', activeTab==='material');
+    $('tab-search').classList.remove('active');
+    $('tab-weekly').classList.remove('active');
+    clearIncidentForm(); clearMaterialForm();
+    await render();
+    const list = await loadKey(row.key);
+    const item = list.find(x=>x.uid===row.uid);
+    if(item){
+      if(row.type==='incident') loadIncidentIntoForm(item);
+      else loadMaterialIntoForm(item);
+    }
+    showToast('Đã tải đề xuất vào form — chỉnh sửa rồi bấm Lưu để cập nhật');
+  } else if(btn.dataset.dupact==='del'){
+    await deleteDupRow(row);
+    currentDupRows = currentDupRows.filter(r=>r.rowId!==row.rowId);
+    const tr = document.querySelector(`tr[data-rowid="${CSS.escape(row.rowId)}"]`);
+    if(tr) tr.remove();
+    showToast('Đã xóa đề xuất');
+    if(!currentDupRows.length){ $('dupEmptyState').style.display='block'; $('dupEmptyState').textContent='Không phát hiện trùng lặp nào 🎉'; $('dupModalSummary').textContent=''; }
+    render();
+  }
+});
+
+$('dupDeleteSelectedBtn').addEventListener('click', async ()=>{
+  const checked = Array.from(document.querySelectorAll('.dup-row-check:checked')).map(cb=>cb.dataset.rowid);
+  if(!checked.length){ showToast('Chưa chọn mục nào để xóa'); return; }
+  const rowsToDelete = currentDupRows.filter(r=>checked.includes(r.rowId));
+  const byKey = {};
+  rowsToDelete.forEach(r=>{ (byKey[r.key]=byKey[r.key]||[]).push(r.uid); });
+  for(const key of Object.keys(byKey)){
+    const list = await loadKey(key);
+    await saveKey(key, list.filter(x=>!byKey[key].includes(x.uid)));
+  }
+  currentDupRows = currentDupRows.filter(r=>!checked.includes(r.rowId));
+  checked.forEach(rid=>{ const tr = document.querySelector(`tr[data-rowid="${CSS.escape(rid)}"]`); if(tr) tr.remove(); });
+  showToast(`Đã xóa ${rowsToDelete.length} đề xuất`);
+  if(!currentDupRows.length){ $('dupEmptyState').style.display='block'; $('dupEmptyState').textContent='Không phát hiện trùng lặp nào 🎉'; $('dupModalSummary').textContent=''; }
+  render();
+});
+
+function startApp(){
+  clearIncidentForm();
+  clearMaterialForm();
+  toggleDateModeFields();
+  $('f_fromdate').value = currentDate;
+  $('f_todate').value = currentDate;
+  $('f_singledate').value = currentDate;
+  $('wkRefDate').value = currentDate;
+  $('wkRefMonth').value = currentMonthStr();
+  updatePeriodControlsVisibility();
+  populateChiNhanhSelect($('f_chinhanh'), 'all', 'filter');
+  populateChiNhanhSelect($('wk_chinhanh'), 'all', 'filter');
+  render();
+}
+
+// ---------- ĐĂNG NHẬP / ĐĂNG XUẤT (Firebase Authentication) ----------
+let __appStarted = false;
+function setLoginError(msg){ $('loginError').textContent = msg || ''; }
+function setLoginLoading(on){ $('loginLoading').style.display = on ? '' : 'none'; }
+
+async function doLogin(){
+  const email = $('loginEmail').value.trim();
+  const password = $('loginPassword').value;
+  setLoginError('');
+  if(!email || !password){ setLoginError('Vui lòng nhập đầy đủ email và mật khẩu.'); return; }
+  $('loginBtn').disabled = true;
+  setLoginLoading(true);
+  try{
+    await __auth.signInWithEmailAndPassword(email, password);
+    // onAuthStateChanged sẽ tự xử lý phần còn lại
+  }catch(e){
+    let msg = 'Đăng nhập thất bại. Vui lòng kiểm tra lại email/mật khẩu.';
+    if(e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential'){
+      msg = 'Email hoặc mật khẩu không đúng.';
+    } else if(e.code === 'auth/too-many-requests'){
+      msg = 'Bạn đã thử sai quá nhiều lần. Vui lòng thử lại sau ít phút.';
+    } else if(e.code === 'auth/invalid-email'){
+      msg = 'Email không hợp lệ.';
+    }
+    setLoginError(msg);
+  } finally {
+    $('loginBtn').disabled = false;
+    setLoginLoading(false);
+  }
+}
+$('loginBtn').addEventListener('click', doLogin);
+$('loginPassword').addEventListener('keydown', (e)=>{ if(e.key === 'Enter') doLogin(); });
+$('loginEmail').addEventListener('keydown', (e)=>{ if(e.key === 'Enter') $('loginPassword').focus(); });
+
+$('logoutBtn').addEventListener('click', async ()=>{
+  if(!confirm('Bạn có chắc muốn đăng xuất?')) return;
+  await __auth.signOut();
+});
+
+__auth.onAuthStateChanged((user)=>{
+  if(user){
+    $('loginOverlay').classList.add('hide');
+    $('wrap-app').style.display = 'block';
+    if(!__appStarted){ __appStarted = true; startApp(); }
+  } else {
+    $('wrap-app').style.display = 'none';
+    $('loginOverlay').classList.remove('hide');
+    $('loginEmail').value = '';
+    $('loginPassword').value = '';
+    setLoginError('');
+    setLoginLoading(false);
+  }
+});
+</script>
+</body>
+</html>
