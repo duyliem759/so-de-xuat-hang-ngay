@@ -774,14 +774,15 @@
       <div class="sub" style="margin-bottom:10px;">
         Bảng độc lập này quét TOÀN BỘ dữ liệu và lọc theo <span class="mono">isApproved === true</span> VÀ
         <span class="mono">ngày duyệt</span> nằm trong kỳ đang xem — không phụ thuộc ngày tạo đề xuất, nên không
-        bao giờ bị sót các đề xuất tạo ở kỳ trước nhưng kỳ này mới được duyệt.
+        bao giờ bị sót các đề xuất tạo ở kỳ trước nhưng kỳ này mới được duyệt. 💡 Bấm vào 1 dòng để cuộn đến và xem nhanh chi tiết đề xuất đó.
       </div>
+      <div id="wkApprovedBreakdown" style="margin-bottom:14px;"></div>
       <div class="table-scroll">
         <table>
           <thead>
             <tr>
-              <th>Ngày duyệt</th><th>Loại</th><th>Ngày tạo</th><th>Mã ĐX</th><th>Nội dung</th>
-              <th>Người / ĐV thực hiện</th><th>Chi phí</th>
+              <th>Ngày duyệt</th><th>Loại</th><th>Ngày tạo</th><th>Độ trễ duyệt</th><th>Mã ĐX</th><th>Nội dung</th>
+              <th>Cơ sở / Chi nhánh / Khu vực</th><th>Người / ĐV thực hiện</th><th>Chi phí</th>
             </tr>
           </thead>
           <tbody id="wkApprovedTableBody"></tbody>
@@ -910,13 +911,15 @@
       Bảng độc lập này quét TOÀN BỘ dữ liệu và lọc đúng theo điều kiện: nút tích Duyệt được bật
       (<span class="mono">isApproved === true</span>) VÀ <span class="mono">ngày duyệt</span> = ngày đang xem
       — không phụ thuộc ngày tạo đề xuất, nên không bao giờ bị sót các đề xuất tạo ngày khác nhưng hôm nay mới duyệt.
+      💡 Bấm vào 1 dòng để cuộn đến và xem nhanh chi tiết đề xuất đó.
     </div>
+    <div id="dayApprovedBreakdown" style="margin-bottom:14px;"></div>
     <div class="table-scroll">
       <table>
         <thead>
           <tr>
-            <th>Ngày duyệt</th><th>Loại</th><th>Ngày tạo</th><th>Mã ĐX</th><th>Nội dung</th>
-            <th>Người / ĐV thực hiện</th><th>Chi phí</th>
+            <th>Ngày duyệt</th><th>Loại</th><th>Ngày tạo</th><th>Độ trễ duyệt</th><th>Mã ĐX</th><th>Nội dung</th>
+            <th>Cơ sở / Chi nhánh / Khu vực</th><th>Người / ĐV thực hiện</th><th>Chi phí</th>
           </tr>
         </thead>
         <tbody id="dayApprovedTableBody"></tbody>
@@ -1877,15 +1880,92 @@ async function render(){
 
 }
 
+// Nhãn "Độ trễ duyệt": so sánh Ngày đề xuất (e.__date, lấy từ Key của Document) với kỳ đang xem báo cáo.
+// Nếu đề xuất được TẠO trước khi kỳ đang xem bắt đầu nhưng lại được DUYỆT trong kỳ này -> hiển thị rõ nhãn trễ.
+const DELAY_LABEL_BY_KIND = { day:'Duyệt từ ngày trước', week:'Duyệt từ tuần trước', month:'Duyệt từ tháng trước', quarter:'Duyệt từ quý trước', year:'Duyệt từ năm trước' };
+function approvalDelayInfo(e, periodInfo){
+  if(!periodInfo || !e.__date || !periodInfo.startDate) return null;
+  if(e.__date >= periodInfo.startDate) return null; // được tạo ngay trong kỳ đang xem -> không tính là trễ
+  return DELAY_LABEL_BY_KIND[periodInfo.kind] || DELAY_LABEL_BY_KIND.week;
+}
+function approvalDelayBadgeHtml(e, periodInfo){
+  const label = approvalDelayInfo(e, periodInfo);
+  return label ? `<span class="tag tag-wait" title="Đề xuất được tạo ngày ${fmtDateVN(e.__date)}, trước kỳ đang xem báo cáo">⏱ ${label}</span>` : '<span class="mono" style="color:var(--ink-soft);">—</span>';
+}
+// Chuỗi hiển thị "Cơ sở / Chi nhánh / Khu vực" cho 1 dòng của bảng báo cáo tổng quát.
+function cosoChiNhanhKhuVucCell(e){
+  const cosoId = getCosoOfChiNhanhField(e.chinhanh);
+  const cosoTxt = cosoLabel(cosoId) || '(chưa rõ cơ sở)';
+  const cnTxt = e.chinhanh || '—';
+  const kvTxt = e.khuvuc || '—';
+  return `<div class="mono" style="line-height:1.6;"><b>${escapeHtml(cosoTxt)}</b><br>${escapeHtml(cnTxt)}<br>${escapeHtml(kvTxt)}</div>`;
+}
+// Gom cụm & thống kê số lượng đề xuất đã duyệt theo Cơ sở, Chi nhánh, Khu vực — hiển thị dạng bảng nhỏ.
+function renderApprovedBreakdown(list, containerId){
+  const el = $(containerId);
+  if(!el) return;
+  if(!list.length){ el.innerHTML = ''; return; }
+  function groupCount(keyFn, labelFn){
+    const map = new Map();
+    list.forEach(e=>{
+      const key = keyFn(e);
+      if(!key) return;
+      map.set(key, (map.get(key)||0)+1);
+    });
+    return Array.from(map.entries())
+      .map(([key,count])=>({label: labelFn ? labelFn(key) : key, count}))
+      .sort((a,b)=> b.count - a.count || a.label.localeCompare(b.label));
+  }
+  const byCoso = groupCount(e=>getCosoOfChiNhanhField(e.chinhanh) || '(chưa rõ)', k=> k==='(chưa rõ)' ? k : cosoLabel(k));
+  const byChiNhanh = groupCount(e=> e.chinhanh || '(chưa rõ)');
+  const byKhuVuc = groupCount(e=> e.khuvuc || '(chưa rõ)');
+  function renderGroup(title, groups){
+    if(!groups.length) return '';
+    const chips = groups.map(g=>`<span class="tag tag-approved" style="margin:2px 4px 2px 0;">${escapeHtml(g.label)}: ${g.count}</span>`).join('');
+    return `<div style="margin-bottom:8px;"><b style="font-size:12px;">${title}</b><div style="margin-top:4px;">${chips}</div></div>`;
+  }
+  el.innerHTML = `
+    <div style="border:1px solid var(--line); border-radius:2px; padding:12px 14px; background:#FBFCFC;">
+      <div style="font-size:12px; color:var(--ink-soft); margin-bottom:8px;">📊 Phân loại đa chiều đề xuất đã duyệt (theo Cơ sở / Chi nhánh / Khu vực):</div>
+      ${renderGroup('Theo Cơ sở', byCoso)}
+      ${renderGroup('Theo Chi nhánh', byChiNhanh)}
+      ${renderGroup('Theo Khu vực', byKhuVuc)}
+    </div>
+  `;
+}
+// Bấm vào 1 dòng trong bảng báo cáo tổng quát -> chuyển tới đúng ngày/tab của đề xuất đó và cuộn tới,
+// làm nổi bật (highlight) dòng tương ứng trong bảng danh sách chi tiết, KHÔNG mở form sửa (chỉ xem).
+async function gotoAndHighlightEntry(date, loai, uid){
+  currentDate = date;
+  activeTab = loai;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===activeTab));
+  $('tab-incident').classList.toggle('active', activeTab==='incident');
+  $('tab-material').classList.toggle('active', activeTab==='material');
+  $('tab-search').classList.remove('active');
+  $('tab-weekly').classList.remove('active');
+  await render();
+  requestAnimationFrame(()=>{
+    const checkbox = document.querySelector(`.approve-checkbox[data-id="${CSS.escape(uid)}"]`);
+    const tr = checkbox ? checkbox.closest('tr') : null;
+    if(tr){
+      tr.scrollIntoView({ behavior:'smooth', block:'center' });
+      tr.classList.add('row-highlight');
+      setTimeout(()=> tr.classList.remove('row-highlight'), 1900);
+    } else {
+      showToast('Không tìm thấy dòng chi tiết tương ứng (có thể đã bị xóa)');
+    }
+  });
+}
 // Vẽ bảng "Danh sách đề xuất Lãnh đạo đơn vị đã duyệt" — dùng chung cho cả Ngày và Tuần/Tháng/Quý/Năm.
 // Dữ liệu đầu vào (approvedEntries) luôn lấy từ getApprovedEntriesInRange(...) — tức đã quét TOÀN BỘ
 // collection và lọc theo item.isApproved===true + ngayduyet nằm trong kỳ, không phụ thuộc ngày tạo đề xuất.
-function renderApprovedTable(approvedEntries, ids){
-  ids = ids || { body:'dayApprovedTableBody', empty:'dayApprovedEmptyState', note:'dayApprovedTotalNote' };
+function renderApprovedTable(approvedEntries, ids, periodInfo){
+  ids = ids || { body:'dayApprovedTableBody', empty:'dayApprovedEmptyState', note:'dayApprovedTotalNote', breakdown:'dayApprovedBreakdown' };
   const body = $(ids.body); if(!body) return;
   body.innerHTML = '';
   const list = [...approvedEntries].sort((a,b)=>naturalMaDeXuatCompare(a.made,b.made));
   $(ids.empty).style.display = list.length ? 'none' : 'block';
+  if(ids.breakdown) renderApprovedBreakdown(list, ids.breakdown);
   let sumCost = 0;
   list.forEach(e=>{
     const cost = e.__loai==='incident' ? (Number(e.thuphi)||0) : materialTotalCost(e);
@@ -1893,25 +1973,34 @@ function renderApprovedTable(approvedEntries, ids){
     const nguoiOrDv = e.__loai==='incident' ? (e.nguoi||'') : (e.donvithuchien||'');
     const tr = document.createElement('tr');
     tr.classList.add('row-green');
+    tr.style.cursor = 'pointer';
+    tr.title = 'Bấm để cuộn đến và xem chi tiết đề xuất này';
     tr.innerHTML = `
       <td class="mono">${fmtDateVN(e.ngayduyet||'')}</td>
       <td>${e.__loai==='incident' ? 'Sự cố tuyến ống' : 'Vật tư / Hóa chất'}</td>
       <td class="mono">${fmtDateVN(e.__date||'')}</td>
+      <td>${approvalDelayBadgeHtml(e, periodInfo)}</td>
       <td class="mono">${escapeHtml(e.made)}</td>
       <td>${escapeHtml(e.noidung)}</td>
+      <td>${cosoChiNhanhKhuVucCell(e)}</td>
       <td>${escapeHtml(nguoiOrDv)}</td>
       <td class="cost-cell">${fmtVND(cost)}</td>
     `;
+    tr.addEventListener('click', ()=> gotoAndHighlightEntry(e.__date, e.__loai, e.uid));
     body.appendChild(tr);
   });
   const approvedIncCount = list.filter(e=>e.__loai==='incident').length;
   const approvedMatCount = list.filter(e=>e.__loai==='material').length;
+  const delayedCount = list.filter(e=>approvalDelayInfo(e, periodInfo)).length;
   $(ids.note).textContent = list.length
-    ? `→ Tổng cộng: ${list.length} đề xuất đã duyệt (${approvedIncCount} sự cố tuyến ống · ${approvedMatCount} vật tư/hóa chất) — Tổng chi phí: ${fmtVND(sumCost)}`
+    ? `→ Tổng cộng: ${list.length} đề xuất đã duyệt (${approvedIncCount} sự cố tuyến ống · ${approvedMatCount} vật tư/hóa chất)${delayedCount ? ` · ${delayedCount} đề xuất duyệt trễ (tạo trước kỳ đang xem)` : ''} — Tổng chi phí: ${fmtVND(sumCost)}`
     : '';
 }
 function renderDayApprovedTable(approvedEntries){
-  renderApprovedTable(approvedEntries, { body:'dayApprovedTableBody', empty:'dayApprovedEmptyState', note:'dayApprovedTotalNote' });
+  renderApprovedTable(approvedEntries,
+    { body:'dayApprovedTableBody', empty:'dayApprovedEmptyState', note:'dayApprovedTotalNote', breakdown:'dayApprovedBreakdown' },
+    { kind:'day', startDate: currentDate, endDate: currentDate }
+  );
 }
 
 async function aggregateRange(dateList){
@@ -2083,7 +2172,10 @@ async function renderPeriodSummary(startDate, endDate, bannerLabel, kind, prevSt
   //     bất kể đề xuất được TẠO ở ngày nào (khắc phục lỗi duyệt trễ).
   const approvedInPeriod = await getApprovedEntriesInRange(startDate, endDate, cosoFilter);
   const wkApproved = approvedInPeriod.length;
-  renderApprovedTable(approvedInPeriod, { body:'wkApprovedTableBody', empty:'wkApprovedEmptyState', note:'wkApprovedTotalNote' });
+  renderApprovedTable(approvedInPeriod,
+    { body:'wkApprovedTableBody', empty:'wkApprovedEmptyState', note:'wkApprovedTotalNote', breakdown:'wkApprovedBreakdown' },
+    { kind, startDate, endDate }
+  );
 
   const wkSubmitted = wkTotal - wkWaiting;
 
