@@ -419,10 +419,15 @@
             <option>Đã đưa lên đề xuất</option>
             <option>Đang xử lý</option>
             <option>Đã duyệt</option>
-            <option>Lãnh đạo đơn vị đã duyệt</option>
             <option>Đã thi công</option>
             <option>Từ chối</option>
           </select>
+        </div>
+        <div class="field" id="i_approved_field" style="display:none;">
+          <label>Lãnh đạo đơn vị đã duyệt</label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;height:32px;">
+            <input type="checkbox" id="i_isApproved" style="width:16px;height:16px;cursor:pointer;"> Đã duyệt
+          </label>
         </div>
         <div class="field" id="i_ngayduyet_field" style="display:none;"><label>Ngày duyệt</label><input type="date" id="i_ngayduyet"></div>
         <div class="field"><label>Đơn vị thực hiện</label><input type="text" id="i_donvithuchien" placeholder="VD: Đội thi công 1"></div>
@@ -449,7 +454,7 @@
             <tr>
               <th>STT</th><th>Chi nhánh</th><th>Khu vực</th><th>Mã ĐX</th><th>Người ĐX</th><th>Nội dung</th>
               <th>ID</th><th>Loại ống</th><th>Ø (mm)</th><th>Thu phí</th><th>Nguyên nhân</th>
-              <th>Tình trạng</th><th>Ngày duyệt</th><th>ĐV thực hiện</th><th>ĐV theo dõi</th><th>Ghi chú</th><th>Link</th><th></th>
+              <th>Tình trạng</th><th>Duyệt</th><th>Ngày duyệt</th><th>ĐV thực hiện</th><th>ĐV theo dõi</th><th>Ghi chú</th><th>Link</th><th></th>
             </tr>
           </thead>
           <tbody id="incTableBody"></tbody>
@@ -498,10 +503,15 @@
             <option>Đã đưa lên đề xuất</option>
             <option>Đang xử lý</option>
             <option>Đã duyệt</option>
-            <option>Lãnh đạo đơn vị đã duyệt</option>
             <option>Đã cấp phát</option>
             <option>Từ chối</option>
           </select>
+        </div>
+        <div class="field" id="m_approved_field" style="display:none;">
+          <label>Lãnh đạo đơn vị đã duyệt</label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer;height:32px;">
+            <input type="checkbox" id="m_isApproved" style="width:16px;height:16px;cursor:pointer;"> Đã duyệt
+          </label>
         </div>
         <div class="field" id="m_ngayduyet_field" style="display:none;"><label>Ngày duyệt</label><input type="date" id="m_ngayduyet"></div>
         <div class="field span2"><label>Ghi chú (nếu có)</label><input type="text" id="m_ghichu" placeholder="Ghi chú thêm — bỏ trống nếu không có"></div>
@@ -563,7 +573,7 @@
             <tr>
               <th>STT</th><th>Chi nhánh</th><th>Khu vực</th><th>Mã ĐX</th><th>Người ĐX</th><th>Nội dung</th><th>Vật tư / Hóa chất</th>
               <th>Tổng chi phí</th><th>ĐV cung ứng</th><th>ĐV thực hiện</th><th>ĐV theo dõi</th>
-              <th>Tình trạng</th><th>Ngày duyệt</th><th>Ghi chú</th><th>Link</th><th></th>
+              <th>Tình trạng</th><th>Duyệt</th><th>Ngày duyệt</th><th>Ghi chú</th><th>Link</th><th></th>
             </tr>
           </thead>
           <tbody id="matTableBody"></tbody>
@@ -665,6 +675,8 @@
         <select id="wk_reporttype">
           <option value="week">Báo cáo tuần</option>
           <option value="month">Báo cáo tháng</option>
+          <option value="quarter">Báo cáo quý</option>
+          <option value="year">Báo cáo năm</option>
         </select>
         <label>Cơ sở:</label>
         <select id="wk_reportcoso">
@@ -686,6 +698,26 @@
         <button class="btn secondary" id="wkPrevMonthBtn">‹ Tháng trước</button>
         <button class="btn secondary" id="wkThisMonthBtn">Tháng này</button>
         <button class="btn secondary" id="wkNextMonthBtn">Tháng sau ›</button>
+      </div>
+      <div class="date-row" id="wkQuarterControls" style="display:none;">
+        <label>Chọn quý:</label>
+        <select id="wkRefQuarterNum">
+          <option value="1">Quý 1 (T1–T3)</option>
+          <option value="2">Quý 2 (T4–T6)</option>
+          <option value="3">Quý 3 (T7–T9)</option>
+          <option value="4">Quý 4 (T10–T12)</option>
+        </select>
+        <input type="number" id="wkRefQuarterYear" style="width:90px;" min="2000" max="2100">
+        <button class="btn secondary" id="wkPrevQuarterBtn">‹ Quý trước</button>
+        <button class="btn secondary" id="wkThisQuarterBtn">Quý này</button>
+        <button class="btn secondary" id="wkNextQuarterBtn">Quý sau ›</button>
+      </div>
+      <div class="date-row" id="wkYearControls" style="display:none;">
+        <label>Chọn năm:</label>
+        <input type="number" id="wkRefYear" style="width:110px;" min="2000" max="2100">
+        <button class="btn secondary" id="wkPrevYearBtn">‹ Năm trước</button>
+        <button class="btn secondary" id="wkThisYearBtn">Năm này</button>
+        <button class="btn secondary" id="wkNextYearBtn">Năm sau ›</button>
       </div>
       <div class="date-row">
         <button class="btn" id="wkViewBtn">Xem báo cáo tuần</button>
@@ -735,6 +767,28 @@
         <h2 id="wkCompareHeading" style="margin-bottom:10px;">So sánh với tuần trước</h2>
         <div class="compare-grid" id="wkCompareGrid"></div>
       </div>
+    </div>
+
+    <div class="panel">
+      <h2 id="wkApprovedHeading">Danh sách đề xuất Lãnh đạo đơn vị đã duyệt trong tuần</h2>
+      <div class="sub" style="margin-bottom:10px;">
+        Bảng độc lập này quét TOÀN BỘ dữ liệu và lọc theo <span class="mono">isApproved === true</span> VÀ
+        <span class="mono">ngày duyệt</span> nằm trong kỳ đang xem — không phụ thuộc ngày tạo đề xuất, nên không
+        bao giờ bị sót các đề xuất tạo ở kỳ trước nhưng kỳ này mới được duyệt.
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Ngày duyệt</th><th>Loại</th><th>Ngày tạo</th><th>Mã ĐX</th><th>Nội dung</th>
+              <th>Người / ĐV thực hiện</th><th>Chi phí</th>
+            </tr>
+          </thead>
+          <tbody id="wkApprovedTableBody"></tbody>
+        </table>
+      </div>
+      <div id="wkApprovedEmptyState" class="empty-state" style="display:none;">Chưa có đề xuất nào được Lãnh đạo đơn vị duyệt trong kỳ này.</div>
+      <div class="sub mono" id="wkApprovedTotalNote" style="margin-top:8px; font-size:12.5px; font-weight:600;"></div>
     </div>
 
     <div class="panel">
@@ -848,6 +902,28 @@
       <div id="feeByRegion" class="mono" style="font-size:12.5px; line-height:1.9;"></div>
       <div class="sub" id="feeMaxMinNote" style="margin-top:8px; font-size:12.5px; font-weight:600;"></div>
     </div>
+  </div>
+
+  <div class="panel">
+    <h2>Danh sách đề xuất Lãnh đạo đơn vị đã duyệt trong ngày</h2>
+    <div class="sub" style="margin-bottom:10px;">
+      Bảng độc lập này quét TOÀN BỘ dữ liệu và lọc đúng theo điều kiện: nút tích Duyệt được bật
+      (<span class="mono">isApproved === true</span>) VÀ <span class="mono">ngày duyệt</span> = ngày đang xem
+      — không phụ thuộc ngày tạo đề xuất, nên không bao giờ bị sót các đề xuất tạo ngày khác nhưng hôm nay mới duyệt.
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Ngày duyệt</th><th>Loại</th><th>Ngày tạo</th><th>Mã ĐX</th><th>Nội dung</th>
+            <th>Người / ĐV thực hiện</th><th>Chi phí</th>
+          </tr>
+        </thead>
+        <tbody id="dayApprovedTableBody"></tbody>
+      </table>
+    </div>
+    <div id="dayApprovedEmptyState" class="empty-state" style="display:none;">Chưa có đề xuất nào được Lãnh đạo đơn vị duyệt trong ngày này.</div>
+    <div class="sub mono" id="dayApprovedTotalNote" style="margin-top:8px; font-size:12.5px; font-weight:600;"></div>
   </div>
 
   <div class="panel">
@@ -1035,8 +1111,73 @@ function shiftMonthStr(monthStr, delta){
   return `${dt.getUTCFullYear()}-${pad2(dt.getUTCMonth()+1)}`;
 }
 function fmtMonthVN(monthStr){ const [y,m] = monthStr.split('-'); return `Tháng ${m}/${y}`; }
+
+// ---- Quý / Năm — helper tính khoảng ngày (startDate/endDate) cho báo cáo định kỳ ----
+function lastDateOfMonth(y,m){ return new Date(Date.UTC(y, m, 0)).getUTCDate(); }
+function getQuarterOfMonth(m){ return Math.ceil(m/3); }
+function quarterStrOf(y,q){ return `${y}-Q${q}`; }
+function currentQuarterStr(){ const d=new Date(); return quarterStrOf(d.getFullYear(), getQuarterOfMonth(d.getMonth()+1)); }
+function parseQuarterStr(qStr){ const [y,q] = qStr.split('-Q'); return { year:Number(y), quarter:Number(q) }; }
+function getQuarterRange(qStr){
+  const { year, quarter } = parseQuarterStr(qStr);
+  const startMonth = (quarter-1)*3 + 1;
+  const endMonth = startMonth + 2;
+  const startDate = `${year}-${pad2(startMonth)}-01`;
+  const endDate = `${year}-${pad2(endMonth)}-${pad2(lastDateOfMonth(year,endMonth))}`;
+  return { startDate, endDate };
+}
+function shiftQuarterStr(qStr, delta){
+  const { year, quarter } = parseQuarterStr(qStr);
+  const totalQ = (year*4 + (quarter-1)) + delta;
+  const newYear = Math.floor(totalQ/4);
+  const newQ = (totalQ - newYear*4) + 1;
+  return quarterStrOf(newYear, newQ);
+}
+function fmtQuarterVN(qStr){ const { year, quarter } = parseQuarterStr(qStr); return `Quý ${quarter}/${year}`; }
+
+function currentYearStr(){ return String(new Date().getFullYear()); }
+function getYearRange(yStr){ return { startDate: `${yStr}-01-01`, endDate: `${yStr}-12-31` }; }
+function shiftYearStr(yStr, delta){ return String(Number(yStr)+delta); }
+function fmtYearVN(yStr){ return `Năm ${yStr}`; }
+
+// Tuần/Tháng: quy về cùng dạng {startDate, endDate} như Quý/Năm để dùng chung 1 pipeline
+function getWeekRange(dateStr){
+  const days = getWeekDates(dateStr);
+  return { startDate: days[0], endDate: days[days.length-1] };
+}
+function getMonthRange(monthStr){
+  const days = getMonthDates(monthStr);
+  return { startDate: days[0], endDate: days[days.length-1] };
+}
+
+// ---- Helper hợp nhất: xác định startDate/endDate cho 1 loại báo cáo định kỳ ----
+function getPeriodRange(kind, refValue){
+  if(kind==='month') return getMonthRange(refValue);
+  if(kind==='quarter') return getQuarterRange(refValue);
+  if(kind==='year') return getYearRange(refValue);
+  return getWeekRange(refValue); // week (mặc định)
+}
+
 function fmtVND(n){ if(!n) return '0 ₫'; return Number(n).toLocaleString('vi-VN') + ' ₫'; }
 function showToast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+
+// ---------- TRẠNG THÁI DUYỆT (checkbox riêng biệt, tách khỏi Tình trạng) ----------
+// Kể từ bản cập nhật này, "Lãnh đạo đơn vị đã duyệt" không còn là 1 lựa chọn trong dropdown Tình trạng
+// nữa mà là 1 nút tích (checkbox) riêng biệt, lưu vào item.isApproved (true/false) + item.ngayduyet.
+// Hàm dưới đây kiểm tra 1 đề xuất đã được duyệt hay chưa, có tương thích ngược với dữ liệu cũ
+// (trước khi có checkbox) vốn lưu trạng thái duyệt bằng cách gán tinhtrang = 'Lãnh đạo đơn vị đã duyệt'.
+function isItemApproved(item){
+  return !!item && (item.isApproved === true || item.tinhtrang === 'Lãnh đạo đơn vị đã duyệt');
+}
+// Chuẩn hoá Tình trạng của dữ liệu cũ về danh sách lựa chọn mới (không còn option "Lãnh đạo đơn vị đã duyệt").
+// Nếu 1 đề xuất cũ có tinhtrang chính là giá trị đó, ta coi bước quy trình gần nhất còn hợp lệ là "Đã duyệt".
+function normalizeTinhtrang(t){
+  return t === 'Lãnh đạo đơn vị đã duyệt' ? 'Đã duyệt' : (t || 'Chưa đưa lên đề xuất');
+}
+// Hiển thị badge xanh "✓ LĐ đã duyệt" bên cạnh tag Tình trạng khi item.isApproved (dùng ở nhiều bảng).
+function approvedBadgeHtml(isApproved){
+  return isApproved ? ' <span class="tag tag-approved">✓ LĐ đã duyệt</span>' : '';
+}
 
 // ---- Bộ nhớ đệm để giảm số lần đọc Firestore trong 1 phiên làm việc ----
 const __cache = new Map();
@@ -1062,6 +1203,7 @@ async function saveKey(key, arr){
     });
     __cache.set(key, arr);
     __allKeysCache = null; // dữ liệu có thể có key mới, làm mới cache danh sách key
+    invalidateFullScanCache(); // dữ liệu ngayduyet có thể đã đổi, làm mới cache quét toàn bộ (dùng cho báo cáo theo Ngày duyệt)
   }catch(e){
     console.error('saveKey error', key, e);
     showToast('Lỗi lưu dữ liệu lên máy chủ (kiểm tra kết nối mạng / cấu hình Firebase)');
@@ -1161,23 +1303,43 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     if(activeTab==='weekly'){
       if(!$('wkRefDate').value) $('wkRefDate').value = currentDate;
       if(!$('wkRefMonth').value) $('wkRefMonth').value = currentMonthStr();
+      if(!$('wkRefQuarterYear').value) setQuarterControls(currentQuarterStr());
+      if(!$('wkRefYear').value) $('wkRefYear').value = currentYearStr();
       refreshReportView();
     }
     if(activeTab==='search'){ refreshSearchKhuVucOptions(); }
   });
 });
 
-// ---------- TOGGLE "Ngày Phòng đưa lên đề xuất" FIELD ----------
-function toggleNgayDuyetField(selectId, fieldId){
-  const isApproved = $(selectId).value === 'Lãnh đạo đơn vị đã duyệt';
-  $(fieldId).style.display = isApproved ? '' : 'none';
-  if(!isApproved){
-    const inputId = fieldId.replace('_field','');
-    $(inputId).value = '';
+// ---------- TOGGLE Ô "Duyệt" (checkbox) + "Ngày duyệt" — tách biệt khỏi Tình trạng ----------
+// Checkbox "Lãnh đạo đơn vị đã duyệt" chỉ xuất hiện khi Tình trạng KHÁC "Chưa đưa lên đề xuất"
+// (tức đề xuất đã được đưa lên rồi mới có thể duyệt). Ô "Ngày duyệt" chỉ xuất hiện khi checkbox được tích,
+// mặc định lấy ngày hiện tại nếu chưa có giá trị, và cho phép người dùng chọn lại ngày khác nếu cần.
+function toggleApprovalFields(prefix){
+  const tinhtrang = $(prefix+'_tinhtrang').value;
+  const canApprove = !!tinhtrang && tinhtrang !== 'Chưa đưa lên đề xuất';
+  $(prefix+'_approved_field').style.display = canApprove ? '' : 'none';
+  if(!canApprove){
+    $(prefix+'_isApproved').checked = false;
+    $(prefix+'_ngayduyet_field').style.display = 'none';
+    $(prefix+'_ngayduyet').value = '';
+  } else {
+    toggleNgayDuyetVisibility(prefix);
   }
 }
-$('i_tinhtrang').addEventListener('change', ()=>toggleNgayDuyetField('i_tinhtrang','i_ngayduyet_field'));
-$('m_tinhtrang').addEventListener('change', ()=>toggleNgayDuyetField('m_tinhtrang','m_ngayduyet_field'));
+function toggleNgayDuyetVisibility(prefix){
+  const checked = $(prefix+'_isApproved').checked;
+  $(prefix+'_ngayduyet_field').style.display = checked ? '' : 'none';
+  if(checked){
+    if(!$(prefix+'_ngayduyet').value) $(prefix+'_ngayduyet').value = todayStr();
+  } else {
+    $(prefix+'_ngayduyet').value = '';
+  }
+}
+$('i_tinhtrang').addEventListener('change', ()=>toggleApprovalFields('i'));
+$('m_tinhtrang').addEventListener('change', ()=>toggleApprovalFields('m'));
+$('i_isApproved').addEventListener('change', ()=>toggleNgayDuyetVisibility('i'));
+$('m_isApproved').addEventListener('change', ()=>toggleNgayDuyetVisibility('m'));
 
 // ---------- CƠ SỞ → CHI NHÁNH → KHU VỰC (cascading) CHO FORM NHẬP ----------
 $('i_coso').addEventListener('change', ()=>{
@@ -1211,12 +1373,13 @@ function clearIncidentForm(){
   populateChiNhanhSelect($('i_chinhanh'), '', 'entry', '');
   updateKhuVucDatalist($('i_khuvuc_list'), '');
   $('i_tinhtrang').value='Chưa đưa lên đề xuất';
+  $('i_isApproved').checked = false;
   $('i_ngay').value = currentDate;
   editingIncidentId = null;
   editingIncidentSourceDate = null;
   $('incFormTitle').textContent = 'Thêm đề xuất sự cố tuyến ống';
   $('incCancelBtn').style.display = 'none';
-  toggleNgayDuyetField('i_tinhtrang','i_ngayduyet_field');
+  toggleApprovalFields('i');
 }
 function clearMaterialForm(){
   ['m_stt','m_khuvuc','m_made','m_nguoi','m_noidung','m_donvithuchien','m_donvitheodoi','m_ghichu','m_link','m_cungung','m_ngayduyet','m_chinhanh'].forEach(id=>$(id).value='');
@@ -1224,6 +1387,7 @@ function clearMaterialForm(){
   populateChiNhanhDatalist($('m_chinhanh_list'), '');
   updateKhuVucDatalist($('m_khuvuc_list'), '');
   $('m_tinhtrang').value='Chưa đưa lên đề xuất';
+  $('m_isApproved').checked = false;
   $('m_ngay').value = currentDate;
   editingMaterialId = null;
   editingMaterialSourceDate = null;
@@ -1232,7 +1396,7 @@ function clearMaterialForm(){
   $('matFormTitle').textContent = 'Thêm đề xuất thay thế / mua mới / vật tư / hóa chất';
   $('matCancelBtn').style.display = 'none';
   clearVatTuInputs();
-  toggleNgayDuyetField('m_tinhtrang','m_ngayduyet_field');
+  toggleApprovalFields('m');
 }
 function clearVatTuInputs(){
   ['v_ten','v_donvi','v_soluong','v_khoxuat'].forEach(id=>$(id).value='');
@@ -1353,7 +1517,10 @@ $('incSaveBtn').addEventListener('click', async ()=>{
     stt, khuvuc:$('i_khuvuc').value.trim(), chinhanh:$('i_chinhanh').value, made, nguoi:$('i_nguoi').value.trim(),
     noidung, id:$('i_id').value.trim(), loaiong:$('i_loaiong').value,
     duongkinh:$('i_duongkinh').value, thuphi:$('i_thuphi').value, nguyennhan:$('i_nguyennhan').value.trim(),
-    tinhtrang:$('i_tinhtrang').value, ngayduyet:$('i_ngayduyet').value, donvithuchien:$('i_donvithuchien').value.trim(),
+    tinhtrang:$('i_tinhtrang').value,
+    isApproved: $('i_isApproved').checked,
+    ngayduyet: $('i_isApproved').checked ? ($('i_ngayduyet').value || todayStr()) : '',
+    donvithuchien:$('i_donvithuchien').value.trim(),
     donvitheodoi:$('i_donvitheodoi').value.trim(), ghichu:$('i_ghichu').value.trim(), link:$('i_link').value.trim(),
     updatedAt: Date.now()
   };
@@ -1398,7 +1565,10 @@ $('matSaveBtn').addEventListener('click', async ()=>{
     stt, khuvuc:$('m_khuvuc').value.trim(), chinhanh:$('m_chinhanh').value.trim(), made, nguoi:$('m_nguoi').value.trim(), noidung,
     vattu: [...currentVatTuRows], cungung:$('m_cungung').value.trim(),
     donvithuchien:$('m_donvithuchien').value.trim(), donvitheodoi:$('m_donvitheodoi').value.trim(),
-    tinhtrang:$('m_tinhtrang').value, ngayduyet:$('m_ngayduyet').value, ghichu:$('m_ghichu').value.trim(), link:$('m_link').value.trim(),
+    tinhtrang:$('m_tinhtrang').value,
+    isApproved: $('m_isApproved').checked,
+    ngayduyet: $('m_isApproved').checked ? ($('m_ngayduyet').value || todayStr()) : '',
+    ghichu:$('m_ghichu').value.trim(), link:$('m_link').value.trim(),
     updatedAt: Date.now()
   };
   if(!data.khuvuc && !data.made){ showToast('Vui lòng nhập ít nhất Khu vực hoặc Mã đề xuất'); return; }
@@ -1461,13 +1631,13 @@ function loadIncidentIntoForm(item){
   $('i_made').value=item.made||''; $('i_nguoi').value=item.nguoi||''; $('i_noidung').value=item.noidung||'';
   $('i_id').value=item.id||''; $('i_loaiong').value=item.loaiong||''; $('i_duongkinh').value=item.duongkinh||'';
   $('i_thuphi').value=item.thuphi||''; $('i_nguyennhan').value=item.nguyennhan||'';
-  $('i_tinhtrang').value=item.tinhtrang||'Chưa đưa lên đề xuất'; $('i_ngayduyet').value=item.ngayduyet||''; $('i_donvithuchien').value=item.donvithuchien||'';
+  $('i_tinhtrang').value=normalizeTinhtrang(item.tinhtrang); $('i_isApproved').checked=isItemApproved(item); $('i_ngayduyet').value=item.ngayduyet||''; $('i_donvithuchien').value=item.donvithuchien||'';
   $('i_donvitheodoi').value=item.donvitheodoi||''; $('i_ghichu').value=item.ghichu||''; $('i_link').value=item.link||'';
   editingIncidentId = item.uid;
   editingIncidentSourceDate = currentDate;
   $('incFormTitle').textContent = 'Chỉnh sửa đề xuất — '+(item.made||'');
   $('incCancelBtn').style.display='inline-block';
-  toggleNgayDuyetField('i_tinhtrang','i_ngayduyet_field');
+  toggleApprovalFields('i');
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function loadMaterialIntoForm(item){
@@ -1478,7 +1648,8 @@ function loadMaterialIntoForm(item){
   updateKhuVucDatalist($('m_khuvuc_list'), splitChiNhanhList(item.chinhanh||'')[0] || '');
   $('m_made').value=item.made||''; $('m_nguoi').value=item.nguoi||''; $('m_noidung').value=item.noidung||''; $('m_cungung').value=item.cungung||'';
   $('m_donvithuchien').value=item.donvithuchien||'';
-  $('m_donvitheodoi').value=item.donvitheodoi||''; $('m_tinhtrang').value=item.tinhtrang||'Chưa đưa lên đề xuất';
+  $('m_donvitheodoi').value=item.donvitheodoi||''; $('m_tinhtrang').value=normalizeTinhtrang(item.tinhtrang);
+  $('m_isApproved').checked=isItemApproved(item);
   $('m_ngayduyet').value=item.ngayduyet||'';
   $('m_ghichu').value=item.ghichu||''; $('m_link').value=item.link||'';
   currentVatTuRows = (item.vattu||[]).map(v=>({...v}));
@@ -1487,7 +1658,7 @@ function loadMaterialIntoForm(item){
   editingMaterialSourceDate = currentDate;
   $('matFormTitle').textContent = 'Chỉnh sửa đề xuất — '+(item.made||'');
   $('matCancelBtn').style.display='inline-block';
-  toggleNgayDuyetField('m_tinhtrang','m_ngayduyet_field');
+  toggleApprovalFields('m');
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1516,19 +1687,21 @@ async function render(){
   incidents.forEach(e=>{
     const isBig = Number(e.duongkinh) >= 200;
     const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
-    const isApproved = e.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
+    const isApproved = isItemApproved(e);
     const tr = document.createElement('tr');
     tr.dataset.uid = e.uid;
     if(isApproved) tr.classList.add('row-green');
     else if(isWaiting) tr.classList.add('row-yellow');
     let tinhtrangCell = e.tinhtrang||'';
-    const tagCls = isApproved ? 'tag-approved' : (isWaiting ? 'tag-wait' : 'tag-other');
+    const tagCls = isWaiting ? 'tag-wait' : 'tag-other';
+    const canApprove = !isWaiting;
     tr.innerHTML = `
       <td class="mono">${e.stt||''}</td><td>${e.chinhanh||''}</td><td>${e.khuvuc||''}</td><td class="mono">${e.made||''}</td>
       <td>${e.nguoi||''}</td><td>${e.noidung||''}</td><td class="mono">${e.id||''}</td><td>${e.loaiong||''}</td>
       <td>${e.duongkinh ? `<span class="${isBig?'pipe-red':'pipe-normal'}">${e.duongkinh}</span>` : ''}</td>
       <td class="mono">${fmtVND(e.thuphi)}</td><td>${e.nguyennhan||''}</td>
-      <td><span class="tag ${tagCls}">${tinhtrangCell}</span>${e.giu ? ' <span class="tag" style="background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple);" title="Bỏ qua khi dò trùng lặp">🔖 Giữ</span>' : ''}</td>
+      <td><span class="tag ${tagCls}">${tinhtrangCell}</span>${approvedBadgeHtml(isApproved)}${e.giu ? ' <span class="tag" style="background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple);" title="Bỏ qua khi dò trùng lặp">🔖 Giữ</span>' : ''}</td>
+      <td style="text-align:center;"><input type="checkbox" class="approve-checkbox" data-id="${e.uid}" ${isApproved?'checked':''} ${canApprove?'':'disabled'} title="${canApprove?'Tích khi Lãnh đạo đơn vị đã duyệt':'Cần đưa lên đề xuất trước khi duyệt'}" style="width:17px;height:17px;cursor:${canApprove?'pointer':'not-allowed'};"></td>
       <td>${isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : ''}</td>
       <td>${e.donvithuchien||''}</td><td>${e.donvitheodoi||''}</td><td>${e.ghichu||''}</td>
       <td>${linkCellShort(e,'inc')}</td>
@@ -1554,13 +1727,25 @@ async function render(){
       }
     });
   });
+  incBody.querySelectorAll('input.approve-checkbox').forEach(cb=>{
+    cb.addEventListener('change', async ()=>{
+      const list = await loadKey(incidentKey(currentDate));
+      const item = list.find(x=>x.uid===cb.dataset.id);
+      if(!item) return;
+      item.isApproved = cb.checked;
+      item.ngayduyet = cb.checked ? (item.ngayduyet || todayStr()) : '';
+      await saveKey(incidentKey(currentDate), list);
+      showToast(cb.checked ? 'Đã đánh dấu Lãnh đạo đơn vị đã duyệt' : 'Đã bỏ đánh dấu duyệt');
+      render();
+    });
+  });
 
   // ----- Material table -----
   const matBody = $('matTableBody'); matBody.innerHTML='';
   $('matEmptyState').style.display = materials.length ? 'none' : 'block';
   materials.forEach(e=>{
     const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
-    const isApproved = e.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
+    const isApproved = isItemApproved(e);
     const total = materialTotalCost(e);
     const vattuHtml = (e.vattu||[]).map(v=>`${v.ten}${v.loai==='Hóa chất'?' <span class="tag tag-chem">HC</span>':(v.loai==='Khác'?' <span class="tag tag-other">Khác</span>':' <span class="tag tag-other">VT</span>')} <span class="mono" style="color:var(--ink-soft)">(${v.hinhthuc}${v.khoXuat?' — kho: '+v.khoXuat:''}, ${v.soluong||0} ${v.donvi||''})</span>`).join('<br>');
     const tr = document.createElement('tr');
@@ -1568,12 +1753,14 @@ async function render(){
     if(isApproved) tr.classList.add('row-green');
     else if(isWaiting) tr.classList.add('row-yellow');
     let tinhtrangCell = e.tinhtrang||'';
-    const tagCls = isApproved ? 'tag-approved' : (isWaiting ? 'tag-wait' : 'tag-other');
+    const tagCls = isWaiting ? 'tag-wait' : 'tag-other';
+    const canApprove = !isWaiting;
     tr.innerHTML = `
       <td class="mono">${e.stt||''}</td><td>${e.chinhanh||''}</td><td>${e.khuvuc||''}</td><td class="mono">${e.made||''}</td>
       <td>${e.nguoi||''}</td><td>${e.noidung||''}</td><td>${vattuHtml||''}</td><td class="cost-cell">${fmtVND(total)}</td>
       <td>${e.cungung||''}</td><td>${e.donvithuchien||''}</td><td>${e.donvitheodoi||''}</td>
-      <td><span class="tag ${tagCls}">${tinhtrangCell}</span>${e.giu ? ' <span class="tag" style="background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple);" title="Bỏ qua khi dò trùng lặp">🔖 Giữ</span>' : ''}</td>
+      <td><span class="tag ${tagCls}">${tinhtrangCell}</span>${approvedBadgeHtml(isApproved)}${e.giu ? ' <span class="tag" style="background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple);" title="Bỏ qua khi dò trùng lặp">🔖 Giữ</span>' : ''}</td>
+      <td style="text-align:center;"><input type="checkbox" class="approve-checkbox" data-id="${e.uid}" ${isApproved?'checked':''} ${canApprove?'':'disabled'} title="${canApprove?'Tích khi Lãnh đạo đơn vị đã duyệt':'Cần đưa lên đề xuất trước khi duyệt'}" style="width:17px;height:17px;cursor:${canApprove?'pointer':'not-allowed'};"></td>
       <td>${isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : ''}</td>
       <td>${e.ghichu||''}</td>
       <td>${linkCellShort(e,'mat')}</td>
@@ -1599,6 +1786,18 @@ async function render(){
       }
     });
   });
+  matBody.querySelectorAll('input.approve-checkbox').forEach(cb=>{
+    cb.addEventListener('change', async ()=>{
+      const list = await loadKey(materialKey(currentDate));
+      const item = list.find(x=>x.uid===cb.dataset.id);
+      if(!item) return;
+      item.isApproved = cb.checked;
+      item.ngayduyet = cb.checked ? (item.ngayduyet || todayStr()) : '';
+      await saveKey(materialKey(currentDate), list);
+      showToast(cb.checked ? 'Đã đánh dấu Lãnh đạo đơn vị đã duyệt' : 'Đã bỏ đánh dấu duyệt');
+      render();
+    });
+  });
 
   // ----- Summary -----
   const total = incidents.length + materials.length;
@@ -1616,8 +1815,10 @@ async function render(){
 
   const waitingCount = incidents.filter(e=>e.tinhtrang==='Chưa đưa lên đề xuất').length
                      + materials.filter(e=>e.tinhtrang==='Chưa đưa lên đề xuất').length;
-  const approvedCount = incidents.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length
-                       + materials.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length;
+  // "Lãnh đạo đơn vị đã duyệt" trong ngày = đếm theo NGÀY DUYỆT thực tế (ngayduyet === currentDate),
+  // KHÔNG đếm theo ngày tạo — để không bỏ sót các đề xuất tạo ở ngày khác nhưng hôm nay mới được duyệt.
+  const approvedEntries = await getApprovedEntriesInRange(currentDate, currentDate, 'all');
+  const approvedCount = approvedEntries.length;
   const submittedCount = total - waitingCount;
 
   $('statTotal').textContent = total;
@@ -1632,6 +1833,9 @@ async function render(){
   $('statFeeIncident').textContent = fmtVND(feeIncident);
   $('statFeeMaterial').textContent = fmtVND(feeMaterial);
   $('statFeeTotal').textContent = fmtVND(feeIncident + feeMaterial);
+
+  // ---- Bảng độc lập: Danh sách đề xuất Lãnh đạo đơn vị đã duyệt trong ngày (theo ngayduyet, quét toàn bộ) ----
+  renderDayApprovedTable(approvedEntries);
 
   // Region (combined)
   const regionCount = {}, regionMoney = {};
@@ -1673,6 +1877,43 @@ async function render(){
 
 }
 
+// Vẽ bảng "Danh sách đề xuất Lãnh đạo đơn vị đã duyệt" — dùng chung cho cả Ngày và Tuần/Tháng/Quý/Năm.
+// Dữ liệu đầu vào (approvedEntries) luôn lấy từ getApprovedEntriesInRange(...) — tức đã quét TOÀN BỘ
+// collection và lọc theo item.isApproved===true + ngayduyet nằm trong kỳ, không phụ thuộc ngày tạo đề xuất.
+function renderApprovedTable(approvedEntries, ids){
+  ids = ids || { body:'dayApprovedTableBody', empty:'dayApprovedEmptyState', note:'dayApprovedTotalNote' };
+  const body = $(ids.body); if(!body) return;
+  body.innerHTML = '';
+  const list = [...approvedEntries].sort((a,b)=>naturalMaDeXuatCompare(a.made,b.made));
+  $(ids.empty).style.display = list.length ? 'none' : 'block';
+  let sumCost = 0;
+  list.forEach(e=>{
+    const cost = e.__loai==='incident' ? (Number(e.thuphi)||0) : materialTotalCost(e);
+    sumCost += cost;
+    const nguoiOrDv = e.__loai==='incident' ? (e.nguoi||'') : (e.donvithuchien||'');
+    const tr = document.createElement('tr');
+    tr.classList.add('row-green');
+    tr.innerHTML = `
+      <td class="mono">${fmtDateVN(e.ngayduyet||'')}</td>
+      <td>${e.__loai==='incident' ? 'Sự cố tuyến ống' : 'Vật tư / Hóa chất'}</td>
+      <td class="mono">${fmtDateVN(e.__date||'')}</td>
+      <td class="mono">${escapeHtml(e.made)}</td>
+      <td>${escapeHtml(e.noidung)}</td>
+      <td>${escapeHtml(nguoiOrDv)}</td>
+      <td class="cost-cell">${fmtVND(cost)}</td>
+    `;
+    body.appendChild(tr);
+  });
+  const approvedIncCount = list.filter(e=>e.__loai==='incident').length;
+  const approvedMatCount = list.filter(e=>e.__loai==='material').length;
+  $(ids.note).textContent = list.length
+    ? `→ Tổng cộng: ${list.length} đề xuất đã duyệt (${approvedIncCount} sự cố tuyến ống · ${approvedMatCount} vật tư/hóa chất) — Tổng chi phí: ${fmtVND(sumCost)}`
+    : '';
+}
+function renderDayApprovedTable(approvedEntries){
+  renderApprovedTable(approvedEntries, { body:'dayApprovedTableBody', empty:'dayApprovedEmptyState', note:'dayApprovedTotalNote' });
+}
+
 async function aggregateRange(dateList){
   const agg = { incidents:[], materials:[] };
   for(const d of dateList){
@@ -1682,36 +1923,148 @@ async function aggregateRange(dateList){
   return agg;
 }
 
+// ================== TỐI ƯU TRUY VẤN THEO KHOẢNG THỜI GIAN (RANGE QUERY) ==================
+// Thay cho việc tạo mảng từng-ngày rồi gọi loadKey() tuần tự (rất tốn khi Quý/Năm có 90-365 ngày),
+// hàm dưới đây dùng 1 truy vấn Firestore DUY NHẤT theo khoảng documentId (vì key có dạng
+// "incidents:YYYY-MM-DD" / "materials:YYYY-MM-DD", so sánh chuỗi ISO date luôn đúng thứ tự thời gian).
+async function queryDocsInDateRange(prefix, startDate, endDate){
+  try{
+    const snap = await __db.collection(__COLLECTION)
+      .where(firebase.firestore.FieldPath.documentId(), '>=', prefix + startDate)
+      .where(firebase.firestore.FieldPath.documentId(), '<=', prefix + endDate)
+      .get();
+    return snap.docs.map(doc=>{
+      const d = doc.id.slice(prefix.length);
+      const items = Array.isArray(doc.data().items) ? doc.data().items : [];
+      __cache.set(doc.id, items); // làm ấm cache dùng chung với loadKey()
+      return { date: d, items };
+    });
+  }catch(e){
+    console.error('queryDocsInDateRange error', prefix, startDate, endDate, e);
+    showToast('Lỗi truy vấn dữ liệu theo khoảng thời gian (kiểm tra kết nối mạng / cấu hình Firebase)');
+    return [];
+  }
+}
+
+// Đếm/tổng hợp theo NGÀY ĐỀ XUẤT (ngày tạo — tức document key) trong khoảng [startDate, endDate].
+// Dùng cho các chỉ số vẫn cần theo ngày tạo: Tổng đề xuất, Ống lớn/nhỏ, Hóa chất/Vật tư, Chờ duyệt...
+async function aggregateByDateRange(startDate, endDate){
+  const [incidentDocs, materialDocs] = await Promise.all([
+    queryDocsInDateRange('incidents:', startDate, endDate),
+    queryDocsInDateRange('materials:', startDate, endDate)
+  ]);
+  const incidents = [];
+  incidentDocs.forEach(({date, items}) => items.forEach(e => incidents.push({...e, __date:date, __loai:'incident'})));
+  const materials = [];
+  materialDocs.forEach(({date, items}) => items.forEach(e => materials.push({...e, __date:date, __loai:'material'})));
+  return { incidents, materials };
+}
+
+// ================== ĐẾM "ĐÃ DUYỆT" THEO NGÀY DUYỆT (ngayduyet) — KHẮC PHỤC LỖI DUYỆT TRỄ ==================
+// Vì một đề xuất được LƯU dưới document theo NGÀY TẠO, nhưng có thể được DUYỆT ở một ngày khác (sau này),
+// nên không thể chỉ lọc theo khoảng ngày tạo để đếm số lượng đã duyệt trong kỳ — phải quét toàn bộ dữ liệu
+// và lọc theo trường ngayduyet thực tế. Để tránh phải đọc lại toàn bộ mỗi lần, kết quả được cache trong
+// phiên làm việc (session) và chỉ làm mới khi có thay đổi dữ liệu (xem invalidateFullScanCache() trong saveKey()).
+let __fullScanCache = null; // { incidents:[...], materials:[...] } — toàn bộ dữ liệu hiện có, đã gắn __date/__loai
+function invalidateFullScanCache(){ __fullScanCache = null; }
+
+async function getAllItemsFlat(){
+  if(__fullScanCache) return __fullScanCache;
+  try{
+    const snap = await __db.collection(__COLLECTION).get(); // 1 truy vấn DUY NHẤT cho toàn bộ collection
+    const incidents = [], materials = [];
+    snap.docs.forEach(doc=>{
+      const sep = doc.id.indexOf(':');
+      const type = doc.id.slice(0, sep), date = doc.id.slice(sep+1);
+      const items = Array.isArray(doc.data().items) ? doc.data().items : [];
+      __cache.set(doc.id, items); // làm ấm cache dùng chung với loadKey()
+      if(type==='incidents') items.forEach(e=>incidents.push({...e, __date:date, __loai:'incident'}));
+      else if(type==='materials') items.forEach(e=>materials.push({...e, __date:date, __loai:'material'}));
+    });
+    __fullScanCache = { incidents, materials };
+  }catch(e){
+    console.error('getAllItemsFlat error', e);
+    showToast('Lỗi quét dữ liệu để tính báo cáo theo Ngày duyệt');
+    __fullScanCache = { incidents: [], materials: [] };
+  }
+  return __fullScanCache;
+}
+
+// Một đề xuất được tính là "đã duyệt trong kỳ" nếu tinhtrang = Đã duyệt VÀ ngayduyet nằm trong [startDate,endDate]
+function isApprovedInRange(e, startDate, endDate){
+  return isItemApproved(e) && !!e.ngayduyet && e.ngayduyet >= startDate && e.ngayduyet <= endDate;
+}
+
+// Trả về danh sách (đã gộp cả sự cố tuyến ống + vật tư/hóa chất) các đề xuất được DUYỆT trong khoảng thời gian,
+// bất kể được TẠO vào ngày nào — đây chính là cách đếm đúng theo yêu cầu "Ngày duyệt".
+async function getApprovedEntriesInRange(startDate, endDate, cosoFilter){
+  const { incidents, materials } = await getAllItemsFlat();
+  let approved = [...incidents, ...materials].filter(e=>isApprovedInRange(e, startDate, endDate));
+  if(cosoFilter && cosoFilter!=='all'){
+    approved = approved.filter(e=>getCosoOfChiNhanhField(e.chinhanh)===cosoFilter);
+  }
+  return approved;
+}
+
 async function renderWeeklySummary(dateStr){
   if(!dateStr) dateStr = currentDate;
   $('wkRefDate').value = dateStr;
-  const weekDates = getWeekDates(dateStr);
-  const bannerLabel = `Tuần từ ${fmtDateVN(weekDates[0])} đến ${fmtDateVN(weekDates[4])} (Thứ 2 → Thứ 6)`;
-  const prevWeekDates = getWeekDates(shiftDateStr(dateStr, -7));
-  const prevLabel = `${fmtDateVN(prevWeekDates[0])}–${fmtDateVN(prevWeekDates[4])}`;
-  await renderPeriodSummary(weekDates, bannerLabel, 'week', prevWeekDates, prevLabel, 'trong tuần');
+  const { startDate, endDate } = getWeekRange(dateStr);
+  const bannerLabel = `Tuần từ ${fmtDateVN(startDate)} đến ${fmtDateVN(endDate)} (Thứ 2 → Thứ 6)`;
+  const prevRange = getWeekRange(shiftDateStr(dateStr, -7));
+  const prevLabel = `${fmtDateVN(prevRange.startDate)}–${fmtDateVN(prevRange.endDate)}`;
+  await renderPeriodSummary(startDate, endDate, bannerLabel, 'week', prevRange.startDate, prevRange.endDate, prevLabel, 'trong tuần');
 }
 
 async function renderMonthlySummary(monthStr){
   if(!monthStr) monthStr = currentMonthStr();
   $('wkRefMonth').value = monthStr;
-  const monthDates = getMonthDates(monthStr);
-  const bannerLabel = `${fmtMonthVN(monthStr)} (${fmtDateVN(monthDates[0])} – ${fmtDateVN(monthDates[monthDates.length-1])})`;
+  const { startDate, endDate } = getMonthRange(monthStr);
+  const bannerLabel = `${fmtMonthVN(monthStr)} (${fmtDateVN(startDate)} – ${fmtDateVN(endDate)})`;
   const prevMonth = shiftMonthStr(monthStr, -1);
-  const prevMonthDates = getMonthDates(prevMonth);
+  const prevRange = getMonthRange(prevMonth);
   const prevLabel = fmtMonthVN(prevMonth);
-  await renderPeriodSummary(monthDates, bannerLabel, 'month', prevMonthDates, prevLabel, 'trong tháng');
+  await renderPeriodSummary(startDate, endDate, bannerLabel, 'month', prevRange.startDate, prevRange.endDate, prevLabel, 'trong tháng');
 }
 
-async function renderPeriodSummary(periodDates, bannerLabel, kind, prevPeriodDates, prevLabel, periodWord){
+async function renderQuarterlySummary(qStr){
+  if(!qStr) qStr = currentQuarterStr();
+  setQuarterControls(qStr);
+  const { startDate, endDate } = getQuarterRange(qStr);
+  const bannerLabel = `${fmtQuarterVN(qStr)} (${fmtDateVN(startDate)} – ${fmtDateVN(endDate)})`;
+  const prevQ = shiftQuarterStr(qStr, -1);
+  const prevRange = getQuarterRange(prevQ);
+  const prevLabel = fmtQuarterVN(prevQ);
+  await renderPeriodSummary(startDate, endDate, bannerLabel, 'quarter', prevRange.startDate, prevRange.endDate, prevLabel, 'trong quý');
+}
+
+async function renderYearlySummary(yStr){
+  if(!yStr) yStr = currentYearStr();
+  $('wkRefYear').value = yStr;
+  const { startDate, endDate } = getYearRange(yStr);
+  const bannerLabel = `${fmtYearVN(yStr)} (${fmtDateVN(startDate)} – ${fmtDateVN(endDate)})`;
+  const prevY = shiftYearStr(yStr, -1);
+  const prevRange = getYearRange(prevY);
+  const prevLabel = fmtYearVN(prevY);
+  await renderPeriodSummary(startDate, endDate, bannerLabel, 'year', prevRange.startDate, prevRange.endDate, prevLabel, 'trong năm');
+}
+
+async function renderPeriodSummary(startDate, endDate, bannerLabel, kind, prevStartDate, prevEndDate, prevLabel, periodWord){
   $('weekBanner').textContent = bannerLabel;
-  if($('wkPeriodHeading')) $('wkPeriodHeading').textContent = kind==='month' ? 'Tổng hợp đề xuất trong tháng' : 'Tổng hợp đề xuất trong tuần (Thứ 2 – Thứ 6)';
+  const headingMap = { week:'Tổng hợp đề xuất trong tuần (Thứ 2 – Thứ 6)', month:'Tổng hợp đề xuất trong tháng', quarter:'Tổng hợp đề xuất trong quý', year:'Tổng hợp đề xuất trong năm' };
+  const compareMap = { week:'So sánh với tuần trước', month:'So sánh với tháng trước', quarter:'So sánh với quý trước', year:'So sánh với năm trước' };
+  const approvedHeadingMap = { week:'Danh sách đề xuất Lãnh đạo đơn vị đã duyệt trong tuần', month:'Danh sách đề xuất Lãnh đạo đơn vị đã duyệt trong tháng', quarter:'Danh sách đề xuất Lãnh đạo đơn vị đã duyệt trong quý', year:'Danh sách đề xuất Lãnh đạo đơn vị đã duyệt trong năm' };
+  if($('wkPeriodHeading')) $('wkPeriodHeading').textContent = headingMap[kind] || headingMap.week;
   if($('wkBranchHeading')) $('wkBranchHeading').textContent = `Sơ đồ chi nhánh nhiều đề xuất nhất ${periodWord}`;
-  if($('wkCompareHeading')) $('wkCompareHeading').textContent = kind==='month' ? 'So sánh với tháng trước' : 'So sánh với tuần trước';
+  if($('wkCompareHeading')) $('wkCompareHeading').textContent = compareMap[kind] || compareMap.week;
   if($('wkRegionHeading')) $('wkRegionHeading').textContent = `Tổng hợp theo khu vực ${periodWord}`;
+  if($('wkApprovedHeading')) $('wkApprovedHeading').textContent = approvedHeadingMap[kind] || approvedHeadingMap.week;
 
   const cosoFilter = $('wk_reportcoso') ? $('wk_reportcoso').value : 'all';
-  let { incidents: wkIncidents, materials: wkMaterials } = await aggregateRange(periodDates);
+
+  // (1) Các chỉ số theo NGÀY ĐỀ XUẤT (ngày tạo) — dùng Range Query Firestore theo [startDate,endDate],
+  //     KHÔNG lặp qua từng ngày như trước (tránh quá tải khi Quý/Năm có 90-365 ngày).
+  let { incidents: wkIncidents, materials: wkMaterials } = await aggregateByDateRange(startDate, endDate);
   if(cosoFilter && cosoFilter!=='all'){
     wkIncidents = wkIncidents.filter(e=>getCosoOfChiNhanhField(e.chinhanh)===cosoFilter);
     wkMaterials = wkMaterials.filter(e=>getCosoOfChiNhanhField(e.chinhanh)===cosoFilter);
@@ -1725,8 +2078,13 @@ async function renderPeriodSummary(periodDates, bannerLabel, kind, prevPeriodDat
   }));
   const wkWaiting = wkIncidents.filter(e=>e.tinhtrang==='Chưa đưa lên đề xuất').length
                   + wkMaterials.filter(e=>e.tinhtrang==='Chưa đưa lên đề xuất').length;
-  const wkApproved = wkIncidents.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length
-                    + wkMaterials.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length;
+
+  // (2) "Lãnh đạo đơn vị đã duyệt" — đếm theo NGÀY DUYỆT (ngayduyet) trong [startDate,endDate],
+  //     bất kể đề xuất được TẠO ở ngày nào (khắc phục lỗi duyệt trễ).
+  const approvedInPeriod = await getApprovedEntriesInRange(startDate, endDate, cosoFilter);
+  const wkApproved = approvedInPeriod.length;
+  renderApprovedTable(approvedInPeriod, { body:'wkApprovedTableBody', empty:'wkApprovedEmptyState', note:'wkApprovedTotalNote' });
+
   const wkSubmitted = wkTotal - wkWaiting;
 
   $('wkTotal').textContent = wkTotal;
@@ -1770,21 +2128,22 @@ async function renderPeriodSummary(periodDates, bannerLabel, kind, prevPeriodDat
     $('wkTopBranchNote').textContent = `Chưa có dữ liệu chi nhánh ${periodWord} này.`;
   }
 
-  // Compare with previous period
-  let { incidents: pwIncidents, materials: pwMaterials } = await aggregateRange(prevPeriodDates);
+  // Compare with previous period — cũng dùng Range Query + đếm "đã duyệt" theo ngayduyet
+  let { incidents: pwIncidents, materials: pwMaterials } = await aggregateByDateRange(prevStartDate, prevEndDate);
   if(cosoFilter && cosoFilter!=='all'){
     pwIncidents = pwIncidents.filter(e=>getCosoOfChiNhanhField(e.chinhanh)===cosoFilter);
     pwMaterials = pwMaterials.filter(e=>getCosoOfChiNhanhField(e.chinhanh)===cosoFilter);
   }
   const pwTotal = pwIncidents.length + pwMaterials.length;
   const pwBig = pwIncidents.filter(e=>Number(e.duongkinh)>=200).length;
-  const pwApproved = pwIncidents.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length
-                    + pwMaterials.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length;
+  const pwApproved = (await getApprovedEntriesInRange(prevStartDate, prevEndDate, cosoFilter)).length;
   const pwFee = pwIncidents.reduce((s,e)=>s+(Number(e.thuphi)||0),0) + pwMaterials.reduce((s,e)=>s+materialTotalCost(e),0);
   const wkFee = wkIncidents.reduce((s,e)=>s+(Number(e.thuphi)||0),0) + wkMaterials.reduce((s,e)=>s+materialTotalCost(e),0);
 
-  const totalLabel = kind==='month' ? 'Tổng đề xuất trong tháng' : 'Tổng đề xuất trong tuần';
-  const feeLabel = kind==='month' ? 'Tổng chi phí trong tháng' : 'Tổng chi phí trong tuần';
+  const totalLabelMap = { week:'Tổng đề xuất trong tuần', month:'Tổng đề xuất trong tháng', quarter:'Tổng đề xuất trong quý', year:'Tổng đề xuất trong năm' };
+  const feeLabelMap = { week:'Tổng chi phí trong tuần', month:'Tổng chi phí trong tháng', quarter:'Tổng chi phí trong quý', year:'Tổng chi phí trong năm' };
+  const totalLabel = totalLabelMap[kind] || totalLabelMap.week;
+  const feeLabel = feeLabelMap[kind] || feeLabelMap.week;
   $('wkCompareGrid').innerHTML = [
     cmpCard(totalLabel, wkTotal, pwTotal, prevLabel, ''),
     cmpCard('Ống lớn (≥200mm)', wkBig, pwBig, prevLabel, ''),
@@ -1792,14 +2151,35 @@ async function renderPeriodSummary(periodDates, bannerLabel, kind, prevPeriodDat
     cmpCard(feeLabel, wkFee, pwFee, prevLabel, '₫')
   ].join('');
 
+  // ================== GỘP "ĐỀ XUẤT DUYỆT TRỄ" VÀO DANH SÁCH CHI TIẾT (Bảng khu vực + Excel) ==================
+  // wkIncidents/wkMaterials ở trên chỉ chứa các item được TẠO trong [startDate,endDate] (theo document key).
+  // Nếu 1 đề xuất được tạo ở kỳ trước nhưng ngayduyet lại rơi vào kỳ này, nó sẽ không có mặt trong 2 mảng
+  // trên → bị "sót" khi hiển thị bảng chi tiết / xuất Excel, dù thẻ "Lãnh đạo đơn vị đã duyệt" ở dashboard
+  // (tính qua approvedInPeriod/getApprovedEntriesInRange) vẫn đúng. Vì vậy trước khi cache lại dữ liệu dùng
+  // cho bảng khu vực + xuất Excel, ta bổ sung (nếu chưa có, so theo uid) các item "đã duyệt trong kỳ" nhưng
+  // được tạo ở ngày khác vào wkIncidents/wkMaterials. Việc này KHÔNG ảnh hưởng tới các chỉ số dashboard phía
+  // trên (wkTotal, wkBig, wkFee, so sánh kỳ trước...) vì các chỉ số đó đã được tính xong trước đoạn này.
+  const wkIncidentUids = new Set(wkIncidents.map(e=>e.uid));
+  const wkMaterialUids = new Set(wkMaterials.map(e=>e.uid));
+  approvedInPeriod.forEach(e=>{
+    if(e.__loai==='incident'){
+      if(!wkIncidentUids.has(e.uid)){ wkIncidents.push(e); wkIncidentUids.add(e.uid); }
+    } else if(e.__loai==='material'){
+      if(!wkMaterialUids.has(e.uid)){ wkMaterials.push(e); wkMaterialUids.add(e.uid); }
+    }
+  });
+
   // Sắp xếp mã đề xuất tăng dần + đánh lại STT hiển thị (phục vụ báo cáo)
   wkIncidents.sort((a,b)=>naturalMaDeXuatCompare(a.made,b.made));
   wkMaterials.sort((a,b)=>naturalMaDeXuatCompare(a.made,b.made));
   wkIncidents.forEach((e,i)=>{ e.__reportStt = i+1; });
   wkMaterials.forEach((e,i)=>{ e.__reportStt = i+1; });
 
-  // Cache for the khu-vực filter panel below
-  weeklyDataCache = { incidents: wkIncidents, materials: wkMaterials, weekDates: periodDates, kind, bannerLabel, cosoFilter };
+  // Cache for the khu-vực filter panel below.
+  // weekDates giữ dạng [startDate, endDate] (2 phần tử) để tương thích với chỗ dùng weekDates[0]/weekDates[length-1] (xuất Excel).
+  // approvedEntries: danh sách đã duyệt theo ngayduyet trong kỳ (dùng để đếm đúng ở bảng khu vực bên dưới).
+  // incidents/materials: đã gồm cả các đề xuất "duyệt trễ" nên bảng chi tiết + Excel không còn bị sót dữ liệu.
+  weeklyDataCache = { incidents: wkIncidents, materials: wkMaterials, weekDates: [startDate, endDate], kind, bannerLabel, cosoFilter, approvedEntries: approvedInPeriod };
   populateChiNhanhSelect($('wk_chinhanh'), cosoFilter, 'filter');
   $('wkRegionDetailWrap').style.display = 'none';
   refreshWkKhuVucOptions();
@@ -1808,7 +2188,7 @@ async function renderPeriodSummary(periodDates, bannerLabel, kind, prevPeriodDat
 
 
 // ---------- WEEKLY: TỔNG HỢP THEO KHU VỰC ----------
-let weeklyDataCache = { incidents: [], materials: [], weekDates: [] };
+let weeklyDataCache = { incidents: [], materials: [], weekDates: [], approvedEntries: [] };
 
 function wkFilteredEntries(chinhanhFilter){
   const all = [
@@ -1833,19 +2213,31 @@ function refreshWkKhuVucOptions(){
 
 function renderWkRegionTable(){
   const chinhanhFilter = $('wk_chinhanh').value;
-  const entries = wkFilteredEntries(chinhanhFilter);
+  const entries = wkFilteredEntries(chinhanhFilter); // theo NGÀY ĐỀ XUẤT (ngày tạo) — Tổng/Sự cố/Vật tư/Chờ duyệt
+  // "Đã duyệt" theo NGÀY DUYỆT trong kỳ (khắc phục lỗi duyệt trễ) — tính riêng, không phụ thuộc ngày tạo
+  const approvedEntries = (weeklyDataCache.approvedEntries || []).filter(e =>
+    !chinhanhFilter || chinhanhFilter==='all' || chinhanhMatchesFilter(e.chinhanh, chinhanhFilter)
+  );
 
   const groups = {}; // key: khuvuc -> stats
+  function ensureGroup(kv){
+    if(!groups[kv]) groups[kv] = { khuvuc: kv, chinhanhs: new Set(), total:0, incident:0, material:0, waiting:0, approved:0, cost:0 };
+    return groups[kv];
+  }
   entries.forEach(e=>{
     const kv = (e.khuvuc||'').trim() || 'Chưa rõ';
-    if(!groups[kv]) groups[kv] = { khuvuc: kv, chinhanhs: new Set(), total:0, incident:0, material:0, waiting:0, approved:0, cost:0 };
-    const g = groups[kv];
+    const g = ensureGroup(kv);
     g.total++;
     if(e.chinhanh) splitChiNhanhList(e.chinhanh).forEach(b=>g.chinhanhs.add(b));
     if(e.__loai==='incident'){ g.incident++; g.cost += Number(e.thuphi)||0; }
     else { g.material++; g.cost += materialTotalCost(e); }
     if(e.tinhtrang==='Chưa đưa lên đề xuất') g.waiting++;
-    if(e.tinhtrang==='Lãnh đạo đơn vị đã duyệt') g.approved++;
+  });
+  approvedEntries.forEach(e=>{
+    const kv = (e.khuvuc||'').trim() || 'Chưa rõ';
+    const g = ensureGroup(kv); // đề xuất duyệt trễ có thể thuộc khu vực chưa xuất hiện ở danh sách theo ngày tạo trong kỳ này
+    g.approved++;
+    if(e.chinhanh) splitChiNhanhList(e.chinhanh).forEach(b=>g.chinhanhs.add(b));
   });
   const rows = Object.values(groups).sort((a,b)=>b.total-a.total);
 
@@ -1889,8 +2281,8 @@ function renderWkRegionDetail(khuvucFilter, chinhanhFilter){
   const body = $('wkRegionDetailBody'); body.innerHTML = '';
   entries.forEach((e,idx)=>{
     const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
-    const isApproved = e.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
-    const tagCls = isApproved ? 'tag-approved' : (isWaiting ? 'tag-wait' : 'tag-other');
+    const isApproved = isItemApproved(e);
+    const tagCls = isWaiting ? 'tag-wait' : 'tag-other';
     const cost = e.__loai==='incident' ? (Number(e.thuphi)||0) : materialTotalCost(e);
     const nguoiOrDv = e.__loai==='incident' ? (e.nguoi||'') : (e.donvithuchien||'');
     const tr = document.createElement('tr');
@@ -1903,7 +2295,7 @@ function renderWkRegionDetail(khuvucFilter, chinhanhFilter){
       <td class="mono">${escapeHtml(e.made)}</td>
       <td>${escapeHtml(e.noidung)}</td>
       <td>${escapeHtml(nguoiOrDv)}</td>
-      <td><span class="tag ${tagCls}">${escapeHtml(e.tinhtrang)}</span></td>
+      <td><span class="tag ${tagCls}">${escapeHtml(e.tinhtrang)}</span>${approvedBadgeHtml(isApproved)}</td>
       <td class="cost-cell">${fmtVND(cost)}</td>
       <td>${escapeHtml(e.ghichu)}</td>
       <td>${linkCellShort(e,'wk')}</td>
@@ -1951,17 +2343,36 @@ $('nextDayBtn').addEventListener('click', ()=>{ currentDate=nextDateStr(currentD
 $('todayBtn').addEventListener('click', ()=>{ currentDate=todayStr(); clearIncidentForm(); clearMaterialForm(); render(); });
 
 // ---------- WEEKLY / MONTHLY REPORT TAB NAV ----------
-function currentReportKind(){ return $('wk_reporttype').value; }
+function currentReportKind(){ return $('wk_reporttype').value; } // 'week' | 'month' | 'quarter' | 'year'
+
+function quarterControlsValue(){
+  const y = Number($('wkRefQuarterYear').value) || new Date().getFullYear();
+  const q = Number($('wkRefQuarterNum').value) || getQuarterOfMonth(new Date().getMonth()+1);
+  return quarterStrOf(y, q);
+}
+function setQuarterControls(qStr){
+  const { year, quarter } = parseQuarterStr(qStr);
+  $('wkRefQuarterYear').value = year;
+  $('wkRefQuarterNum').value = quarter;
+}
+
 function refreshReportView(){
-  if(currentReportKind()==='month') renderMonthlySummary($('wkRefMonth').value || currentMonthStr());
+  const kind = currentReportKind();
+  if(kind==='month') renderMonthlySummary($('wkRefMonth').value || currentMonthStr());
+  else if(kind==='quarter') renderQuarterlySummary(quarterControlsValue());
+  else if(kind==='year') renderYearlySummary($('wkRefYear').value || currentYearStr());
   else renderWeeklySummary($('wkRefDate').value || currentDate);
 }
 function updatePeriodControlsVisibility(){
-  const isMonth = currentReportKind()==='month';
-  $('wkWeekControls').style.display = isMonth ? 'none' : '';
-  $('wkMonthControls').style.display = isMonth ? '' : 'none';
-  $('wkViewBtn').textContent = isMonth ? 'Xem báo cáo tháng' : 'Xem báo cáo tuần';
-  $('wkExportExcelBtn').textContent = isMonth ? '⬇ Xuất Excel tháng' : '⬇ Xuất Excel tuần';
+  const kind = currentReportKind();
+  $('wkWeekControls').style.display = kind==='week' ? '' : 'none';
+  $('wkMonthControls').style.display = kind==='month' ? '' : 'none';
+  $('wkQuarterControls').style.display = kind==='quarter' ? '' : 'none';
+  $('wkYearControls').style.display = kind==='year' ? '' : 'none';
+  const labelMap = { week:'tuần', month:'tháng', quarter:'quý', year:'năm' };
+  const label = labelMap[kind] || labelMap.week;
+  $('wkViewBtn').textContent = `Xem báo cáo ${label}`;
+  $('wkExportExcelBtn').textContent = `⬇ Xuất Excel ${label}`;
 }
 $('wk_reporttype').addEventListener('change', ()=>{
   updatePeriodControlsVisibility();
@@ -1975,6 +2386,12 @@ $('wkNextBtn').addEventListener('click', ()=>{ renderWeeklySummary(shiftDateStr(
 $('wkThisMonthBtn').addEventListener('click', ()=>{ renderMonthlySummary(currentMonthStr()); });
 $('wkPrevMonthBtn').addEventListener('click', ()=>{ renderMonthlySummary(shiftMonthStr($('wkRefMonth').value || currentMonthStr(), -1)); });
 $('wkNextMonthBtn').addEventListener('click', ()=>{ renderMonthlySummary(shiftMonthStr($('wkRefMonth').value || currentMonthStr(), 1)); });
+$('wkThisQuarterBtn').addEventListener('click', ()=>{ renderQuarterlySummary(currentQuarterStr()); });
+$('wkPrevQuarterBtn').addEventListener('click', ()=>{ renderQuarterlySummary(shiftQuarterStr(quarterControlsValue(), -1)); });
+$('wkNextQuarterBtn').addEventListener('click', ()=>{ renderQuarterlySummary(shiftQuarterStr(quarterControlsValue(), 1)); });
+$('wkThisYearBtn').addEventListener('click', ()=>{ renderYearlySummary(currentYearStr()); });
+$('wkPrevYearBtn').addEventListener('click', ()=>{ renderYearlySummary(shiftYearStr($('wkRefYear').value || currentYearStr(), -1)); });
+$('wkNextYearBtn').addEventListener('click', ()=>{ renderYearlySummary(shiftYearStr($('wkRefYear').value || currentYearStr(), 1)); });
 
 // ---------- SEARCH & FILTER ----------
 function toggleDateModeFields(){
@@ -2041,12 +2458,13 @@ function dateRangeList(from, to){
   return list;
 }
 
-function matchesStatusFilter(tinhtrang, filter){
+function matchesStatusFilter(item, filter){
   if(filter === 'all') return true;
+  const tinhtrang = item.tinhtrang;
   if(filter === 'waiting') return tinhtrang === 'Chưa đưa lên đề xuất';
   if(filter === 'rejected') return tinhtrang === 'Từ chối';
-  if(filter === 'approved') return tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
-  if(filter === 'pending_approval') return ['Đã đưa lên đề xuất','Đang xử lý','Đã duyệt'].includes(tinhtrang);
+  if(filter === 'approved') return isItemApproved(item);
+  if(filter === 'pending_approval') return !isItemApproved(item) && tinhtrang !== 'Chưa đưa lên đề xuất' && tinhtrang !== 'Từ chối';
   return true;
 }
 
@@ -2080,7 +2498,7 @@ async function runSearch(){
       (await loadKey(materialKey(d))).forEach(e => results.push({...e, __date: d, __loai: 'material'}));
     }
   }
-  results = results.filter(e => matchesStatusFilter(e.tinhtrang, statusFilter));
+  results = results.filter(e => matchesStatusFilter(e, statusFilter));
   if(cosoFilter !== 'all'){
     results = results.filter(e => getCosoOfChiNhanhField(e.chinhanh)===cosoFilter);
   }
@@ -2108,8 +2526,8 @@ function renderSearchResults(results){
   $('searchEmptyState').style.display = results.length ? 'none' : 'block';
   results.forEach(e => {
     const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
-    const isApproved = e.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
-    const tagCls = isApproved ? 'tag-approved' : (isWaiting ? 'tag-wait' : 'tag-other');
+    const isApproved = isItemApproved(e);
+    const tagCls = isWaiting ? 'tag-wait' : 'tag-other';
     const tr = document.createElement('tr');
     if(isApproved) tr.classList.add('row-green');
     else if(isWaiting) tr.classList.add('row-yellow');
@@ -2118,7 +2536,7 @@ function renderSearchResults(results){
       <td>${e.__loai==='incident' ? 'Sự cố tuyến ống' : 'Vật tư / Hóa chất'}</td>
       <td class="mono">${e.stt||''}</td><td>${e.chinhanh||''}</td><td>${e.khuvuc||''}</td>
       <td class="mono">${e.made||''}</td><td class="mono">${e.__loai==='incident' ? (e.id||'') : ''}</td><td>${e.noidung||''}</td>
-      <td><span class="tag ${tagCls}">${e.tinhtrang||''}</span></td>
+      <td><span class="tag ${tagCls}">${e.tinhtrang||''}</span>${approvedBadgeHtml(isApproved)}</td>
       <td>${e.ghichu||''}</td>
       <td>${linkCellShort(e,'srch')}</td>
       <td class="mono">
@@ -2259,68 +2677,81 @@ async function exportExcel(){
 
   // ---- SHEET 1: Sự cố tuyến ống ----
   const ws1 = wb.addWorksheet('Sự cố tuyến ống');
-  ws1.mergeCells('A1:Q1');
+  ws1.mergeCells('A1:R1');
   ws1.getCell('A1').value = `SỰ CỐ TUYẾN ỐNG — Ngày ${currentDate}`;
   ws1.getCell('A1').font = titleFont;
   ws1.getCell('A1').alignment = {horizontal:'left'};
   ws1.addRow([]);
-  const inc_cols = ['STT','Chi nhánh','Khu vực','Mã đề xuất','Người đề xuất','Nội dung đề xuất','ID','Loại ống','Đường kính (mm)','Thu phí (VNĐ)','Nguyên nhân','Tình trạng','Ngày duyệt','Đơn vị thực hiện','Đơn vị theo dõi','Ghi chú','Link đề xuất'];
+  const inc_cols = ['STT','Chi nhánh','Khu vực','Mã đề xuất','Người đề xuất','Nội dung đề xuất','ID','Loại ống','Đường kính (mm)','Thu phí (VNĐ)','Nguyên nhân','Tình trạng','Duyệt','Ngày duyệt','Đơn vị thực hiện','Đơn vị theo dõi','Ghi chú','Link đề xuất'];
   const incHeaderRow = ws1.addRow(inc_cols);
   styleHeaderRow(incHeaderRow);
   ws1.columns = [
-    {width:7},{width:14},{width:14},{width:14},{width:16},{width:32},{width:12},{width:12},{width:14},{width:14},{width:24},{width:20},{width:14},{width:16},{width:16},{width:26},{width:22}
+    {width:7},{width:14},{width:14},{width:14},{width:16},{width:32},{width:12},{width:12},{width:14},{width:14},{width:24},{width:20},{width:10},{width:14},{width:16},{width:16},{width:26},{width:22}
   ];
+  let sumFeeIncidentAll = 0, approvedIncidentCount = 0;
   incidents.forEach(e=>{
-    const isApproved = e.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
+    const isApproved = isItemApproved(e);
+    if(isApproved) approvedIncidentCount++;
+    sumFeeIncidentAll += Number(e.thuphi)||0;
     const row = ws1.addRow([
       e.stt, e.chinhanh, e.khuvuc, e.made, e.nguoi, e.noidung, e.id, e.loaiong,
       e.duongkinh?Number(e.duongkinh):null, e.thuphi?Number(e.thuphi):0, e.nguyennhan,
-      e.tinhtrang, isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : '', e.donvithuchien, e.donvitheodoi, e.ghichu, e.link
+      e.tinhtrang, isApproved?'Có':'Không', isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : '', e.donvithuchien, e.donvitheodoi, e.ghichu, e.link
     ]);
     applyBodyStyle(row);
     row.getCell(10).numFmt = '#,##0 "₫"';
     const isBig = Number(e.duongkinh) >= 200;
     const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
     if(isBig){ row.getCell(9).fill = redFill; row.getCell(9).font = {bold:true, color:{argb:'FFD6362C'}, name:'Arial', size:10}; }
-    if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); }
+    if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); row.getCell(13).font = {bold:true, color:{argb:'FF0E5C2C'}, name:'Arial', size:10}; }
     else if(isWaiting){ row.eachCell(c=>{ c.fill = yellowFill; }); }
-    if(e.link){ row.getCell(17).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(17).alignment = {horizontal:'center'}; row.getCell(17).value = {text:'Mở ↗', hyperlink:e.link}; }
+    if(e.link){ row.getCell(18).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(18).alignment = {horizontal:'center'}; row.getCell(18).value = {text:'Mở ↗', hyperlink:e.link}; }
   });
+  const incTotalRow = ws1.addRow(['TỔNG CỘNG', '', '', '', '', '', '', '', '', sumFeeIncidentAll, '', `${incidents.length} sự cố`, `${approvedIncidentCount} đã duyệt`, '', '', '', '', '']);
+  incTotalRow.eachCell(c=>{ c.border=thinBorder; c.font={bold:true, name:'Arial', size:10}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEEF2F1'}}; });
+  incTotalRow.getCell(10).numFmt = '#,##0 "₫"';
   ws1.views = [{state:'frozen', ySplit:3}];
   ws1.autoFilter = {from:{row:3,column:1}, to:{row:3,column:inc_cols.length}};
 
   // ---- SHEET 2: Vật tư / Hóa chất (mỗi vật tư 1 dòng) ----
   const ws2 = wb.addWorksheet('Vật tư - Hóa chất');
-  ws2.mergeCells('A1:T1');
+  ws2.mergeCells('A1:U1');
   ws2.getCell('A1').value = `THAY THẾ / MUA MỚI / VẬT TƯ / HÓA CHẤT — Ngày ${currentDate}`;
   ws2.getCell('A1').font = titleFont;
   ws2.addRow([]);
-  const mat_cols = ['STT','Chi nhánh','Khu vực','Mã đề xuất','Người đề xuất','Nội dung đề xuất','Tên vật tư','Phân loại','Hình thức','Xuất từ kho','Đơn vị tính','Số lượng','Chi phí (VNĐ)','Đơn vị cung ứng','Đơn vị thực hiện','Đơn vị theo dõi','Tình trạng','Ngày duyệt','Ghi chú','Link đề xuất'];
+  const mat_cols = ['STT','Chi nhánh','Khu vực','Mã đề xuất','Người đề xuất','Nội dung đề xuất','Tên vật tư','Phân loại','Hình thức','Xuất từ kho','Đơn vị tính','Số lượng','Chi phí (VNĐ)','Đơn vị cung ứng','Đơn vị thực hiện','Đơn vị theo dõi','Tình trạng','Duyệt','Ngày duyệt','Ghi chú','Link đề xuất'];
   const matHeaderRow = ws2.addRow(mat_cols);
   styleHeaderRow(matHeaderRow);
   ws2.columns = [
-    {width:7},{width:14},{width:14},{width:16},{width:16},{width:30},{width:22},{width:11},{width:16},{width:18},{width:11},{width:10},{width:14},{width:18},{width:16},{width:16},{width:18},{width:14},{width:24},{width:22}
+    {width:7},{width:14},{width:14},{width:16},{width:16},{width:30},{width:22},{width:11},{width:16},{width:18},{width:11},{width:10},{width:14},{width:18},{width:16},{width:16},{width:18},{width:10},{width:14},{width:24},{width:22}
   ];
+  let sumFeeMaterialAll = 0, approvedMaterialCount = 0;
   materials.forEach(e=>{
     const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
-    const isApproved = e.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
+    const isApproved = isItemApproved(e);
+    if(isApproved) approvedMaterialCount++;
+    sumFeeMaterialAll += materialTotalCost(e);
     const items = e.vattu && e.vattu.length ? e.vattu : [{}];
     items.forEach((v, idx)=>{
       const row = ws2.addRow([
         idx===0 ? e.stt : '', idx===0 ? e.chinhanh : '', idx===0 ? e.khuvuc : '', idx===0 ? e.made : '', idx===0 ? e.nguoi : '', idx===0 ? e.noidung : '',
         v.ten||'', v.loai||'', v.hinhthuc||'', v.khoXuat||'', v.donvi||'', v.soluong?Number(v.soluong):null, v.chiphi?Number(v.chiphi):0,
         idx===0 ? e.cungung : '', idx===0 ? e.donvithuchien : '', idx===0 ? e.donvitheodoi : '', idx===0 ? e.tinhtrang : '',
+        idx===0 ? (isApproved?'Có':'Không') : '',
         idx===0 && isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : '',
         idx===0 ? e.ghichu : '', idx===0 ? e.link : ''
       ]);
       applyBodyStyle(row);
       row.getCell(13).numFmt = '#,##0 "₫"';
       if(v.loai === 'Hóa chất'){ row.getCell(8).font = {bold:true, color:{argb:'FF6A4C93'}, name:'Arial', size:10}; }
-      if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); }
+      if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); if(idx===0) row.getCell(18).font = {bold:true, color:{argb:'FF0E5C2C'}, name:'Arial', size:10}; }
       else if(isWaiting){ row.eachCell(c=>{ c.fill = yellowFill; }); }
-      if(idx===0 && e.link){ row.getCell(20).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(20).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(20).alignment = {horizontal:'center'}; }
+      if(idx===0 && e.link){ row.getCell(21).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(21).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(21).alignment = {horizontal:'center'}; }
     });
   });
+  const matTotalRow = ws2.addRow(['TỔNG CỘNG', '', '', '', '', '', '', '', '', '', '', '', sumFeeMaterialAll, '', '', '', `${materials.length} đề xuất`, `${approvedMaterialCount} đã duyệt`, '', '', '']);
+  matTotalRow.eachCell(c=>{ c.border=thinBorder; c.font={bold:true, name:'Arial', size:10}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEEF2F1'}}; });
+  matTotalRow.getCell(13).numFmt = '#,##0 "₫"';
   ws2.views = [{state:'frozen', ySplit:3}];
   ws2.autoFilter = {from:{row:3,column:1}, to:{row:3,column:mat_cols.length}};
 
@@ -2342,7 +2773,8 @@ async function exportExcel(){
   const feeIncident = incidents.reduce((s,e)=>s+(Number(e.thuphi)||0),0);
   const feeMaterial = materials.reduce((s,e)=>s+materialTotalCost(e),0);
   const waitingCount = incidents.filter(e=>e.tinhtrang==='Chưa đưa lên đề xuất').length + materials.filter(e=>e.tinhtrang==='Chưa đưa lên đề xuất').length;
-  const approvedCount = incidents.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length + materials.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length;
+  // Đếm "đã duyệt" theo Ngày duyệt thực tế (giống render()), không theo ngày tạo
+  const approvedCount = (await getApprovedEntriesInRange(currentDate, currentDate, 'all')).length;
   const submittedCount = incidents.length + materials.length - waitingCount;
 
   const summaryRows = [
@@ -2447,13 +2879,17 @@ function drawBarChartPNG(labels, values, opts={}){
 
 async function exportWeeklyExcel(){
   if(typeof ExcelJS === 'undefined'){ showToast('Không tải được thư viện Excel'); return; }
-  const isMonth = currentReportKind()==='month';
-  if(isMonth) await renderMonthlySummary($('wkRefMonth').value || currentMonthStr());
-  else await renderWeeklySummary($('wkRefDate').value || currentDate);
-  showToast(isMonth ? 'Đang tạo file Excel báo cáo tháng...' : 'Đang tạo file Excel báo cáo tuần...');
+  const reportKind = currentReportKind();
+  await refreshReportView();
+  const toastMap = { week:'Đang tạo file Excel báo cáo tuần...', month:'Đang tạo file Excel báo cáo tháng...', quarter:'Đang tạo file Excel báo cáo quý...', year:'Đang tạo file Excel báo cáo năm...' };
+  showToast(toastMap[reportKind] || toastMap.week);
 
-  const { incidents: wkIncidents, materials: wkMaterials, weekDates, kind, bannerLabel, cosoFilter } = weeklyDataCache;
-  const periodWord = kind==='month' ? 'Tháng' : 'Tuần';
+  const { incidents: wkIncidents, materials: wkMaterials, weekDates, kind, bannerLabel, cosoFilter, approvedEntries: wkApprovedEntries } = weeklyDataCache;
+  const periodWordMap = { week:'Tuần', month:'Tháng', quarter:'Quý', year:'Năm' };
+  const periodWord = periodWordMap[kind] || 'Tuần';
+  const pwLowerMap = { week:'tuần', month:'tháng', quarter:'quý', year:'năm' };
+  const pwLower = pwLowerMap[kind] || 'tuần';
+  const pwUpper = pwLower.toUpperCase();
   const periodLabel = bannerLabel || `${fmtDateVN(weekDates[0])} - ${fmtDateVN(weekDates[weekDates.length-1])}`;
   const scopeSuffix = cosoFilter && cosoFilter!=='all' ? ` — ${cosoLabel(cosoFilter)}` : '';
 
@@ -2497,77 +2933,90 @@ async function exportWeeklyExcel(){
   }
 
   // ---- SHEET 1: Sự cố tuyến ống ----
-  const ws1 = wb.addWorksheet(`Sự cố tuyến ống (${kind==='month'?'tháng':'tuần'})`);
-  const inc_cols = ['STT','Chi nhánh','Cơ sở','Khu vực','Mã đề xuất','Ngày','Người đề xuất','Nội dung đề xuất','ID','Loại ống','Đường kính (mm)','Thu phí (VNĐ)','Nguyên nhân','Tình trạng','Ngày duyệt','Đơn vị thực hiện','Đơn vị theo dõi','Ghi chú','Link đề xuất'];
+  const ws1 = wb.addWorksheet(`Sự cố tuyến ống (${pwLower})`);
+  const inc_cols = ['STT','Chi nhánh','Cơ sở','Khu vực','Mã đề xuất','Ngày','Người đề xuất','Nội dung đề xuất','ID','Loại ống','Đường kính (mm)','Thu phí (VNĐ)','Nguyên nhân','Tình trạng','Duyệt','Ngày duyệt','Đơn vị thực hiện','Đơn vị theo dõi','Ghi chú','Link đề xuất'];
   ws1.mergeCells(`A1:${String.fromCharCode(64+inc_cols.length)}1`);
   ws1.getCell('A1').value = `SỰ CỐ TUYẾN ỐNG — ${periodWord} ${periodLabel}${scopeSuffix}`;
   ws1.getCell('A1').font = titleFont;
   ws1.addRow([]);
   const incHeaderRow = ws1.addRow(inc_cols);
   styleHeaderRow(incHeaderRow);
-  ws1.columns = [{width:7},{width:14},{width:22},{width:14},{width:14},{width:12},{width:16},{width:32},{width:12},{width:12},{width:14},{width:14},{width:24},{width:20},{width:14},{width:16},{width:16},{width:26},{width:22}];
+  ws1.columns = [{width:7},{width:14},{width:22},{width:14},{width:14},{width:12},{width:16},{width:32},{width:12},{width:12},{width:14},{width:14},{width:24},{width:20},{width:10},{width:14},{width:16},{width:16},{width:26},{width:22}];
   const incGroups = buildCosoGroups(wkIncidents);
+  let sumFeeIncidentAll = 0, approvedIncidentCount = 0;
   incGroups.forEach(group=>{
     if(group.label) addSectionHeaderRow(ws1, inc_cols.length, `CƠ SỞ: ${group.label} (${group.list.length} đề xuất)`);
     group.list.forEach((e,idx)=>{
-      const isApproved = e.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
+      const isApproved = isItemApproved(e);
       const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
+      if(isApproved) approvedIncidentCount++;
+      sumFeeIncidentAll += Number(e.thuphi)||0;
       const row = ws1.addRow([
         idx+1, e.chinhanh, cosoLabel(getCosoOfChiNhanhField(e.chinhanh)), e.khuvuc, e.made, fmtDateVN(e.__date), e.nguoi, e.noidung, e.id, e.loaiong,
         e.duongkinh?Number(e.duongkinh):null, e.thuphi?Number(e.thuphi):0, e.nguyennhan,
-        e.tinhtrang, isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : '', e.donvithuchien, e.donvitheodoi, e.ghichu, e.link
+        e.tinhtrang, isApproved?'Có':'Không', isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : '', e.donvithuchien, e.donvitheodoi, e.ghichu, e.link
       ]);
       applyBodyStyle(row);
       row.getCell(12).numFmt = '#,##0 "₫"';
       const isBig = Number(e.duongkinh) >= 200;
       if(isBig){ row.getCell(11).fill = redFill; row.getCell(11).font = {bold:true, color:{argb:'FFD6362C'}, name:'Arial', size:10}; }
-      if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); }
+      if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); row.getCell(15).font = {bold:true, color:{argb:'FF0E5C2C'}, name:'Arial', size:10}; }
       else if(isWaiting){ row.eachCell(c=>{ c.fill = yellowFill; }); }
-      if(e.link){ row.getCell(19).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(19).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(19).alignment = {horizontal:'center'}; }
+      if(e.link){ row.getCell(20).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(20).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(20).alignment = {horizontal:'center'}; }
     });
   });
+  const incTotalRow = ws1.addRow(['TỔNG CỘNG', '', '', '', '', '', '', '', '', '', '', sumFeeIncidentAll, '', `${wkIncidents.length} sự cố`, `${approvedIncidentCount} đã duyệt`, '', '', '', '', '']);
+  incTotalRow.eachCell(c=>{ c.border=thinBorder; c.font={bold:true, name:'Arial', size:10}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEEF2F1'}}; });
+  incTotalRow.getCell(12).numFmt = '#,##0 "₫"';
   ws1.views = [{state:'frozen', ySplit:3}];
   ws1.autoFilter = {from:{row:3,column:1}, to:{row:3,column:inc_cols.length}};
 
   // ---- SHEET 2: Vật tư / Hóa chất ----
-  const ws2 = wb.addWorksheet(`Vật tư - Hóa chất (${kind==='month'?'tháng':'tuần'})`);
-  const mat_cols = ['STT','Chi nhánh','Cơ sở','Khu vực','Mã đề xuất','Ngày','Người đề xuất','Nội dung đề xuất','Tên vật tư','Phân loại','Hình thức','Xuất từ kho','Đơn vị tính','Số lượng','Chi phí (VNĐ)','Đơn vị cung ứng','Đơn vị thực hiện','Đơn vị theo dõi','Tình trạng','Ngày duyệt','Ghi chú','Link đề xuất'];
+  const ws2 = wb.addWorksheet(`Vật tư - Hóa chất (${pwLower})`);
+  const mat_cols = ['STT','Chi nhánh','Cơ sở','Khu vực','Mã đề xuất','Ngày','Người đề xuất','Nội dung đề xuất','Tên vật tư','Phân loại','Hình thức','Xuất từ kho','Đơn vị tính','Số lượng','Chi phí (VNĐ)','Đơn vị cung ứng','Đơn vị thực hiện','Đơn vị theo dõi','Tình trạng','Duyệt','Ngày duyệt','Ghi chú','Link đề xuất'];
   ws2.mergeCells(`A1:${ws2.getColumn(mat_cols.length).letter}1`);
   ws2.getCell('A1').value = `THAY THẾ / MUA MỚI / VẬT TƯ / HÓA CHẤT — ${periodWord} ${periodLabel}${scopeSuffix}`;
   ws2.getCell('A1').font = titleFont;
   ws2.addRow([]);
   const matHeaderRow = ws2.addRow(mat_cols);
   styleHeaderRow(matHeaderRow);
-  ws2.columns = [{width:7},{width:14},{width:22},{width:14},{width:16},{width:12},{width:16},{width:30},{width:22},{width:11},{width:16},{width:18},{width:11},{width:10},{width:14},{width:18},{width:16},{width:16},{width:18},{width:14},{width:24},{width:22}];
+  ws2.columns = [{width:7},{width:14},{width:22},{width:14},{width:16},{width:12},{width:16},{width:30},{width:22},{width:11},{width:16},{width:18},{width:11},{width:10},{width:14},{width:18},{width:16},{width:16},{width:18},{width:10},{width:14},{width:24},{width:22}];
   const matGroups = buildCosoGroups(wkMaterials);
+  let sumFeeMaterialAll = 0, approvedMaterialCount = 0;
   matGroups.forEach(group=>{
     if(group.label) addSectionHeaderRow(ws2, mat_cols.length, `CƠ SỞ: ${group.label} (${group.list.length} đề xuất)`);
     group.list.forEach((e,idx)=>{
       const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
-      const isApproved = e.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
+      const isApproved = isItemApproved(e);
+      if(isApproved) approvedMaterialCount++;
+      sumFeeMaterialAll += materialTotalCost(e);
       const items = e.vattu && e.vattu.length ? e.vattu : [{}];
       items.forEach((v, vidx)=>{
         const row = ws2.addRow([
           vidx===0 ? idx+1 : '', vidx===0 ? e.chinhanh : '', vidx===0 ? cosoLabel(getCosoOfChiNhanhField(e.chinhanh)) : '', vidx===0 ? e.khuvuc : '', vidx===0 ? e.made : '', vidx===0 ? fmtDateVN(e.__date) : '', vidx===0 ? e.nguoi : '', vidx===0 ? e.noidung : '',
           v.ten||'', v.loai||'', v.hinhthuc||'', v.khoXuat||'', v.donvi||'', v.soluong?Number(v.soluong):null, v.chiphi?Number(v.chiphi):0,
           vidx===0 ? e.cungung : '', vidx===0 ? e.donvithuchien : '', vidx===0 ? e.donvitheodoi : '', vidx===0 ? e.tinhtrang : '',
+          vidx===0 ? (isApproved?'Có':'Không') : '',
           vidx===0 && isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : '',
           vidx===0 ? e.ghichu : '', vidx===0 ? e.link : ''
         ]);
         applyBodyStyle(row);
         row.getCell(15).numFmt = '#,##0 "₫"';
         if(v.loai === 'Hóa chất'){ row.getCell(10).font = {bold:true, color:{argb:'FF6A4C93'}, name:'Arial', size:10}; }
-        if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); }
+        if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); if(vidx===0) row.getCell(20).font = {bold:true, color:{argb:'FF0E5C2C'}, name:'Arial', size:10}; }
         else if(isWaiting){ row.eachCell(c=>{ c.fill = yellowFill; }); }
-        if(vidx===0 && e.link){ row.getCell(22).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(22).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(22).alignment = {horizontal:'center'}; }
+        if(vidx===0 && e.link){ row.getCell(23).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(23).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(23).alignment = {horizontal:'center'}; }
       });
     });
   });
+  const matTotalRow = ws2.addRow(['TỔNG CỘNG', '', '', '', '', '', '', '', '', '', '', '', '', '', sumFeeMaterialAll, '', '', '', `${wkMaterials.length} đề xuất`, `${approvedMaterialCount} đã duyệt`, '', '', '']);
+  matTotalRow.eachCell(c=>{ c.border=thinBorder; c.font={bold:true, name:'Arial', size:10}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEEF2F1'}}; });
+  matTotalRow.getCell(15).numFmt = '#,##0 "₫"';
   ws2.views = [{state:'frozen', ySplit:3}];
   ws2.autoFilter = {from:{row:3,column:1}, to:{row:3,column:mat_cols.length}};
 
   // ---- SHEET 3: Tổng hợp (+ chi nhánh + khu vực + cơ sở + sơ đồ) ----
-  const ws3 = wb.addWorksheet(`Tổng hợp ${kind==='month'?'tháng':'tuần'}`);
+  const ws3 = wb.addWorksheet(`Tổng hợp ${pwLower}`);
   ws3.getColumn(1).width = 42;
   ws3.getColumn(2).width = 20;
   ws3.getColumn(3).width = 20;
@@ -2586,11 +3035,12 @@ async function exportWeeklyExcel(){
   const wkFeeIncident = wkIncidents.reduce((s,e)=>s+(Number(e.thuphi)||0),0);
   const wkFeeMaterial = wkMaterials.reduce((s,e)=>s+materialTotalCost(e),0);
   const wkWaiting = wkIncidents.filter(e=>e.tinhtrang==='Chưa đưa lên đề xuất').length + wkMaterials.filter(e=>e.tinhtrang==='Chưa đưa lên đề xuất').length;
-  const wkApproved = wkIncidents.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length + wkMaterials.filter(e=>e.tinhtrang==='Lãnh đạo đơn vị đã duyệt').length;
+  // Đếm "đã duyệt" theo Ngày duyệt trong kỳ (khắc phục lỗi duyệt trễ) — lấy từ cache đã tính sẵn ở renderPeriodSummary()
+  const wkApproved = (wkApprovedEntries || []).length;
   const wkSubmitted = wkIncidents.length + wkMaterials.length - wkWaiting;
 
   const summaryRows = [
-    [`Tổng số đề xuất trong ${kind==='month'?'tháng':'tuần'}`, wkIncidents.length + wkMaterials.length],
+    [`Tổng số đề xuất trong ${pwLower}`, wkIncidents.length + wkMaterials.length],
     ['— Đề xuất sự cố tuyến ống', wkIncidents.length],
     ['    + Ống lớn (≥200mm)', wkBig],
     ['    + Ống nhỏ (<200mm)', wkSmall],
@@ -2603,7 +3053,7 @@ async function exportWeeklyExcel(){
     ['Lãnh đạo đơn vị đã duyệt', wkApproved],
     ['Thu phí tuyến ống', wkFeeIncident],
     ['Chi phí vật tư / hóa chất', wkFeeMaterial],
-    [`TỔNG CHI PHÍ TRONG ${kind==='month'?'THÁNG':'TUẦN'}`, wkFeeIncident + wkFeeMaterial]
+    [`TỔNG CHI PHÍ TRONG ${pwUpper}`, wkFeeIncident + wkFeeMaterial]
   ];
   summaryRows.forEach(([label,val])=>{
     const row = ws3.addRow([label, val]);
@@ -2667,7 +3117,7 @@ async function exportWeeklyExcel(){
 
   // ---- Nổi bật: Chi nhánh nhiều đề xuất nhất + Khu vực nổi bật trong chi nhánh đó ----
   ws3.addRow([]);
-  const highlightHeaderRow = ws3.addRow([`★ CHI NHÁNH & KHU VỰC NỔI BẬT TRONG ${kind==='month'?'THÁNG':'TUẦN'}`, '', '']);
+  const highlightHeaderRow = ws3.addRow([`★ CHI NHÁNH & KHU VỰC NỔI BẬT TRONG ${pwUpper}`, '', '']);
   ws3.mergeCells(`A${highlightHeaderRow.number}:C${highlightHeaderRow.number}`);
   highlightHeaderRow.eachCell(c=>{ c.font={bold:true, size:12, name:'Arial', color:{argb:'FFC1542A'}}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF6DDCB'}}; c.border=thinBorder; });
 
@@ -2677,7 +3127,7 @@ async function exportWeeklyExcel(){
     const r2 = ws3.addRow(['Khu vực nổi bật trong chi nhánh đó', topRegionInBranch || '—', topRegionInBranch ? `${topBranchRegions[topRegionInBranch]} đề xuất` : '']);
     r2.eachCell(c=>{ c.border=thinBorder; c.font={bold:true, name:'Arial', size:11}; c.fill=orangeFill; });
   } else {
-    const r1 = ws3.addRow([`Chưa có dữ liệu chi nhánh trong ${kind==='month'?'tháng':'tuần'} này`,'','']);
+    const r1 = ws3.addRow([`Chưa có dữ liệu chi nhánh trong ${pwLower} này`,'','']);
     r1.eachCell(c=>{ c.border=thinBorder; c.font={italic:true, name:'Arial', size:11, color:{argb:'FF4C5C6E'}}; });
   }
 
@@ -2696,7 +3146,7 @@ async function exportWeeklyExcel(){
     const detailHeaderRow = ws3.addRow(['Ngày','Loại','Mã ĐX','Nội dung đề xuất','Tình trạng']);
     styleHeaderRow(detailHeaderRow);
     detailEntries.forEach(e=>{
-      const isApproved = e.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
+      const isApproved = isItemApproved(e);
       const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
       const row = ws3.addRow([fmtDateVN(e.__date), e.__loai, e.made||'', e.noidung||'', e.tinhtrang||'']);
       row.eachCell(c=>{ c.border=thinBorder; c.font={name:'Arial', size:10}; c.alignment={wrapText:true, vertical:'top'}; });
@@ -2712,7 +3162,7 @@ async function exportWeeklyExcel(){
   ws3.addRow([]);
 
   const branchChartImg = drawBarChartPNG(sortedBranches, sortedBranches.map(b=>branchCount[b]), {
-    title:`Số đề xuất theo Chi nhánh (trong ${kind==='month'?'tháng':'tuần'})`, highlightIndex: topBranch ? sortedBranches.indexOf(topBranch) : -1
+    title:`Số đề xuất theo Chi nhánh (trong ${pwLower})`, highlightIndex: topBranch ? sortedBranches.indexOf(topBranch) : -1
   });
   const branchImgId = wb.addImage({base64:branchChartImg, extension:'png'});
   let imgRow = ws3.rowCount;
@@ -2720,7 +3170,7 @@ async function exportWeeklyExcel(){
 
   const regionLabels = sortedRegions.slice(0,10);
   const regionChartImg = drawBarChartPNG(regionLabels, regionLabels.map(r=>regionCount[r]), {
-    title:`Số đề xuất theo Khu vực (trong ${kind==='month'?'tháng':'tuần'}, top 10)`, highlightIndex: topRegionInBranch ? regionLabels.indexOf(topRegionInBranch) : -1
+    title:`Số đề xuất theo Khu vực (trong ${pwLower}, top 10)`, highlightIndex: topRegionInBranch ? regionLabels.indexOf(topRegionInBranch) : -1
   });
   const regionImgId = wb.addImage({base64:regionChartImg, extension:'png'});
   ws3.addImage(regionImgId, { tl:{col:0, row: imgRow + 16}, ext:{width:520, height:280} });
@@ -2733,12 +3183,16 @@ async function exportWeeklyExcel(){
   const a = document.createElement('a');
   const fileScope = cosoFilter && cosoFilter!=='all' ? `-${cosoFilter}` : '';
   a.href = url;
-  a.download = kind==='month'
-    ? `Bao-cao-thang-${$('wkRefMonth').value || currentMonthStr()}${fileScope}.xlsx`
-    : `Bao-cao-tuan-${weekDates[0]}_${weekDates[weekDates.length-1]}${fileScope}.xlsx`;
+  const fileNameMap = {
+    month: `Bao-cao-thang-${$('wkRefMonth').value || currentMonthStr()}${fileScope}.xlsx`,
+    quarter: `Bao-cao-quy-${quarterControlsValue()}${fileScope}.xlsx`,
+    year: `Bao-cao-nam-${$('wkRefYear').value || currentYearStr()}${fileScope}.xlsx`,
+    week: `Bao-cao-tuan-${weekDates[0]}_${weekDates[weekDates.length-1]}${fileScope}.xlsx`
+  };
+  a.download = fileNameMap[kind] || fileNameMap.week;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast(kind==='month' ? 'Đã xuất file Excel báo cáo tháng' : 'Đã xuất file Excel báo cáo tuần');
+  showToast('Đã xuất file Excel báo cáo ' + pwLower);
 }
 $('wkExportExcelBtn').addEventListener('click', exportWeeklyExcel);
 
