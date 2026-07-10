@@ -346,10 +346,8 @@
     </div>
     <div class="header-actions">
       <div class="meta" id="headerMeta">—</div>
-      <input type="file" id="importExcelInput" accept=".xlsx" style="display:none;">
       <button class="btn secondary" id="migrateOldBtn" type="button" title="Quét LocalStorage của trình duyệt này và gộp dữ liệu cũ (nếu có) lên Firebase">📤 Cập nhật dữ liệu cũ</button>
       <button class="btn linkcheck" id="linkScanBtn" type="button">🔗 Kiểm tra link</button>
-      <button class="btn secondary" id="importExcelBtn">⬆ Nhập Excel</button>
       <button class="btn excel" id="exportExcelBtn">⬇ Xuất Excel</button>
       <button class="btn logout-btn" id="logoutBtn" type="button">Đăng xuất</button>
     </div>
@@ -426,7 +424,7 @@
             <option>Từ chối</option>
           </select>
         </div>
-        <div class="field" id="i_ngayduyet_field" style="display:none;"><label>Ngày Phòng đưa lên đề xuất</label><input type="date" id="i_ngayduyet"></div>
+        <div class="field" id="i_ngayduyet_field" style="display:none;"><label>Ngày duyệt</label><input type="date" id="i_ngayduyet"></div>
         <div class="field"><label>Đơn vị thực hiện</label><input type="text" id="i_donvithuchien" placeholder="VD: Đội thi công 1"></div>
         <div class="field"><label>Đơn vị theo dõi</label><input type="text" id="i_donvitheodoi" placeholder="VD: Phòng kỹ thuật"></div>
         <div class="field span2"><label>Ghi chú (nếu có)</label><input type="text" id="i_ghichu" placeholder="Ghi chú thêm — bỏ trống nếu không có"></div>
@@ -451,7 +449,7 @@
             <tr>
               <th>STT</th><th>Chi nhánh</th><th>Khu vực</th><th>Mã ĐX</th><th>Người ĐX</th><th>Nội dung</th>
               <th>ID</th><th>Loại ống</th><th>Ø (mm)</th><th>Thu phí</th><th>Nguyên nhân</th>
-              <th>Tình trạng</th><th>Ngày Phòng đưa lên ĐX</th><th>ĐV thực hiện</th><th>ĐV theo dõi</th><th>Ghi chú</th><th>Link</th><th></th>
+              <th>Tình trạng</th><th>Ngày duyệt</th><th>ĐV thực hiện</th><th>ĐV theo dõi</th><th>Ghi chú</th><th>Link</th><th></th>
             </tr>
           </thead>
           <tbody id="incTableBody"></tbody>
@@ -483,12 +481,12 @@
         </div>
         <div class="field">
           <label>Chi nhánh</label>
-          <select id="m_chinhanh">
-            <option value="">— Chọn —</option>
-          </select>
+          <input type="text" id="m_chinhanh" placeholder="VD: Hồ Tràm, Đất Đỏ (có thể ghi nhiều chi nhánh, cách nhau bằng dấu phẩy)" list="m_chinhanh_list">
+          <datalist id="m_chinhanh_list"></datalist>
         </div>
         <div class="field"><label>Khu vực</label><input type="text" id="m_khuvuc" placeholder="VD: Quận 7" list="m_khuvuc_list"><datalist id="m_khuvuc_list"></datalist></div>
         <div class="field"><label>Mã đề xuất</label><input type="text" id="m_made" placeholder="VD: DX-V-0125"></div>
+        <div class="field"><label>Người đề xuất</label><input type="text" id="m_nguoi" placeholder="Họ tên"></div>
         <div class="field span2"><label>Nội dung đề xuất</label><input type="text" id="m_noidung" placeholder="Mô tả ngắn gọn"></div>
         <div class="field"><label>Đơn vị cung ứng</label><input type="text" id="m_cungung" placeholder="Nếu có"></div>
         <div class="field"><label>Đơn vị thực hiện</label><input type="text" id="m_donvithuchien" placeholder="VD: Đội vật tư"></div>
@@ -505,7 +503,7 @@
             <option>Từ chối</option>
           </select>
         </div>
-        <div class="field" id="m_ngayduyet_field" style="display:none;"><label>Ngày Phòng đưa lên đề xuất</label><input type="date" id="m_ngayduyet"></div>
+        <div class="field" id="m_ngayduyet_field" style="display:none;"><label>Ngày duyệt</label><input type="date" id="m_ngayduyet"></div>
         <div class="field span2"><label>Ghi chú (nếu có)</label><input type="text" id="m_ghichu" placeholder="Ghi chú thêm — bỏ trống nếu không có"></div>
         <div class="field span2"><label>Link đề xuất</label><input type="text" id="m_link" placeholder="https://..."></div>
       </div>
@@ -535,8 +533,12 @@
           <div class="field" id="v_khoxuat_field" style="display:none;"><label>Xuất từ kho nào</label><input type="text" id="v_khoxuat" placeholder="VD: Kho vật tư Hồ Tràm"></div>
           <div class="field"><label>Đơn vị tính</label><input type="text" id="v_donvi" placeholder="VD: cái, kg, lít"></div>
           <div class="field"><label>Số lượng</label><input type="number" id="v_soluong" placeholder="0"></div>
-          <div class="field"><label>Chi phí (VNĐ)</label><input type="number" id="v_chiphi" placeholder="0 nếu không có"></div>
           <div class="field"><button class="btn small" id="addVatTuBtn" type="button">+ Thêm vào danh sách</button></div>
+        </div>
+        <div style="margin-top:10px; display:flex; flex-direction:column; gap:4px;">
+          <label style="font-size:11.5px; color:var(--ink-soft); font-weight:600;">Nhập nhanh nhiều dòng cùng lúc — mỗi dòng 1 vật tư, định dạng: <span class="mono">Tên vật tư; Đơn vị tính; Số lượng</span> (dùng chung Phân loại / Hình thức đang chọn ở trên)</label>
+          <textarea id="v_bulk" rows="3" placeholder="VD:&#10;Van cổng D200; cái; 2&#10;Keo dán ống; kg; 5&#10;Băng keo cách điện; cuộn; 10"></textarea>
+          <div><button class="btn secondary small" id="addVatTuBulkBtn" type="button">+ Thêm hàng loạt từ danh sách trên</button></div>
         </div>
         <div class="vattu-list" id="vattuList">
           <div class="vattu-empty">Chưa có vật tư nào được thêm vào đề xuất này.</div>
@@ -559,9 +561,9 @@
         <table>
           <thead>
             <tr>
-              <th>STT</th><th>Chi nhánh</th><th>Khu vực</th><th>Mã ĐX</th><th>Nội dung</th><th>Vật tư / Hóa chất</th>
+              <th>STT</th><th>Chi nhánh</th><th>Khu vực</th><th>Mã ĐX</th><th>Người ĐX</th><th>Nội dung</th><th>Vật tư / Hóa chất</th>
               <th>Tổng chi phí</th><th>ĐV cung ứng</th><th>ĐV thực hiện</th><th>ĐV theo dõi</th>
-              <th>Tình trạng</th><th>Ngày Phòng đưa lên ĐX</th><th>Ghi chú</th><th>Link</th><th></th>
+              <th>Tình trạng</th><th>Ngày duyệt</th><th>Ghi chú</th><th>Link</th><th></th>
             </tr>
           </thead>
           <tbody id="matTableBody"></tbody>
@@ -966,6 +968,29 @@ function updateKhuVucDatalist(datalistEl, branch){
   const list = getKhuVucSuggestions(branch);
   datalistEl.innerHTML = list.map(v=>`<option value="${escapeHtml(v)}"></option>`).join('');
 }
+// ---- Hỗ trợ Chi nhánh dạng text tự do (Tab Vật tư) — cho phép ghi nhiều chi nhánh cùng lúc, cách nhau bằng dấu phẩy ----
+function splitChiNhanhList(str){
+  return String(str||'').split(/[,;]/).map(s=>s.trim()).filter(Boolean);
+}
+function chinhanhMatchesFilter(chinhanhField, filterVal){
+  if(!filterVal || filterVal==='all') return true;
+  return splitChiNhanhList(chinhanhField).includes(filterVal);
+}
+function getCosoOfChiNhanhField(chinhanhField){
+  const list = splitChiNhanhList(chinhanhField);
+  for(const b of list){ const c = getCosoOfBranch(b); if(c) return c; }
+  return '';
+}
+// Điền option cho thẻ <datalist> Chi nhánh dựa theo Cơ sở đã chọn (dùng cho form Vật tư — input tự nhập)
+function populateChiNhanhDatalist(datalistEl, cosoVal){
+  let branches = [];
+  if(!cosoVal){
+    branches = Object.keys(BRANCH_TO_COSO);
+  } else {
+    branches = getBranchesForCoso(cosoVal);
+  }
+  datalistEl.innerHTML = branches.map(b=>`<option value="${escapeHtml(b)}"></option>`).join('');
+}
 
 function pad2(n){ return String(n).padStart(2,'0'); }
 function todayStr(){
@@ -1044,6 +1069,17 @@ async function saveKey(key, arr){
 }
 const incidentKey = d => 'incidents:' + d;
 const materialKey = d => 'materials:' + d;
+
+// ---- Nhãn "Giữ" (bỏ qua trùng lặp): đánh dấu 1 đề xuất để các lượt Dò trùng lặp sau này tự động bỏ qua ----
+async function toggleGiuFlag(type, uid, date){
+  const key = type==='incident' ? incidentKey(date) : materialKey(date);
+  const list = await loadKey(key);
+  const item = list.find(x=>x.uid===uid);
+  if(!item) return null;
+  item.giu = !item.giu;
+  await saveKey(key, list);
+  return item.giu;
+}
 
 // ---------- CẬP NHẬT (GỘP) DỮ LIỆU CŨ TỪ LOCALSTORAGE LÊN FIREBASE ----------
 // Dùng cho trường hợp máy này còn dữ liệu của bản HTML cũ (trước khi có Firebase),
@@ -1152,11 +1188,11 @@ $('i_chinhanh').addEventListener('change', ()=>{
   updateKhuVucDatalist($('i_khuvuc_list'), $('i_chinhanh').value);
 });
 $('m_coso').addEventListener('change', ()=>{
-  populateChiNhanhSelect($('m_chinhanh'), $('m_coso').value, 'entry', '');
-  updateKhuVucDatalist($('m_khuvuc_list'), $('m_chinhanh').value);
+  populateChiNhanhDatalist($('m_chinhanh_list'), $('m_coso').value);
+  updateKhuVucDatalist($('m_khuvuc_list'), splitChiNhanhList($('m_chinhanh').value)[0] || '');
 });
-$('m_chinhanh').addEventListener('change', ()=>{
-  updateKhuVucDatalist($('m_khuvuc_list'), $('m_chinhanh').value);
+$('m_chinhanh').addEventListener('input', ()=>{
+  updateKhuVucDatalist($('m_khuvuc_list'), splitChiNhanhList($('m_chinhanh').value)[0] || '');
 });
 
 // ---------- TOGGLE "Xuất từ kho nào" FIELD ----------
@@ -1183,9 +1219,9 @@ function clearIncidentForm(){
   toggleNgayDuyetField('i_tinhtrang','i_ngayduyet_field');
 }
 function clearMaterialForm(){
-  ['m_stt','m_khuvuc','m_made','m_noidung','m_donvithuchien','m_donvitheodoi','m_ghichu','m_link','m_cungung','m_ngayduyet'].forEach(id=>$(id).value='');
+  ['m_stt','m_khuvuc','m_made','m_nguoi','m_noidung','m_donvithuchien','m_donvitheodoi','m_ghichu','m_link','m_cungung','m_ngayduyet','m_chinhanh'].forEach(id=>$(id).value='');
   $('m_coso').value='';
-  populateChiNhanhSelect($('m_chinhanh'), '', 'entry', '');
+  populateChiNhanhDatalist($('m_chinhanh_list'), '');
   updateKhuVucDatalist($('m_khuvuc_list'), '');
   $('m_tinhtrang').value='Chưa đưa lên đề xuất';
   $('m_ngay').value = currentDate;
@@ -1199,10 +1235,17 @@ function clearMaterialForm(){
   toggleNgayDuyetField('m_tinhtrang','m_ngayduyet_field');
 }
 function clearVatTuInputs(){
-  ['v_ten','v_donvi','v_soluong','v_chiphi','v_khoxuat'].forEach(id=>$(id).value='');
+  ['v_ten','v_donvi','v_soluong','v_khoxuat'].forEach(id=>$(id).value='');
   $('v_loai').value='Vật tư';
   $('v_hinhthuc').value='Mua mới';
   toggleKhoXuatField();
+}
+// Chỉ xóa "Tên vật tư" và "Số lượng" sau khi thêm 1 dòng — giữ nguyên Phân loại / Hình thức /
+// Đơn vị tính (và Kho xuất nếu có) để nhập nhanh dòng tiếp theo, vẫn có thể sửa lại nếu muốn.
+function clearVatTuQuickFields(){
+  $('v_ten').value = '';
+  $('v_soluong').value = '';
+  $('v_ten').focus();
 }
 
 // ---------- VAT TU SUB-LIST ----------
@@ -1216,7 +1259,7 @@ function renderVatTuList(){
     <div class="vattu-chip">
       <div class="vinfo">
         <b>${v.ten}</b> <span class="tag ${v.loai==='Hóa chất'?'tag-chem':'tag-other'}">${v.loai}</span>
-        <div class="vsub">${v.hinhthuc}${v.khoXuat ? ' — Kho: '+v.khoXuat : ''} · ${v.soluong||0} ${v.donvi||''} · ${fmtVND(v.chiphi)}</div>
+        <div class="vsub">${v.hinhthuc}${v.khoXuat ? ' — Kho: '+v.khoXuat : ''} · ${v.soluong||0} ${v.donvi||''}</div>
       </div>
       <button class="vremove" data-idx="${idx}">✕</button>
     </div>
@@ -1234,11 +1277,40 @@ $('addVatTuBtn').addEventListener('click', ()=>{
   currentVatTuRows.push({
     ten, loai: $('v_loai').value, hinhthuc: $('v_hinhthuc').value,
     khoXuat: $('v_hinhthuc').value === 'Xuất từ kho' ? $('v_khoxuat').value.trim() : '',
-    donvi: $('v_donvi').value.trim(), soluong: $('v_soluong').value,
-    chiphi: $('v_chiphi').value
+    donvi: $('v_donvi').value.trim(), soluong: $('v_soluong').value
   });
-  clearVatTuInputs();
+  clearVatTuQuickFields();
   renderVatTuList();
+});
+// Cho phép nhấn Enter ở ô "Tên vật tư" / "Số lượng" để thêm nhanh dòng tiếp theo mà không cần bấm nút
+['v_ten','v_soluong'].forEach(id=>{
+  $(id).addEventListener('keydown', (e)=>{
+    if(e.key==='Enter'){ e.preventDefault(); $('addVatTuBtn').click(); }
+  });
+});
+// ---- Thêm hàng loạt nhiều vật tư cùng lúc từ ô nhập nhanh nhiều dòng ----
+// Mỗi dòng: "Tên vật tư; Đơn vị tính; Số lượng" — dùng chung Phân loại / Hình thức / Kho xuất đang chọn.
+$('addVatTuBulkBtn').addEventListener('click', ()=>{
+  const raw = $('v_bulk').value;
+  const lines = raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  if(!lines.length){ showToast('Nhập ít nhất 1 dòng vật tư ở ô nhập nhanh'); return; }
+  const loai = $('v_loai').value, hinhthuc = $('v_hinhthuc').value;
+  const khoXuat = hinhthuc === 'Xuất từ kho' ? $('v_khoxuat').value.trim() : '';
+  let added = 0;
+  lines.forEach(line=>{
+    const parts = line.split(/[;|\t]/).map(p=>p.trim());
+    const ten = parts[0] || '';
+    if(!ten) return;
+    currentVatTuRows.push({
+      ten, loai, hinhthuc, khoXuat,
+      donvi: parts[1] || '', soluong: parts[2] || ''
+    });
+    added++;
+  });
+  if(!added){ showToast('Không đọc được vật tư nào hợp lệ — mỗi dòng cần ít nhất Tên vật tư'); return; }
+  $('v_bulk').value = '';
+  renderVatTuList();
+  showToast(`Đã thêm ${added} vật tư vào danh sách`);
 });
 
 // ---------- INCIDENT CRUD ----------
@@ -1323,7 +1395,7 @@ $('matSaveBtn').addEventListener('click', async ()=>{
 
   const data = {
     uid: targetUid || ('m_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)),
-    stt, khuvuc:$('m_khuvuc').value.trim(), chinhanh:$('m_chinhanh').value, made, noidung,
+    stt, khuvuc:$('m_khuvuc').value.trim(), chinhanh:$('m_chinhanh').value.trim(), made, nguoi:$('m_nguoi').value.trim(), noidung,
     vattu: [...currentVatTuRows], cungung:$('m_cungung').value.trim(),
     donvithuchien:$('m_donvithuchien').value.trim(), donvitheodoi:$('m_donvitheodoi').value.trim(),
     tinhtrang:$('m_tinhtrang').value, ngayduyet:$('m_ngayduyet').value, ghichu:$('m_ghichu').value.trim(), link:$('m_link').value.trim(),
@@ -1400,10 +1472,11 @@ function loadIncidentIntoForm(item){
 }
 function loadMaterialIntoForm(item){
   $('m_ngay').value=currentDate; $('m_stt').value=item.stt||''; $('m_khuvuc').value=item.khuvuc||'';
-  $('m_coso').value = getCosoOfBranch(item.chinhanh||'') || '';
-  populateChiNhanhSelect($('m_chinhanh'), $('m_coso').value, 'entry', item.chinhanh||'');
-  updateKhuVucDatalist($('m_khuvuc_list'), item.chinhanh||'');
-  $('m_made').value=item.made||''; $('m_noidung').value=item.noidung||''; $('m_cungung').value=item.cungung||'';
+  $('m_coso').value = getCosoOfChiNhanhField(item.chinhanh||'') || '';
+  populateChiNhanhDatalist($('m_chinhanh_list'), $('m_coso').value);
+  $('m_chinhanh').value = item.chinhanh||'';
+  updateKhuVucDatalist($('m_khuvuc_list'), splitChiNhanhList(item.chinhanh||'')[0] || '');
+  $('m_made').value=item.made||''; $('m_nguoi').value=item.nguoi||''; $('m_noidung').value=item.noidung||''; $('m_cungung').value=item.cungung||'';
   $('m_donvithuchien').value=item.donvithuchien||'';
   $('m_donvitheodoi').value=item.donvitheodoi||''; $('m_tinhtrang').value=item.tinhtrang||'Chưa đưa lên đề xuất';
   $('m_ngayduyet').value=item.ngayduyet||'';
@@ -1455,11 +1528,12 @@ async function render(){
       <td>${e.nguoi||''}</td><td>${e.noidung||''}</td><td class="mono">${e.id||''}</td><td>${e.loaiong||''}</td>
       <td>${e.duongkinh ? `<span class="${isBig?'pipe-red':'pipe-normal'}">${e.duongkinh}</span>` : ''}</td>
       <td class="mono">${fmtVND(e.thuphi)}</td><td>${e.nguyennhan||''}</td>
-      <td><span class="tag ${tagCls}">${tinhtrangCell}</span></td>
+      <td><span class="tag ${tagCls}">${tinhtrangCell}</span>${e.giu ? ' <span class="tag" style="background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple);" title="Bỏ qua khi dò trùng lặp">🔖 Giữ</span>' : ''}</td>
       <td>${isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : ''}</td>
       <td>${e.donvithuchien||''}</td><td>${e.donvitheodoi||''}</td><td>${e.ghichu||''}</td>
       <td>${linkCellShort(e,'inc')}</td>
-      <td><button class="del-btn" data-act="edit" data-id="${e.uid}" title="Sửa">✎</button>
+      <td><button class="del-btn" data-act="giu" data-id="${e.uid}" title="${e.giu?'Bỏ đánh dấu Giữ':'Đánh dấu Giữ — bỏ qua khi dò trùng lặp'}">${e.giu?'🔖':'🏷️'}</button>
+      <button class="del-btn" data-act="edit" data-id="${e.uid}" title="Sửa">✎</button>
       <button class="del-btn" data-act="del" data-id="${e.uid}" title="Xóa">✕</button></td>
     `;
     incBody.appendChild(tr);
@@ -1470,6 +1544,10 @@ async function render(){
       if(btn.dataset.act==='del'){
         await saveKey(incidentKey(currentDate), list.filter(x=>x.uid!==btn.dataset.id));
         showToast('Đã xóa đề xuất'); render();
+      } else if(btn.dataset.act==='giu'){
+        const newVal = await toggleGiuFlag('incident', btn.dataset.id, currentDate);
+        showToast(newVal ? 'Đã đánh dấu "Giữ" — sẽ bỏ qua khi dò trùng lặp' : 'Đã bỏ đánh dấu "Giữ"');
+        render();
       } else {
         const item = list.find(x=>x.uid===btn.dataset.id);
         if(item) loadIncidentIntoForm(item);
@@ -1493,13 +1571,14 @@ async function render(){
     const tagCls = isApproved ? 'tag-approved' : (isWaiting ? 'tag-wait' : 'tag-other');
     tr.innerHTML = `
       <td class="mono">${e.stt||''}</td><td>${e.chinhanh||''}</td><td>${e.khuvuc||''}</td><td class="mono">${e.made||''}</td>
-      <td>${e.noidung||''}</td><td>${vattuHtml||''}</td><td class="cost-cell">${fmtVND(total)}</td>
+      <td>${e.nguoi||''}</td><td>${e.noidung||''}</td><td>${vattuHtml||''}</td><td class="cost-cell">${fmtVND(total)}</td>
       <td>${e.cungung||''}</td><td>${e.donvithuchien||''}</td><td>${e.donvitheodoi||''}</td>
-      <td><span class="tag ${tagCls}">${tinhtrangCell}</span></td>
+      <td><span class="tag ${tagCls}">${tinhtrangCell}</span>${e.giu ? ' <span class="tag" style="background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple);" title="Bỏ qua khi dò trùng lặp">🔖 Giữ</span>' : ''}</td>
       <td>${isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : ''}</td>
       <td>${e.ghichu||''}</td>
       <td>${linkCellShort(e,'mat')}</td>
-      <td><button class="del-btn" data-act="edit" data-id="${e.uid}" title="Sửa">✎</button>
+      <td><button class="del-btn" data-act="giu" data-id="${e.uid}" title="${e.giu?'Bỏ đánh dấu Giữ':'Đánh dấu Giữ — bỏ qua khi dò trùng lặp'}">${e.giu?'🔖':'🏷️'}</button>
+      <button class="del-btn" data-act="edit" data-id="${e.uid}" title="Sửa">✎</button>
       <button class="del-btn" data-act="del" data-id="${e.uid}" title="Xóa">✕</button></td>
     `;
     matBody.appendChild(tr);
@@ -1510,6 +1589,10 @@ async function render(){
       if(btn.dataset.act==='del'){
         await saveKey(materialKey(currentDate), list.filter(x=>x.uid!==btn.dataset.id));
         showToast('Đã xóa đề xuất'); render();
+      } else if(btn.dataset.act==='giu'){
+        const newVal = await toggleGiuFlag('material', btn.dataset.id, currentDate);
+        showToast(newVal ? 'Đã đánh dấu "Giữ" — sẽ bỏ qua khi dò trùng lặp' : 'Đã bỏ đánh dấu "Giữ"');
+        render();
       } else {
         const item = list.find(x=>x.uid===btn.dataset.id);
         if(item) loadMaterialIntoForm(item);
@@ -1630,8 +1713,8 @@ async function renderPeriodSummary(periodDates, bannerLabel, kind, prevPeriodDat
   const cosoFilter = $('wk_reportcoso') ? $('wk_reportcoso').value : 'all';
   let { incidents: wkIncidents, materials: wkMaterials } = await aggregateRange(periodDates);
   if(cosoFilter && cosoFilter!=='all'){
-    wkIncidents = wkIncidents.filter(e=>getCosoOfBranch(e.chinhanh)===cosoFilter);
-    wkMaterials = wkMaterials.filter(e=>getCosoOfBranch(e.chinhanh)===cosoFilter);
+    wkIncidents = wkIncidents.filter(e=>getCosoOfChiNhanhField(e.chinhanh)===cosoFilter);
+    wkMaterials = wkMaterials.filter(e=>getCosoOfChiNhanhField(e.chinhanh)===cosoFilter);
   }
   const wkTotal = wkIncidents.length + wkMaterials.length;
   const wkBig = wkIncidents.filter(e=>Number(e.duongkinh)>=200).length;
@@ -1690,8 +1773,8 @@ async function renderPeriodSummary(periodDates, bannerLabel, kind, prevPeriodDat
   // Compare with previous period
   let { incidents: pwIncidents, materials: pwMaterials } = await aggregateRange(prevPeriodDates);
   if(cosoFilter && cosoFilter!=='all'){
-    pwIncidents = pwIncidents.filter(e=>getCosoOfBranch(e.chinhanh)===cosoFilter);
-    pwMaterials = pwMaterials.filter(e=>getCosoOfBranch(e.chinhanh)===cosoFilter);
+    pwIncidents = pwIncidents.filter(e=>getCosoOfChiNhanhField(e.chinhanh)===cosoFilter);
+    pwMaterials = pwMaterials.filter(e=>getCosoOfChiNhanhField(e.chinhanh)===cosoFilter);
   }
   const pwTotal = pwIncidents.length + pwMaterials.length;
   const pwBig = pwIncidents.filter(e=>Number(e.duongkinh)>=200).length;
@@ -1733,7 +1816,7 @@ function wkFilteredEntries(chinhanhFilter){
     ...weeklyDataCache.materials.map(e=>({...e, __loai:'material'}))
   ];
   if(!chinhanhFilter || chinhanhFilter==='all') return all;
-  return all.filter(e => (e.chinhanh||'')===chinhanhFilter);
+  return all.filter(e => chinhanhMatchesFilter(e.chinhanh, chinhanhFilter));
 }
 
 function refreshWkKhuVucOptions(){
@@ -1758,7 +1841,7 @@ function renderWkRegionTable(){
     if(!groups[kv]) groups[kv] = { khuvuc: kv, chinhanhs: new Set(), total:0, incident:0, material:0, waiting:0, approved:0, cost:0 };
     const g = groups[kv];
     g.total++;
-    if(e.chinhanh) g.chinhanhs.add(e.chinhanh);
+    if(e.chinhanh) splitChiNhanhList(e.chinhanh).forEach(b=>g.chinhanhs.add(b));
     if(e.__loai==='incident'){ g.incident++; g.cost += Number(e.thuphi)||0; }
     else { g.material++; g.cost += materialTotalCost(e); }
     if(e.tinhtrang==='Chưa đưa lên đề xuất') g.waiting++;
@@ -1936,8 +2019,8 @@ async function refreshSearchKhuVucOptions(){
     const entries = [...(await loadKey(incidentKey(d))), ...(await loadKey(materialKey(d)))];
     entries.forEach(e=>{
       if(!e.khuvuc || !e.khuvuc.trim()) return;
-      if(cosoFilter!=='all' && getCosoOfBranch(e.chinhanh)!==cosoFilter) return;
-      if(chinhanhFilter!=='all' && (e.chinhanh||'')!==chinhanhFilter) return;
+      if(cosoFilter!=='all' && getCosoOfChiNhanhField(e.chinhanh)!==cosoFilter) return;
+      if(chinhanhFilter!=='all' && !chinhanhMatchesFilter(e.chinhanh, chinhanhFilter)) return;
       set.add(e.khuvuc.trim());
     });
   }
@@ -1999,10 +2082,10 @@ async function runSearch(){
   }
   results = results.filter(e => matchesStatusFilter(e.tinhtrang, statusFilter));
   if(cosoFilter !== 'all'){
-    results = results.filter(e => getCosoOfBranch(e.chinhanh)===cosoFilter);
+    results = results.filter(e => getCosoOfChiNhanhField(e.chinhanh)===cosoFilter);
   }
   if(chinhanhFilter !== 'all'){
-    results = results.filter(e => (e.chinhanh||'')===chinhanhFilter);
+    results = results.filter(e => chinhanhMatchesFilter(e.chinhanh, chinhanhFilter));
   }
   if(khuvucFilter !== 'all'){
     results = results.filter(e => (e.khuvuc||'').trim()===khuvucFilter);
@@ -2094,6 +2177,60 @@ $('searchResetBtn').addEventListener('click', ()=>{
 });
 
 // ---------- EXCEL EXPORT ----------
+// Gom dữ liệu Chi/Thu phí theo Chi nhánh (nhóm ngoài) -> Khu vực (nhóm trong).
+// Hỗ trợ Chi nhánh dạng nhiều giá trị (cách nhau bằng dấu phẩy) của tab Vật tư — mỗi chi nhánh
+// được ghi nhận đầy đủ số đề xuất / chi phí (đề xuất có 2-3 chi nhánh sẽ tính vào từng chi nhánh đó).
+function buildFeeGroupData(entries, costFn){
+  const byBranch = {};
+  entries.forEach(e=>{
+    const cost = costFn(e) || 0;
+    const branches = splitChiNhanhList(e.chinhanh);
+    const branchList = branches.length ? branches : ['Chưa rõ chi nhánh'];
+    const region = (e.khuvuc && e.khuvuc.trim()) || 'Chưa rõ khu vực';
+    branchList.forEach(b=>{
+      if(!byBranch[b]) byBranch[b] = { count:0, cost:0, regions:{} };
+      byBranch[b].count++;
+      byBranch[b].cost += cost;
+      if(!byBranch[b].regions[region]) byBranch[b].regions[region] = { count:0, cost:0 };
+      byBranch[b].regions[region].count++;
+      byBranch[b].regions[region].cost += cost;
+    });
+  });
+  const branchNames = Object.keys(byBranch).sort((a,b)=>byBranch[b].count-byBranch[a].count);
+  return branchNames.map(b=>({
+    branch: b, count: byBranch[b].count, cost: byBranch[b].cost,
+    regions: Object.keys(byBranch[b].regions)
+      .sort((x,y)=>byBranch[b].regions[y].count-byBranch[b].regions[x].count)
+      .map(r=>({ region:r, count:byBranch[b].regions[r].count, cost:byBranch[b].regions[r].cost }))
+  }));
+}
+// Vẽ 1 bảng thống kê Chi/Thu phí (nhóm theo Chi nhánh -> Khu vực) vào 1 worksheet, dùng chung style truyền vào.
+function addFeeGroupTable(ws, thinBorder, sectionTitle, entries, costFn){
+  const groupTitleRow = ws.addRow([sectionTitle]);
+  ws.mergeCells(`A${groupTitleRow.number}:D${groupTitleRow.number}`);
+  groupTitleRow.eachCell(c=>{ c.font={bold:true, size:12, name:'Arial', color:{argb:'FF0A5957'}}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFDCE7E6'}}; c.border=thinBorder; });
+
+  const hdr = ws.addRow(['Chi nhánh','Khu vực','Số đề xuất','Chi / Thu phí (VNĐ)']);
+  hdr.eachCell(c=>{ c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF15263B'}}; c.font={color:{argb:'FFFFFFFF'},bold:true,size:10,name:'Arial'}; c.alignment={vertical:'middle',horizontal:'center'}; c.border=thinBorder; });
+
+  const groups = buildFeeGroupData(entries, costFn);
+  if(!groups.length){
+    const r = ws.addRow(['Không có dữ liệu','','','']);
+    r.eachCell(c=>{ c.border=thinBorder; c.font={italic:true, name:'Arial', size:10, color:{argb:'FF4C5C6E'}}; });
+    return;
+  }
+  groups.forEach(g=>{
+    const branchRow = ws.addRow([g.branch, `(${g.regions.length} khu vực)`, g.count, g.cost]);
+    branchRow.eachCell(c=>{ c.border=thinBorder; c.font={bold:true, name:'Arial', size:10}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEEF2F1'}}; });
+    branchRow.getCell(4).numFmt = '#,##0 "₫"';
+    g.regions.forEach(r=>{
+      const row = ws.addRow(['', r.region, r.count, r.cost]);
+      row.eachCell(c=>{ c.border=thinBorder; c.font={name:'Arial', size:10}; });
+      row.getCell(4).numFmt = '#,##0 "₫"';
+    });
+  });
+}
+
 async function exportExcel(){
   if(typeof ExcelJS === 'undefined'){ showToast('Không tải được thư viện Excel'); return; }
   showToast('Đang tạo file Excel...');
@@ -2127,7 +2264,7 @@ async function exportExcel(){
   ws1.getCell('A1').font = titleFont;
   ws1.getCell('A1').alignment = {horizontal:'left'};
   ws1.addRow([]);
-  const inc_cols = ['STT','Chi nhánh','Khu vực','Mã đề xuất','Người đề xuất','Nội dung đề xuất','ID','Loại ống','Đường kính (mm)','Thu phí (VNĐ)','Nguyên nhân','Tình trạng','Ngày Phòng đưa lên ĐX','Đơn vị thực hiện','Đơn vị theo dõi','Ghi chú','Link đề xuất'];
+  const inc_cols = ['STT','Chi nhánh','Khu vực','Mã đề xuất','Người đề xuất','Nội dung đề xuất','ID','Loại ống','Đường kính (mm)','Thu phí (VNĐ)','Nguyên nhân','Tình trạng','Ngày duyệt','Đơn vị thực hiện','Đơn vị theo dõi','Ghi chú','Link đề xuất'];
   const incHeaderRow = ws1.addRow(inc_cols);
   styleHeaderRow(incHeaderRow);
   ws1.columns = [
@@ -2154,15 +2291,15 @@ async function exportExcel(){
 
   // ---- SHEET 2: Vật tư / Hóa chất (mỗi vật tư 1 dòng) ----
   const ws2 = wb.addWorksheet('Vật tư - Hóa chất');
-  ws2.mergeCells('A1:S1');
+  ws2.mergeCells('A1:T1');
   ws2.getCell('A1').value = `THAY THẾ / MUA MỚI / VẬT TƯ / HÓA CHẤT — Ngày ${currentDate}`;
   ws2.getCell('A1').font = titleFont;
   ws2.addRow([]);
-  const mat_cols = ['STT','Chi nhánh','Khu vực','Mã đề xuất','Nội dung đề xuất','Tên vật tư','Phân loại','Hình thức','Xuất từ kho','Đơn vị tính','Số lượng','Chi phí (VNĐ)','Đơn vị cung ứng','Đơn vị thực hiện','Đơn vị theo dõi','Tình trạng','Ngày Phòng đưa lên ĐX','Ghi chú','Link đề xuất'];
+  const mat_cols = ['STT','Chi nhánh','Khu vực','Mã đề xuất','Người đề xuất','Nội dung đề xuất','Tên vật tư','Phân loại','Hình thức','Xuất từ kho','Đơn vị tính','Số lượng','Chi phí (VNĐ)','Đơn vị cung ứng','Đơn vị thực hiện','Đơn vị theo dõi','Tình trạng','Ngày duyệt','Ghi chú','Link đề xuất'];
   const matHeaderRow = ws2.addRow(mat_cols);
   styleHeaderRow(matHeaderRow);
   ws2.columns = [
-    {width:7},{width:14},{width:14},{width:16},{width:30},{width:22},{width:11},{width:16},{width:18},{width:11},{width:10},{width:14},{width:18},{width:16},{width:16},{width:18},{width:14},{width:24},{width:22}
+    {width:7},{width:14},{width:14},{width:16},{width:16},{width:30},{width:22},{width:11},{width:16},{width:18},{width:11},{width:10},{width:14},{width:18},{width:16},{width:16},{width:18},{width:14},{width:24},{width:22}
   ];
   materials.forEach(e=>{
     const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
@@ -2170,18 +2307,18 @@ async function exportExcel(){
     const items = e.vattu && e.vattu.length ? e.vattu : [{}];
     items.forEach((v, idx)=>{
       const row = ws2.addRow([
-        idx===0 ? e.stt : '', idx===0 ? e.chinhanh : '', idx===0 ? e.khuvuc : '', idx===0 ? e.made : '', idx===0 ? e.noidung : '',
+        idx===0 ? e.stt : '', idx===0 ? e.chinhanh : '', idx===0 ? e.khuvuc : '', idx===0 ? e.made : '', idx===0 ? e.nguoi : '', idx===0 ? e.noidung : '',
         v.ten||'', v.loai||'', v.hinhthuc||'', v.khoXuat||'', v.donvi||'', v.soluong?Number(v.soluong):null, v.chiphi?Number(v.chiphi):0,
         idx===0 ? e.cungung : '', idx===0 ? e.donvithuchien : '', idx===0 ? e.donvitheodoi : '', idx===0 ? e.tinhtrang : '',
         idx===0 && isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : '',
         idx===0 ? e.ghichu : '', idx===0 ? e.link : ''
       ]);
       applyBodyStyle(row);
-      row.getCell(12).numFmt = '#,##0 "₫"';
-      if(v.loai === 'Hóa chất'){ row.getCell(7).font = {bold:true, color:{argb:'FF6A4C93'}, name:'Arial', size:10}; }
+      row.getCell(13).numFmt = '#,##0 "₫"';
+      if(v.loai === 'Hóa chất'){ row.getCell(8).font = {bold:true, color:{argb:'FF6A4C93'}, name:'Arial', size:10}; }
       if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); }
       else if(isWaiting){ row.eachCell(c=>{ c.fill = yellowFill; }); }
-      if(idx===0 && e.link){ row.getCell(19).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(19).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(19).alignment = {horizontal:'center'}; }
+      if(idx===0 && e.link){ row.getCell(20).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(20).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(20).alignment = {horizontal:'center'}; }
     });
   });
   ws2.views = [{state:'frozen', ySplit:3}];
@@ -2236,32 +2373,13 @@ async function exportExcel(){
     }
   });
 
-  // Region breakdown
+  // ---- Thống kê Chi/Thu phí — tách riêng 2 nhóm, mỗi nhóm gộp theo Chi nhánh → Khu vực ----
   ws3.addRow([]);
-  const regHeaderRow = ws3.addRow(['Khu vực','Số đề xuất','Tổng thu/chi (VNĐ)']);
   ws3.getColumn(3).width = 20;
-  styleHeaderRow(regHeaderRow);
-  const regionCount={}, regionMoney={};
-  incidents.forEach(e=>{ const r=e.khuvuc||'Chưa rõ'; regionCount[r]=(regionCount[r]||0)+1; regionMoney[r]=(regionMoney[r]||0)+(Number(e.thuphi)||0); });
-  materials.forEach(e=>{ const r=e.khuvuc||'Chưa rõ'; regionCount[r]=(regionCount[r]||0)+1; regionMoney[r]=(regionMoney[r]||0)+materialTotalCost(e); });
-  Object.keys(regionCount).sort((a,b)=>regionCount[b]-regionCount[a]).forEach(r=>{
-    const row = ws3.addRow([r, regionCount[r], regionMoney[r]]);
-    row.eachCell(c=>{ c.border=thinBorder; c.font={name:'Arial', size:10}; });
-    row.getCell(3).numFmt = '#,##0 "₫"';
-  });
-
-  // Branch (chi nhánh) breakdown
+  ws3.getColumn(4).width = 20;
+  addFeeGroupTable(ws3, thinBorder, '📌 SỰ CỐ TUYẾN ỐNG — Thống kê Thu phí (theo Chi nhánh → Khu vực)', incidents, e=>Number(e.thuphi)||0);
   ws3.addRow([]);
-  const branchHeaderRow = ws3.addRow(['Chi nhánh','Số đề xuất','Tổng thu/chi (VNĐ)']);
-  styleHeaderRow(branchHeaderRow);
-  const branchCount={}, branchMoney={};
-  incidents.forEach(e=>{ if(!e.chinhanh) return; branchCount[e.chinhanh]=(branchCount[e.chinhanh]||0)+1; branchMoney[e.chinhanh]=(branchMoney[e.chinhanh]||0)+(Number(e.thuphi)||0); });
-  materials.forEach(e=>{ if(!e.chinhanh) return; branchCount[e.chinhanh]=(branchCount[e.chinhanh]||0)+1; branchMoney[e.chinhanh]=(branchMoney[e.chinhanh]||0)+materialTotalCost(e); });
-  Object.keys(branchCount).sort((a,b)=>branchCount[b]-branchCount[a]).forEach(r=>{
-    const row = ws3.addRow([r, branchCount[r], branchMoney[r]]);
-    row.eachCell(c=>{ c.border=thinBorder; c.font={name:'Arial', size:10}; });
-    row.getCell(3).numFmt = '#,##0 "₫"';
-  });
+  addFeeGroupTable(ws3, thinBorder, '📌 VẬT TƯ / HÓA CHẤT / THAY THẾ — Thống kê Chi phí (theo Chi nhánh → Khu vực)', materials, e=>materialTotalCost(e));
 
   const buf = await wb.xlsx.writeBuffer();
   const blob = new Blob([buf], {type:'application/octet-stream'});
@@ -2368,7 +2486,7 @@ async function exportWeeklyExcel(){
       return [{ key:cosoFilter, label:null, list: entries }];
     }
     return Object.keys(COSO_DATA)
-      .map(cid=>({ key:cid, label:COSO_DATA[cid].label, list: entries.filter(e=>getCosoOfBranch(e.chinhanh)===cid) }))
+      .map(cid=>({ key:cid, label:COSO_DATA[cid].label, list: entries.filter(e=>getCosoOfChiNhanhField(e.chinhanh)===cid) }))
       .filter(g=>g.list.length);
   }
   function addSectionHeaderRow(ws, colCount, label){
@@ -2380,7 +2498,7 @@ async function exportWeeklyExcel(){
 
   // ---- SHEET 1: Sự cố tuyến ống ----
   const ws1 = wb.addWorksheet(`Sự cố tuyến ống (${kind==='month'?'tháng':'tuần'})`);
-  const inc_cols = ['STT','Chi nhánh','Cơ sở','Khu vực','Mã đề xuất','Ngày','Người đề xuất','Nội dung đề xuất','ID','Loại ống','Đường kính (mm)','Thu phí (VNĐ)','Nguyên nhân','Tình trạng','Ngày Phòng đưa lên ĐX','Đơn vị thực hiện','Đơn vị theo dõi','Ghi chú','Link đề xuất'];
+  const inc_cols = ['STT','Chi nhánh','Cơ sở','Khu vực','Mã đề xuất','Ngày','Người đề xuất','Nội dung đề xuất','ID','Loại ống','Đường kính (mm)','Thu phí (VNĐ)','Nguyên nhân','Tình trạng','Ngày duyệt','Đơn vị thực hiện','Đơn vị theo dõi','Ghi chú','Link đề xuất'];
   ws1.mergeCells(`A1:${String.fromCharCode(64+inc_cols.length)}1`);
   ws1.getCell('A1').value = `SỰ CỐ TUYẾN ỐNG — ${periodWord} ${periodLabel}${scopeSuffix}`;
   ws1.getCell('A1').font = titleFont;
@@ -2395,7 +2513,7 @@ async function exportWeeklyExcel(){
       const isApproved = e.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
       const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
       const row = ws1.addRow([
-        idx+1, e.chinhanh, cosoLabel(getCosoOfBranch(e.chinhanh)), e.khuvuc, e.made, fmtDateVN(e.__date), e.nguoi, e.noidung, e.id, e.loaiong,
+        idx+1, e.chinhanh, cosoLabel(getCosoOfChiNhanhField(e.chinhanh)), e.khuvuc, e.made, fmtDateVN(e.__date), e.nguoi, e.noidung, e.id, e.loaiong,
         e.duongkinh?Number(e.duongkinh):null, e.thuphi?Number(e.thuphi):0, e.nguyennhan,
         e.tinhtrang, isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : '', e.donvithuchien, e.donvitheodoi, e.ghichu, e.link
       ]);
@@ -2413,14 +2531,14 @@ async function exportWeeklyExcel(){
 
   // ---- SHEET 2: Vật tư / Hóa chất ----
   const ws2 = wb.addWorksheet(`Vật tư - Hóa chất (${kind==='month'?'tháng':'tuần'})`);
-  const mat_cols = ['STT','Chi nhánh','Cơ sở','Khu vực','Mã đề xuất','Ngày','Nội dung đề xuất','Tên vật tư','Phân loại','Hình thức','Xuất từ kho','Đơn vị tính','Số lượng','Chi phí (VNĐ)','Đơn vị cung ứng','Đơn vị thực hiện','Đơn vị theo dõi','Tình trạng','Ngày Phòng đưa lên ĐX','Ghi chú','Link đề xuất'];
+  const mat_cols = ['STT','Chi nhánh','Cơ sở','Khu vực','Mã đề xuất','Ngày','Người đề xuất','Nội dung đề xuất','Tên vật tư','Phân loại','Hình thức','Xuất từ kho','Đơn vị tính','Số lượng','Chi phí (VNĐ)','Đơn vị cung ứng','Đơn vị thực hiện','Đơn vị theo dõi','Tình trạng','Ngày duyệt','Ghi chú','Link đề xuất'];
   ws2.mergeCells(`A1:${ws2.getColumn(mat_cols.length).letter}1`);
   ws2.getCell('A1').value = `THAY THẾ / MUA MỚI / VẬT TƯ / HÓA CHẤT — ${periodWord} ${periodLabel}${scopeSuffix}`;
   ws2.getCell('A1').font = titleFont;
   ws2.addRow([]);
   const matHeaderRow = ws2.addRow(mat_cols);
   styleHeaderRow(matHeaderRow);
-  ws2.columns = [{width:7},{width:14},{width:22},{width:14},{width:16},{width:12},{width:30},{width:22},{width:11},{width:16},{width:18},{width:11},{width:10},{width:14},{width:18},{width:16},{width:16},{width:18},{width:14},{width:24},{width:22}];
+  ws2.columns = [{width:7},{width:14},{width:22},{width:14},{width:16},{width:12},{width:16},{width:30},{width:22},{width:11},{width:16},{width:18},{width:11},{width:10},{width:14},{width:18},{width:16},{width:16},{width:18},{width:14},{width:24},{width:22}];
   const matGroups = buildCosoGroups(wkMaterials);
   matGroups.forEach(group=>{
     if(group.label) addSectionHeaderRow(ws2, mat_cols.length, `CƠ SỞ: ${group.label} (${group.list.length} đề xuất)`);
@@ -2430,18 +2548,18 @@ async function exportWeeklyExcel(){
       const items = e.vattu && e.vattu.length ? e.vattu : [{}];
       items.forEach((v, vidx)=>{
         const row = ws2.addRow([
-          vidx===0 ? idx+1 : '', vidx===0 ? e.chinhanh : '', vidx===0 ? cosoLabel(getCosoOfBranch(e.chinhanh)) : '', vidx===0 ? e.khuvuc : '', vidx===0 ? e.made : '', vidx===0 ? fmtDateVN(e.__date) : '', vidx===0 ? e.noidung : '',
+          vidx===0 ? idx+1 : '', vidx===0 ? e.chinhanh : '', vidx===0 ? cosoLabel(getCosoOfChiNhanhField(e.chinhanh)) : '', vidx===0 ? e.khuvuc : '', vidx===0 ? e.made : '', vidx===0 ? fmtDateVN(e.__date) : '', vidx===0 ? e.nguoi : '', vidx===0 ? e.noidung : '',
           v.ten||'', v.loai||'', v.hinhthuc||'', v.khoXuat||'', v.donvi||'', v.soluong?Number(v.soluong):null, v.chiphi?Number(v.chiphi):0,
           vidx===0 ? e.cungung : '', vidx===0 ? e.donvithuchien : '', vidx===0 ? e.donvitheodoi : '', vidx===0 ? e.tinhtrang : '',
           vidx===0 && isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : '',
           vidx===0 ? e.ghichu : '', vidx===0 ? e.link : ''
         ]);
         applyBodyStyle(row);
-        row.getCell(14).numFmt = '#,##0 "₫"';
-        if(v.loai === 'Hóa chất'){ row.getCell(9).font = {bold:true, color:{argb:'FF6A4C93'}, name:'Arial', size:10}; }
+        row.getCell(15).numFmt = '#,##0 "₫"';
+        if(v.loai === 'Hóa chất'){ row.getCell(10).font = {bold:true, color:{argb:'FF6A4C93'}, name:'Arial', size:10}; }
         if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); }
         else if(isWaiting){ row.eachCell(c=>{ c.fill = yellowFill; }); }
-        if(vidx===0 && e.link){ row.getCell(21).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(21).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(21).alignment = {horizontal:'center'}; }
+        if(vidx===0 && e.link){ row.getCell(22).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(22).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(22).alignment = {horizontal:'center'}; }
       });
     });
   });
@@ -2504,7 +2622,7 @@ async function exportWeeklyExcel(){
   const cosoIdsForBreakdown = cosoFilter && cosoFilter!=='all' ? [cosoFilter] : Object.keys(COSO_DATA);
   const cosoCount = {}, cosoMoney = {}; cosoIdsForBreakdown.forEach(c=>{cosoCount[c]=0; cosoMoney[c]=0;});
   [...wkIncidents.map(e=>({...e,__cost:Number(e.thuphi)||0})), ...wkMaterials.map(e=>({...e,__cost:materialTotalCost(e)}))].forEach(e=>{
-    const c = getCosoOfBranch(e.chinhanh);
+    const c = getCosoOfChiNhanhField(e.chinhanh);
     if(c && cosoCount.hasOwnProperty(c)){ cosoCount[c]++; cosoMoney[c]+=e.__cost; }
   });
   const cosoHeaderRow = ws3.addRow(['Cơ sở','Số đề xuất','Tổng thu/chi (VNĐ)']);
@@ -2515,20 +2633,18 @@ async function exportWeeklyExcel(){
     row.getCell(3).numFmt = '#,##0 "₫"';
   });
 
-  // ---- Chi nhánh breakdown + xác định chi nhánh nổi bật ----
-  ws3.addRow([]);
+  // ---- Tính toán Chi nhánh / Khu vực nổi bật (dùng cho phần "Nổi bật" và sơ đồ bên dưới) ----
   const branches = getBranchesForCoso(cosoFilter);
   const branchCount = {}; branches.forEach(b=>branchCount[b]=0);
-  const branchMoney = {}; branches.forEach(b=>branchMoney[b]=0);
   const branchRegionCount = {}; branches.forEach(b=>branchRegionCount[b]={});
   [...wkIncidents.map(e=>({...e,__cost:Number(e.thuphi)||0})), ...wkMaterials.map(e=>({...e,__cost:materialTotalCost(e)}))].forEach(e=>{
-    const b = e.chinhanh;
-    if(b && branchCount.hasOwnProperty(b)){
-      branchCount[b]++;
-      branchMoney[b] += e.__cost;
-      const r = e.khuvuc && e.khuvuc.trim() ? e.khuvuc.trim() : 'Chưa rõ';
-      branchRegionCount[b][r] = (branchRegionCount[b][r]||0) + 1;
-    }
+    splitChiNhanhList(e.chinhanh).forEach(b=>{
+      if(branchCount.hasOwnProperty(b)){
+        branchCount[b]++;
+        const r = e.khuvuc && e.khuvuc.trim() ? e.khuvuc.trim() : 'Chưa rõ';
+        branchRegionCount[b][r] = (branchRegionCount[b][r]||0) + 1;
+      }
+    });
   });
   const sortedBranches = [...branches].sort((a,b)=>branchCount[b]-branchCount[a]);
   const topBranch = branchCount[sortedBranches[0]] > 0 ? sortedBranches[0] : null;
@@ -2536,31 +2652,18 @@ async function exportWeeklyExcel(){
   const sortedTopBranchRegions = Object.keys(topBranchRegions).sort((a,b)=>topBranchRegions[b]-topBranchRegions[a]);
   const topRegionInBranch = sortedTopBranchRegions.length ? sortedTopBranchRegions[0] : null;
 
-  const branchHeaderRow = ws3.addRow(['Chi nhánh','Số đề xuất','Tổng thu/chi (VNĐ)']);
-  styleHeaderRow(branchHeaderRow);
-  sortedBranches.forEach(b=>{
-    const row = ws3.addRow([b, branchCount[b], branchMoney[b]]);
-    row.eachCell(c=>{ c.border=thinBorder; c.font={name:'Arial', size:10}; });
-    row.getCell(3).numFmt = '#,##0 "₫"';
-    if(b===topBranch){ row.eachCell(c=>{ c.fill = orangeFill; c.font = {bold:true, name:'Arial', size:10}; }); }
-  });
-
-  // ---- Khu vực breakdown (toàn kỳ) ----
-  ws3.addRow([]);
-  const regionCount = {}, regionMoney = {};
-  [...wkIncidents.map(e=>({...e,__cost:Number(e.thuphi)||0})), ...wkMaterials.map(e=>({...e,__cost:materialTotalCost(e)}))].forEach(e=>{
+  const regionCount = {};
+  [...wkIncidents, ...wkMaterials].forEach(e=>{
     const r = e.khuvuc && e.khuvuc.trim() ? e.khuvuc.trim() : 'Chưa rõ';
-    regionCount[r]=(regionCount[r]||0)+1; regionMoney[r]=(regionMoney[r]||0)+e.__cost;
+    regionCount[r]=(regionCount[r]||0)+1;
   });
   const sortedRegions = Object.keys(regionCount).sort((a,b)=>regionCount[b]-regionCount[a]);
-  const regHeaderRow = ws3.addRow([`Khu vực (toàn ${kind==='month'?'tháng':'tuần'})`,'Số đề xuất','Tổng thu/chi (VNĐ)']);
-  styleHeaderRow(regHeaderRow);
-  sortedRegions.forEach(r=>{
-    const row = ws3.addRow([r, regionCount[r], regionMoney[r]]);
-    row.eachCell(c=>{ c.border=thinBorder; c.font={name:'Arial', size:10}; });
-    row.getCell(3).numFmt = '#,##0 "₫"';
-    if(topBranch && r===topRegionInBranch){ row.eachCell(c=>{ c.fill = orangeFill; }); }
-  });
+
+  // ---- Thống kê Chi/Thu phí — tách riêng 2 nhóm, mỗi nhóm gộp theo Chi nhánh → Khu vực ----
+  ws3.addRow([]);
+  addFeeGroupTable(ws3, thinBorder, `📌 SỰ CỐ TUYẾN ỐNG — Thống kê Thu phí ${periodWord.toLowerCase()} (theo Chi nhánh → Khu vực)`, wkIncidents, e=>Number(e.thuphi)||0);
+  ws3.addRow([]);
+  addFeeGroupTable(ws3, thinBorder, `📌 VẬT TƯ / HÓA CHẤT / THAY THẾ — Thống kê Chi phí ${periodWord.toLowerCase()} (theo Chi nhánh → Khu vực)`, wkMaterials, e=>materialTotalCost(e));
 
   // ---- Nổi bật: Chi nhánh nhiều đề xuất nhất + Khu vực nổi bật trong chi nhánh đó ----
   ws3.addRow([]);
@@ -2586,8 +2689,8 @@ async function exportWeeklyExcel(){
     detailTitleRow.eachCell(c=>{ c.font={bold:true, size:11, name:'Arial', color:{argb:'FF0A5957'}}; });
 
     const detailEntries = [
-      ...wkIncidents.filter(e=>e.chinhanh===topBranch && (e.khuvuc||'').trim()===topRegionInBranch).map(e=>({...e,__loai:'Sự cố tuyến ống'})),
-      ...wkMaterials.filter(e=>e.chinhanh===topBranch && (e.khuvuc||'').trim()===topRegionInBranch).map(e=>({...e,__loai:'Vật tư/Hóa chất'}))
+      ...wkIncidents.filter(e=>chinhanhMatchesFilter(e.chinhanh, topBranch) && (e.khuvuc||'').trim()===topRegionInBranch).map(e=>({...e,__loai:'Sự cố tuyến ống'})),
+      ...wkMaterials.filter(e=>chinhanhMatchesFilter(e.chinhanh, topBranch) && (e.khuvuc||'').trim()===topRegionInBranch).map(e=>({...e,__loai:'Vật tư/Hóa chất'}))
     ].sort((a,b)=>naturalMaDeXuatCompare(a.made,b.made));
 
     const detailHeaderRow = ws3.addRow(['Ngày','Loại','Mã ĐX','Nội dung đề xuất','Tình trạng']);
@@ -2639,165 +2742,6 @@ async function exportWeeklyExcel(){
 }
 $('wkExportExcelBtn').addEventListener('click', exportWeeklyExcel);
 
-
-// ---------- EXCEL IMPORT ----------
-function cellVal(row, idx){
-  if(!idx) return '';
-  const c = row.getCell(idx);
-  let v = c.value;
-  if(v === null || v === undefined) return '';
-  if(typeof v === 'object'){
-    if(v instanceof Date){
-      return `${v.getUTCFullYear()}-${pad2(v.getUTCMonth()+1)}-${pad2(v.getUTCDate())}`;
-    }
-    if(v.text !== undefined) return String(v.text).trim();
-    if(v.result !== undefined && v.result !== null) return String(v.result).trim();
-    if(v.hyperlink !== undefined) return String(v.hyperlink).trim();
-    if(v.richText) return v.richText.map(t=>t.text).join('').trim();
-    return '';
-  }
-  return String(v).trim();
-}
-function findHeaderRow(ws, mustHave){
-  for(let r=1; r<=8; r++){
-    const row = ws.getRow(r);
-    let found = false;
-    row.eachCell(c=>{ if(String(c.value||'').trim()===mustHave) found = true; });
-    if(found) return r;
-  }
-  return null;
-}
-function buildColMap(ws, headerRowNum){
-  const map = {};
-  ws.getRow(headerRowNum).eachCell((c, colNum)=>{
-    const label = String(c.value||'').trim();
-    if(label) map[label] = colNum;
-  });
-  return map;
-}
-function rowIsEmpty(row, colMap){
-  return Object.values(colMap).every(idx => cellVal(row, idx) === '');
-}
-function extractDateFromTitle(ws){
-  const a1 = String(ws.getCell('A1').value || '');
-  let m = a1.match(/(\d{4}-\d{2}-\d{2})/);
-  if(m) return m[1];
-  m = a1.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-  if(m) return `${m[3]}-${m[2]}-${m[1]}`;
-  return null;
-}
-
-async function importExcel(file){
-  if(typeof ExcelJS === 'undefined'){ showToast('Không tải được thư viện Excel'); return; }
-  showToast('Đang đọc file Excel...');
-  let wb;
-  try{
-    const buf = await file.arrayBuffer();
-    wb = new ExcelJS.Workbook();
-    await wb.xlsx.load(buf);
-  }catch(e){ showToast('Không đọc được file Excel'); return; }
-
-  const ws1 = wb.getWorksheet('Sự cố tuyến ống') || wb.worksheets[0];
-  const ws2 = wb.getWorksheet('Vật tư - Hóa chất') || wb.worksheets[1];
-
-  let targetDate = (ws1 && extractDateFromTitle(ws1)) || (ws2 && extractDateFromTitle(ws2)) || currentDate;
-
-  const incImported = [];
-  if(ws1){
-    const incFieldMap = {
-      'STT':'stt','Khu vực':'khuvuc','Chi nhánh':'chinhanh','Mã đề xuất':'made','Người đề xuất':'nguoi',
-      'Nội dung đề xuất':'noidung','ID':'id','Loại ống':'loaiong','Đường kính (mm)':'duongkinh',
-      'Thu phí (VNĐ)':'thuphi','Nguyên nhân':'nguyennhan','Tình trạng':'tinhtrang',
-      'Đơn vị thực hiện':'donvithuchien','Đơn vị theo dõi':'donvitheodoi','Ghi chú':'ghichu','Link đề xuất':'link'
-    };
-    const headerRow = findHeaderRow(ws1, 'STT');
-    if(headerRow){
-      const colMap = buildColMap(ws1, headerRow);
-      let r = headerRow + 1;
-      let emptyStreak = 0;
-      while(r <= ws1.rowCount && emptyStreak < 3){
-        const row = ws1.getRow(r);
-        if(rowIsEmpty(row, colMap)){ emptyStreak++; r++; continue; }
-        emptyStreak = 0;
-        const item = { uid: 'i_'+Date.now()+'_'+Math.random().toString(36).slice(2,7) };
-        Object.entries(incFieldMap).forEach(([label, key])=>{ item[key] = cellVal(row, colMap[label]); });
-        incImported.push(item);
-        r++;
-      }
-    }
-  }
-
-  const matImported = [];
-  if(ws2){
-    const headerRow = findHeaderRow(ws2, 'STT');
-    if(headerRow){
-      const colMap = buildColMap(ws2, headerRow);
-      let current = null;
-      let r = headerRow + 1;
-      let emptyStreak = 0;
-      while(r <= ws2.rowCount && emptyStreak < 3){
-        const row = ws2.getRow(r);
-        if(rowIsEmpty(row, colMap)){ emptyStreak++; r++; continue; }
-        emptyStreak = 0;
-        const stt = cellVal(row, colMap['STT']);
-        const made = cellVal(row, colMap['Mã đề xuất']);
-        const isNewGroup = stt !== '' || made !== '' || !current;
-        if(isNewGroup){
-          if(current) matImported.push(current);
-          current = {
-            uid: 'm_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
-            stt, khuvuc: cellVal(row, colMap['Khu vực']), chinhanh: cellVal(row, colMap['Chi nhánh']),
-            made, noidung: cellVal(row, colMap['Nội dung đề xuất']),
-            cungung: cellVal(row, colMap['Đơn vị cung ứng']),
-            donvithuchien: cellVal(row, colMap['Đơn vị thực hiện']), donvitheodoi: cellVal(row, colMap['Đơn vị theo dõi']),
-            tinhtrang: cellVal(row, colMap['Tình trạng']) || 'Chưa đưa lên đề xuất',
-            ghichu: cellVal(row, colMap['Ghi chú']), link: cellVal(row, colMap['Link đề xuất']),
-            vattu: []
-          };
-        }
-        const ten = cellVal(row, colMap['Tên vật tư']);
-        if(ten){
-          current.vattu.push({
-            ten, loai: cellVal(row, colMap['Phân loại']) || 'Vật tư',
-            hinhthuc: cellVal(row, colMap['Hình thức']) || 'Mua mới',
-            khoXuat: cellVal(row, colMap['Xuất từ kho']),
-            donvi: cellVal(row, colMap['Đơn vị tính']), soluong: cellVal(row, colMap['Số lượng']),
-            chiphi: cellVal(row, colMap['Chi phí (VNĐ)'])
-          });
-        }
-        r++;
-      }
-      if(current) matImported.push(current);
-    }
-  }
-
-  if(!incImported.length && !matImported.length){
-    showToast('Không tìm thấy dữ liệu hợp lệ trong file');
-    return;
-  }
-
-  const existingInc = await loadKey(incidentKey(targetDate));
-  const existingMat = await loadKey(materialKey(targetDate));
-  if((existingInc.length || existingMat.length)){
-    const ok = confirm(`Ngày ${targetDate} đã có ${existingInc.length + existingMat.length} đề xuất sẵn có. Nhập từ Excel sẽ THAY THẾ toàn bộ dữ liệu ngày này. Tiếp tục?`);
-    if(!ok){ showToast('Đã hủy nhập Excel'); return; }
-  }
-
-  if(incImported.length) await saveKey(incidentKey(targetDate), incImported);
-  if(matImported.length) await saveKey(materialKey(targetDate), matImported);
-
-  currentDate = targetDate;
-  clearIncidentForm(); clearMaterialForm();
-  render();
-  showToast(`Đã nhập ${incImported.length + matImported.length} đề xuất từ Excel (ngày ${targetDate})`);
-}
-
-$('importExcelBtn').addEventListener('click', ()=> $('importExcelInput').click());
-$('importExcelInput').addEventListener('change', async (e)=>{
-  const file = e.target.files[0];
-  if(file) await importExcel(file);
-  e.target.value = '';
-});
 
 // ---------- CROSS-DATE HELPERS ----------
 async function getAllDateKeysByPrefix(prefix){
@@ -2897,7 +2841,7 @@ function normStr(s){ return String(s==null?'':s).trim().toLowerCase(); }
 let currentDupRows = [];
 
 async function scanIncidentIdDuplicates(){
-  const all = await collectAllItems('incident');
+  const all = (await collectAllItems('incident')).filter(entry=>!entry.item.giu);
   const groups = {};
   all.forEach(entry=>{
     const idVal = normStr(entry.item.id);
@@ -2930,7 +2874,7 @@ function vatTuListSignature(vattu){
   return items.join('##');
 }
 async function scanMaterialVatTuDuplicates(){
-  const all = await collectAllItems('material');
+  const all = (await collectAllItems('material')).filter(entry=>!entry.item.giu);
   const groups = {};
   all.forEach(entry=>{
     const sig = vatTuListSignature(entry.item.vattu);
@@ -2965,6 +2909,7 @@ function buildDupRowHtml(row){
     <td>${escapeHtml(row.noidung||'')}</td>
     <td>${escapeHtml(row.detail||'')}</td>
     <td style="white-space:nowrap;">
+      <button class="del-btn" data-dupact="giu" data-rowid="${row.rowId}" title="Đánh dấu 'Giữ' — bỏ qua mục này ở các lượt dò trùng lặp sau">🔖 Giữ</button>
       <button class="del-btn" data-dupact="edit" data-rowid="${row.rowId}" title="Sửa đề xuất">✎</button>
       <button class="del-btn" data-dupact="del" data-rowid="${row.rowId}" title="Xóa đề xuất">✕</button>
     </td>
@@ -3041,6 +2986,14 @@ document.addEventListener('click', async (e)=>{
     const tr = document.querySelector(`tr[data-rowid="${CSS.escape(row.rowId)}"]`);
     if(tr) tr.remove();
     showToast('Đã xóa đề xuất');
+    if(!currentDupRows.length){ $('dupEmptyState').style.display='block'; $('dupEmptyState').textContent='Không phát hiện trùng lặp nào 🎉'; $('dupModalSummary').textContent=''; }
+    render();
+  } else if(btn.dataset.dupact==='giu'){
+    await toggleGiuFlag(row.type, row.uid, row.date);
+    currentDupRows = currentDupRows.filter(r=>r.rowId!==row.rowId);
+    const tr = document.querySelector(`tr[data-rowid="${CSS.escape(row.rowId)}"]`);
+    if(tr) tr.remove();
+    showToast('Đã đánh dấu "Giữ" — mục này sẽ được bỏ qua ở các lượt dò trùng lặp sau');
     if(!currentDupRows.length){ $('dupEmptyState').style.display='block'; $('dupEmptyState').textContent='Không phát hiện trùng lặp nào 🎉'; $('dupModalSummary').textContent=''; }
     render();
   }
