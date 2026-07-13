@@ -188,6 +188,26 @@
   .region-bar-row.top .region-bar-fill{background:var(--rust);}
   .region-bar-row .rcount{width:30px; text-align:right; font-family:'IBM Plex Mono',monospace; flex-shrink:0;}
 
+  /* ---- Bộ điều khiển bảng "Đã duyệt": Bộ lọc nhanh + Sắp xếp ---- */
+  .approved-controls{
+    display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; margin-bottom:12px;
+    padding:10px 12px; background:#FBFCFC; border:1px solid var(--line); border-radius:2px;
+  }
+  .approved-controls .filter-group{display:flex; flex-wrap:wrap; align-items:center; gap:6px;}
+  .approved-controls .filter-group-label{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase;
+    letter-spacing:.05em; color:var(--ink-soft); margin-right:2px;
+  }
+  .filter-pill{
+    font-family:'IBM Plex Sans',sans-serif; font-size:12px; font-weight:600; cursor:pointer;
+    padding:5px 12px; border-radius:14px; border:1px solid var(--line); background:#fff; color:var(--ink-soft);
+    transition:all .12s ease; line-height:1.3;
+  }
+  .filter-pill:hover{border-color:var(--teal); color:var(--teal-deep);}
+  .filter-pill.active{background:var(--teal-deep); border-color:var(--teal-deep); color:#fff;}
+  .approved-controls .sort-group{display:flex; align-items:center; gap:6px; margin-left:auto;}
+  .approved-controls select{font-size:12px; padding:5px 8px;}
+
   .compare-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px;}
   .cmp-card{border:1px solid var(--line); border-radius:2px; padding:14px 16px;}
   .cmp-card .label{font-size:11px; text-transform:uppercase; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; letter-spacing:.06em;}
@@ -346,7 +366,7 @@
     </div>
     <div class="header-actions">
       <div class="meta" id="headerMeta">—</div>
-      <button class="btn secondary" id="migrateOldBtn" type="button" title="Quét LocalStorage của trình duyệt này và gộp dữ liệu cũ (nếu có) lên Firebase">📤 Cập nhật dữ liệu cũ</button>
+      <button class="btn secondary" id="migrateOldBtn" type="button" title="Gộp dữ liệu cũ còn sót trong LocalStorage lên Firebase, sau đó chuẩn hóa lại trường Tình trạng / Đã duyệt / Ngày duyệt cho toàn bộ dữ liệu cũ chưa đúng định dạng">📤 Cập nhật dữ liệu cũ</button>
       <button class="btn linkcheck" id="linkScanBtn" type="button">🔗 Kiểm tra link</button>
       <button class="btn excel" id="exportExcelBtn">⬇ Xuất Excel</button>
       <button class="btn logout-btn" id="logoutBtn" type="button">Đăng xuất</button>
@@ -754,6 +774,7 @@
         <div class="stat-card accent-green">
           <div class="label">Lãnh đạo đơn vị đã duyệt</div>
           <div class="value" id="wkApproved">0</div>
+          <div class="breakdown" id="wkApprovedBreak">—</div>
         </div>
       </div>
 
@@ -774,8 +795,11 @@
       <div class="sub" style="margin-bottom:10px;">
         Bảng độc lập này quét TOÀN BỘ dữ liệu và lọc theo <span class="mono">isApproved === true</span> VÀ
         <span class="mono">ngày duyệt</span> nằm trong kỳ đang xem — không phụ thuộc ngày tạo đề xuất, nên không
-        bao giờ bị sót các đề xuất tạo ở kỳ trước nhưng kỳ này mới được duyệt. 💡 Bấm vào 1 dòng để cuộn đến và xem nhanh chi tiết đề xuất đó.
+        bao giờ bị sót các đề xuất tạo ở kỳ trước nhưng kỳ này mới được duyệt. Dùng Bộ lọc nhanh và Sắp xếp bên dưới
+        để lọc theo Loại / Cơ sở hoặc đổi thứ tự hiển thị. 💡 Bấm vào 1 dòng để cuộn đến và xem nhanh chi tiết đề xuất đó
+        (kể cả khi đề xuất được tạo ở một ngày khác).
       </div>
+      <div id="wkApprovedControls"></div>
       <div id="wkApprovedBreakdown" style="margin-bottom:14px;"></div>
       <div class="table-scroll">
         <table>
@@ -911,8 +935,10 @@
       Bảng độc lập này quét TOÀN BỘ dữ liệu và lọc đúng theo điều kiện: nút tích Duyệt được bật
       (<span class="mono">isApproved === true</span>) VÀ <span class="mono">ngày duyệt</span> = ngày đang xem
       — không phụ thuộc ngày tạo đề xuất, nên không bao giờ bị sót các đề xuất tạo ngày khác nhưng hôm nay mới duyệt.
-      💡 Bấm vào 1 dòng để cuộn đến và xem nhanh chi tiết đề xuất đó.
+      Dùng Bộ lọc nhanh và Sắp xếp bên dưới để lọc theo Loại / Cơ sở hoặc đổi thứ tự hiển thị.
+      💡 Bấm vào 1 dòng để cuộn đến và xem nhanh chi tiết đề xuất đó (kể cả khi đề xuất được tạo ở một ngày khác).
     </div>
+    <div id="dayApprovedControls"></div>
     <div id="dayApprovedBreakdown" style="margin-bottom:14px;"></div>
     <div class="table-scroll">
       <table>
@@ -987,6 +1013,16 @@ let editingMaterialSourceDate = null;
 let currentDate = todayStr();
 let currentVatTuRows = [];
 let activeTab = 'incident';
+
+// ---- Trạng thái Bộ lọc nhanh + Sắp xếp cho các bảng "Đã duyệt" (độc lập giữa bảng Ngày và bảng Tuần/Tháng/Quý/Năm) ----
+const approvedTableState = {
+  day:  { sortMode: 'delay_desc', filterLoai: 'all', filterCoso: 'all' },
+  week: { sortMode: 'delay_desc', filterLoai: 'all', filterCoso: 'all' }
+};
+// Lưu lại dữ liệu thô (chưa lọc/sắp xếp) + thông tin kỳ của lần render gần nhất cho mỗi bảng,
+// để khi người dùng bấm đổi bộ lọc/sắp xếp thì chỉ cần vẽ lại bảng ngay tại chỗ, không cần gọi lại Firestore.
+const __approvedRawEntries = { day: [], week: [] };
+const __approvedPeriodInfo = { day: null, week: null };
 
 // ---------- CƠ SỞ / CHI NHÁNH / KHU VỰC DATA ----------
 const COSO_DATA = {
@@ -1292,7 +1328,117 @@ async function migrateOldLocalData(){
   showToast(msg + '.');
   render();
 }
-$('migrateOldBtn').addEventListener('click', migrateOldLocalData);
+$('migrateOldBtn').addEventListener('click', handleMigrateOldClick);
+
+// ---------- CHUẨN HÓA DỮ LIỆU CŨ: tinhtrang + isApproved (+ ngayduyet) ----------
+// Qua nhiều lần cập nhật, hệ thống đã đổi cách lưu trạng thái duyệt: từ "chọn trong dropdown Tình trạng"
+// (tinhtrang = 'Lãnh đạo đơn vị đã duyệt') sang "checkbox isApproved riêng biệt". Hàm dưới đây quét TOÀN BỘ
+// collection so_de_xuat và chuẩn hóa lại từng item về đúng định dạng mới, KHÔNG đổi ý nghĩa nghiệp vụ:
+//   • tinhtrang rỗng / undefined                -> 'Chưa đưa lên đề xuất'
+//   • tinhtrang === 'Lãnh đạo đơn vị đã duyệt'  -> tinhtrang = 'Đã duyệt', isApproved = true (giá trị cũ trước khi có checkbox)
+//   • isApproved không phải boolean chuẩn        -> ép về true/false đúng theo ý nghĩa của isItemApproved()
+//   • isApproved === true nhưng thiếu ngayduyet  -> tạm gán ngayduyet = ngày tạo đề xuất, để không bị "mất" khỏi báo cáo theo Ngày duyệt
+//   • isApproved !== true nhưng còn sót ngayduyet -> xóa ngayduyet cho nhất quán với giao diện (trường này chỉ hiện khi đã duyệt)
+// Quy trình an toàn 2 bước: (1) quét & tính trước những gì SẼ đổi (dry-run, không ghi gì cả) rồi hỏi xác nhận;
+// (2) chỉ khi người dùng đồng ý mới thực sự ghi các Document đã thay đổi lên Firestore (giữ nguyên Document không đổi).
+function computeNormalizedItem(item, docDate){
+  const before = JSON.stringify(item);
+  const fixed = { ...item };
+
+  if(!fixed.tinhtrang) fixed.tinhtrang = 'Chưa đưa lên đề xuất';
+
+  const legacyApproved = fixed.tinhtrang === 'Lãnh đạo đơn vị đã duyệt';
+  if(legacyApproved) fixed.tinhtrang = 'Đã duyệt';
+
+  const shouldBeApproved = fixed.isApproved === true || fixed.isApproved === 'true' || fixed.isApproved === 1 || legacyApproved;
+  fixed.isApproved = !!shouldBeApproved;
+
+  if(fixed.isApproved){
+    if(!fixed.ngayduyet) fixed.ngayduyet = docDate || '';
+  } else if(fixed.ngayduyet){
+    fixed.ngayduyet = '';
+  }
+
+  return { fixed, changed: JSON.stringify(fixed) !== before };
+}
+
+async function scanNormalizeOldData(){
+  const snap = await __db.collection(__COLLECTION).get();
+  const plan = []; // { key, items: mảng item MỚI (đã chuẩn hóa), changedCount }
+  let totalItems = 0, totalChanged = 0;
+  snap.docs.forEach(doc=>{
+    const sep = doc.id.indexOf(':');
+    const date = doc.id.slice(sep+1);
+    const items = Array.isArray(doc.data().items) ? doc.data().items : [];
+    let changedCount = 0;
+    const newItems = items.map(it=>{
+      totalItems++;
+      const { fixed, changed } = computeNormalizedItem(it, date);
+      if(changed) changedCount++;
+      return fixed;
+    });
+    if(changedCount){
+      totalChanged += changedCount;
+      plan.push({ key: doc.id, items: newItems, changedCount });
+    }
+  });
+  return { plan, totalItems, totalChanged };
+}
+
+async function normalizeOldDataFormat(){
+  showToast('Đang quét dữ liệu để chuẩn hóa Tình trạng / Đã duyệt...');
+  let scan;
+  try{
+    scan = await scanNormalizeOldData();
+  }catch(e){
+    console.error('Lỗi quét dữ liệu để chuẩn hóa', e);
+    showToast('Lỗi quét dữ liệu, xem Console để biết chi tiết.');
+    return;
+  }
+  if(!scan.plan.length){
+    showToast(`Đã kiểm tra ${scan.totalItems} đề xuất — toàn bộ đã đúng định dạng, không cần chuẩn hóa.`);
+    return;
+  }
+  const ok = confirm(
+    `Tìm thấy ${scan.totalChanged} đề xuất (trong ${scan.plan.length} ngày) đang lưu tinhtrang/isApproved chưa đúng định dạng mới.\n\n`+
+    `Ví dụ lỗi thường gặp: Tình trạng còn lưu giá trị cũ "Lãnh đạo đơn vị đã duyệt", isApproved không phải true/false, hoặc đã duyệt nhưng thiếu Ngày duyệt.\n\n`+
+    `Bạn có muốn CHUẨN HÓA lại toàn bộ ${scan.totalChanged} đề xuất này ngay bây giờ không? (KHÔNG xóa dữ liệu — chỉ sửa 2 trường tinhtrang/isApproved và bổ sung ngayduyet nếu thiếu).`
+  );
+  if(!ok) return;
+
+  showToast(`Đang chuẩn hóa ${scan.totalChanged} đề xuất trên ${scan.plan.length} ngày, vui lòng đợi...`);
+  const btn = $('migrateOldBtn');
+  if(btn) btn.disabled = true;
+  let okDocs = 0, errDocs = 0;
+  for(const p of scan.plan){
+    try{
+      await saveKey(p.key, p.items);
+      okDocs++;
+    }catch(e){
+      console.error('Lỗi ghi dữ liệu chuẩn hóa cho', p.key, e);
+      errDocs++;
+    }
+  }
+  if(btn) btn.disabled = false;
+  let msg = `✅ Đã chuẩn hóa xong ${scan.totalChanged} đề xuất trên ${okDocs} ngày`;
+  if(errDocs) msg += `, ${errDocs} ngày bị lỗi khi ghi (xem Console)`;
+  showToast(msg + '.');
+  render();
+}
+
+// Nút "📤 Cập nhật dữ liệu cũ" giờ làm 2 việc theo thứ tự: (1) gộp dữ liệu cũ còn sót trong LocalStorage
+// của trình duyệt lên Firebase (nếu có), rồi (2) chuẩn hóa lại tinhtrang/isApproved cho toàn bộ dữ liệu
+// đang có trên Firebase (kể cả dữ liệu vừa gộp ở bước 1) — đảm bảo dữ liệu cũ luôn đúng định dạng mới nhất.
+async function handleMigrateOldClick(){
+  const btn = $('migrateOldBtn');
+  if(btn) btn.disabled = true;
+  try{
+    await migrateOldLocalData();
+    await normalizeOldDataFormat();
+  } finally {
+    if(btn) btn.disabled = false;
+  }
+}
 
 // ---------- TAB SWITCH ----------
 document.querySelectorAll('.tab-btn').forEach(btn=>{
@@ -1832,7 +1978,7 @@ async function render(){
   $('statWaiting').textContent = waitingCount;
   $('statWaitingBreak').textContent = `Đã đưa lên: ${submittedCount}`;
   $('statApproved').textContent = approvedCount;
-  $('statApprovedBreak').textContent = approvedCount ? `${approvedCount} đề xuất đã được LĐ đơn vị duyệt` : 'Chưa có đề xuất nào được duyệt';
+  $('statApprovedBreak').textContent = approvedCountBreakdownText(approvedEntries);
   $('statFeeIncident').textContent = fmtVND(feeIncident);
   $('statFeeMaterial').textContent = fmtVND(feeMaterial);
   $('statFeeTotal').textContent = fmtVND(feeIncident + feeMaterial);
@@ -1892,6 +2038,22 @@ function approvalDelayBadgeHtml(e, periodInfo){
   const label = approvalDelayInfo(e, periodInfo);
   return label ? `<span class="tag tag-wait" title="Đề xuất được tạo ngày ${fmtDateVN(e.__date)}, trước kỳ đang xem báo cáo">⏱ ${label}</span>` : '<span class="mono" style="color:var(--ink-soft);">—</span>';
 }
+// Số ngày trễ duyệt THỰC TẾ = khoảng cách giữa Ngày tạo (e.__date) và Ngày duyệt (e.ngayduyet),
+// dùng để sắp xếp danh sách theo "đề xuất bị ngâm lâu nhất" lên đầu — độc lập với kỳ báo cáo đang xem.
+function approvalDelayDays(e){
+  if(!e || !e.__date || !e.ngayduyet) return 0;
+  try{
+    const diff = Math.round((parseDateUTC(e.ngayduyet) - parseDateUTC(e.__date)) / 86400000);
+    return diff > 0 ? diff : 0;
+  }catch(err){ return 0; }
+}
+// Chuỗi breakdown ngắn gọn hiển thị cạnh con số tổng "Đã duyệt" trên thẻ tổng hợp, ví dụ: "3 Sự cố · 2 Vật tư".
+function approvedCountBreakdownText(entries){
+  if(!entries || !entries.length) return 'Chưa có đề xuất nào được duyệt';
+  const incCount = entries.filter(e=>e.__loai==='incident').length;
+  const matCount = entries.filter(e=>e.__loai==='material').length;
+  return `${incCount} Sự cố · ${matCount} Vật tư`;
+}
 // Chuỗi hiển thị "Cơ sở / Chi nhánh / Khu vực" cho 1 dòng của bảng báo cáo tổng quát.
 function cosoChiNhanhKhuVucCell(e){
   const cosoId = getCosoOfChiNhanhField(e.chinhanh);
@@ -1935,16 +2097,29 @@ function renderApprovedBreakdown(list, containerId){
 }
 // Bấm vào 1 dòng trong bảng báo cáo tổng quát -> chuyển tới đúng ngày/tab của đề xuất đó và cuộn tới,
 // làm nổi bật (highlight) dòng tương ứng trong bảng danh sách chi tiết, KHÔNG mở form sửa (chỉ xem).
+//
+// XỬ LÝ LỖI UX: bảng "Đã duyệt" gom các đề xuất được TẠO ở nhiều ngày khác nhau (item.__date / item.ngay)
+// nhưng có cùng NGÀY DUYỆT. Nếu đang xem Tab 1/2 của ngày hôm nay mà bấm vào 1 dòng được tạo từ ngày khác,
+// phải chuyển currentDate về đúng ngày tạo của đề xuất đó rồi render() lại thì mới có dòng để cuộn tới.
 async function gotoAndHighlightEntry(date, loai, uid){
-  currentDate = date;
-  activeTab = loai;
+  const needsDateSwitch = date !== currentDate;      // 1) đề xuất được tạo ở ngày khác ngày đang xem
+  const needsTabSwitch = loai !== activeTab || !$('tab-'+loai).classList.contains('active');
+
+  if(needsDateSwitch) currentDate = date;             // 2) cập nhật currentDate = ngày tạo của đề xuất
+
+  activeTab = loai;                                   // 3) chuyển Tab (incident / material) theo loại đề xuất
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===activeTab));
   $('tab-incident').classList.toggle('active', activeTab==='incident');
   $('tab-material').classList.toggle('active', activeTab==='material');
   $('tab-search').classList.remove('active');
   $('tab-weekly').classList.remove('active');
-  await render();
-  requestAnimationFrame(()=>{
+
+  if(needsDateSwitch || needsTabSwitch){
+    await render();                                   // tải lại dữ liệu Tab 1 & Tab 2 theo ngày vừa switch
+  }
+
+  // 4) Đợi UI render xong dữ liệu mới rồi mới cuộn tới + nhấp nháy hiệu ứng cho dễ nhìn.
+  setTimeout(()=>{
     const checkbox = document.querySelector(`.approve-checkbox[data-id="${CSS.escape(uid)}"]`);
     const tr = checkbox ? checkbox.closest('tr') : null;
     if(tr){
@@ -1954,16 +2129,105 @@ async function gotoAndHighlightEntry(date, loai, uid){
     } else {
       showToast('Không tìm thấy dòng chi tiết tương ứng (có thể đã bị xóa)');
     }
+  }, 100);
+}
+// ================== BỘ LỌC NHANH + SẮP XẾP cho bảng "Đã duyệt" (Ngày / Tuần-Tháng-Quý-Năm) ==================
+const APPROVED_SORT_LABELS = {
+  delay_desc: '⏱ Độ trễ duyệt (ngâm lâu nhất trước)',
+  made_asc:   '🔤 Mã đề xuất (tăng dần)',
+  newest:     '🆕 Ngày duyệt: Mới nhất trước',
+  oldest:     '🕘 Ngày duyệt: Cũ nhất trước',
+  cost_desc:  '💰 Theo chi phí (cao → thấp)'
+};
+function sortApprovedList(list, sortMode){
+  const sorted = [...list];
+  const cost = e => e.__loai==='incident' ? (Number(e.thuphi)||0) : materialTotalCost(e);
+  switch(sortMode){
+    case 'made_asc':
+      sorted.sort((a,b)=> naturalMaDeXuatCompare(a.made,b.made));
+      break;
+    case 'newest':
+      sorted.sort((a,b)=> String(b.ngayduyet||'').localeCompare(String(a.ngayduyet||'')) || naturalMaDeXuatCompare(a.made,b.made));
+      break;
+    case 'oldest':
+      sorted.sort((a,b)=> String(a.ngayduyet||'').localeCompare(String(b.ngayduyet||'')) || naturalMaDeXuatCompare(a.made,b.made));
+      break;
+    case 'cost_desc':
+      sorted.sort((a,b)=> cost(b) - cost(a) || naturalMaDeXuatCompare(a.made,b.made));
+      break;
+    case 'delay_desc':
+    default:
+      sorted.sort((a,b)=> approvalDelayDays(b) - approvalDelayDays(a) || naturalMaDeXuatCompare(a.made,b.made));
+      break;
+  }
+  return sorted;
+}
+function filterApprovedList(list, state){
+  return list.filter(e=>{
+    if(state.filterLoai!=='all' && e.__loai!==state.filterLoai) return false;
+    if(state.filterCoso!=='all' && getCosoOfChiNhanhField(e.chinhanh)!==state.filterCoso) return false;
+    return true;
   });
 }
-// Vẽ bảng "Danh sách đề xuất Lãnh đạo đơn vị đã duyệt" — dùng chung cho cả Ngày và Tuần/Tháng/Quý/Năm.
-// Dữ liệu đầu vào (approvedEntries) luôn lấy từ getApprovedEntriesInRange(...) — tức đã quét TOÀN BỘ
-// collection và lọc theo item.isApproved===true + ngayduyet nằm trong kỳ, không phụ thuộc ngày tạo đề xuất.
-function renderApprovedTable(approvedEntries, ids, periodInfo){
-  ids = ids || { body:'dayApprovedTableBody', empty:'dayApprovedEmptyState', note:'dayApprovedTotalNote', breakdown:'dayApprovedBreakdown' };
+// Vẽ thanh Bộ lọc nhanh [Tất cả]·[Chỉ Sự Cố]·[Chỉ Vật Tư]·[Cơ sở 1/2] + dropdown Sắp xếp, phía trên bảng.
+// Gắn sự kiện click/change để chỉ vẽ lại bảng ngay tại chỗ (không gọi lại Firestore).
+function renderApprovedControlsBar(tableKey, ids){
+  const el = ids.controls ? $(ids.controls) : null;
+  if(!el) return;
+  const state = approvedTableState[tableKey];
+  const loaiPills = [
+    { key:'all', label:'Tất cả' },
+    { key:'incident', label:'Chỉ Sự Cố' },
+    { key:'material', label:'Chỉ Vật Tư' }
+  ].map(p=>`<button type="button" class="filter-pill${state.filterLoai===p.key?' active':''}" data-filter-loai="${p.key}">${p.label}</button>`).join('');
+  const cosoPills = [
+    { key:'all', label:'Tất cả cơ sở' },
+    { key:'coso1', label:'Cơ sở 1' },
+    { key:'coso2', label:'Cơ sở 2' }
+  ].map(p=>`<button type="button" class="filter-pill${state.filterCoso===p.key?' active':''}" data-filter-coso="${p.key}">${p.label}</button>`).join('');
+  const sortOptions = Object.entries(APPROVED_SORT_LABELS)
+    .map(([k,label])=>`<option value="${k}"${state.sortMode===k?' selected':''}>${label}</option>`).join('');
+  el.innerHTML = `
+    <div class="approved-controls">
+      <div class="filter-group"><span class="filter-group-label">Loại:</span>${loaiPills}</div>
+      <div class="filter-group"><span class="filter-group-label">Cơ sở:</span>${cosoPills}</div>
+      <div class="sort-group">
+        <span class="filter-group-label">Sắp xếp:</span>
+        <select data-sort-select>${sortOptions}</select>
+      </div>
+    </div>
+  `;
+  el.querySelectorAll('[data-filter-loai]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      approvedTableState[tableKey].filterLoai = btn.dataset.filterLoai;
+      rerenderApprovedTable(tableKey, ids);
+    });
+  });
+  el.querySelectorAll('[data-filter-coso]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      approvedTableState[tableKey].filterCoso = btn.dataset.filterCoso;
+      rerenderApprovedTable(tableKey, ids);
+    });
+  });
+  const sel = el.querySelector('[data-sort-select]');
+  if(sel) sel.addEventListener('change', ()=>{
+    approvedTableState[tableKey].sortMode = sel.value;
+    rerenderApprovedTable(tableKey, ids);
+  });
+}
+// Vẽ lại (chỉ phần bảng, không vẽ lại thanh điều khiển) dựa trên dữ liệu thô đã lưu + trạng thái lọc/sắp xếp hiện tại.
+function rerenderApprovedTable(tableKey, ids){
+  const raw = __approvedRawEntries[tableKey] || [];
+  const periodInfo = __approvedPeriodInfo[tableKey];
+  renderApprovedTableRows(raw, ids, periodInfo, tableKey);
+}
+// Vẽ phần THÂN bảng (đã áp dụng Bộ lọc nhanh + Sắp xếp) + breakdown + dòng tổng kết.
+function renderApprovedTableRows(rawEntries, ids, periodInfo, tableKey){
   const body = $(ids.body); if(!body) return;
   body.innerHTML = '';
-  const list = [...approvedEntries].sort((a,b)=>naturalMaDeXuatCompare(a.made,b.made));
+  const state = approvedTableState[tableKey] || { sortMode:'delay_desc', filterLoai:'all', filterCoso:'all' };
+  const filtered = filterApprovedList(rawEntries, state);
+  const list = sortApprovedList(filtered, state.sortMode);
   $(ids.empty).style.display = list.length ? 'none' : 'block';
   if(ids.breakdown) renderApprovedBreakdown(list, ids.breakdown);
   let sumCost = 0;
@@ -1992,14 +2256,28 @@ function renderApprovedTable(approvedEntries, ids, periodInfo){
   const approvedIncCount = list.filter(e=>e.__loai==='incident').length;
   const approvedMatCount = list.filter(e=>e.__loai==='material').length;
   const delayedCount = list.filter(e=>approvalDelayInfo(e, periodInfo)).length;
+  const filterActive = state.filterLoai!=='all' || state.filterCoso!=='all';
+  const filterNote = filterActive ? ` (đã lọc, tổng chưa lọc: ${rawEntries.length})` : '';
   $(ids.note).textContent = list.length
-    ? `→ Tổng cộng: ${list.length} đề xuất đã duyệt (${approvedIncCount} sự cố tuyến ống · ${approvedMatCount} vật tư/hóa chất)${delayedCount ? ` · ${delayedCount} đề xuất duyệt trễ (tạo trước kỳ đang xem)` : ''} — Tổng chi phí: ${fmtVND(sumCost)}`
-    : '';
+    ? `→ Tổng cộng: ${list.length} đề xuất đã duyệt${filterNote} (${approvedIncCount} sự cố tuyến ống · ${approvedMatCount} vật tư/hóa chất)${delayedCount ? ` · ${delayedCount} đề xuất duyệt trễ (tạo trước kỳ đang xem)` : ''} — Tổng chi phí: ${fmtVND(sumCost)}`
+    : (filterActive ? '→ Không có đề xuất nào khớp với bộ lọc hiện tại.' : '');
+}
+// Vẽ bảng "Danh sách đề xuất Lãnh đạo đơn vị đã duyệt" — dùng chung cho cả Ngày và Tuần/Tháng/Quý/Năm.
+// Dữ liệu đầu vào (approvedEntries) luôn lấy từ getApprovedEntriesInRange(...) — tức đã quét TOÀN BỘ
+// collection và lọc theo item.isApproved===true + ngayduyet nằm trong kỳ, không phụ thuộc ngày tạo đề xuất.
+function renderApprovedTable(approvedEntries, ids, periodInfo, tableKey){
+  ids = ids || { body:'dayApprovedTableBody', empty:'dayApprovedEmptyState', note:'dayApprovedTotalNote', breakdown:'dayApprovedBreakdown', controls:'dayApprovedControls' };
+  tableKey = tableKey || 'day';
+  __approvedRawEntries[tableKey] = approvedEntries || [];
+  __approvedPeriodInfo[tableKey] = periodInfo;
+  renderApprovedControlsBar(tableKey, ids);
+  renderApprovedTableRows(approvedEntries || [], ids, periodInfo, tableKey);
 }
 function renderDayApprovedTable(approvedEntries){
   renderApprovedTable(approvedEntries,
-    { body:'dayApprovedTableBody', empty:'dayApprovedEmptyState', note:'dayApprovedTotalNote', breakdown:'dayApprovedBreakdown' },
-    { kind:'day', startDate: currentDate, endDate: currentDate }
+    { body:'dayApprovedTableBody', empty:'dayApprovedEmptyState', note:'dayApprovedTotalNote', breakdown:'dayApprovedBreakdown', controls:'dayApprovedControls' },
+    { kind:'day', startDate: currentDate, endDate: currentDate },
+    'day'
   );
 }
 
@@ -2285,8 +2563,9 @@ async function renderPeriodSummary(startDate, endDate, bannerLabel, kind, prevSt
   const approvedInPeriod = await getApprovedEntriesInRange(startDate, endDate, cosoFilter);
   const wkApproved = approvedInPeriod.length;
   renderApprovedTable(approvedInPeriod,
-    { body:'wkApprovedTableBody', empty:'wkApprovedEmptyState', note:'wkApprovedTotalNote', breakdown:'wkApprovedBreakdown' },
-    { kind, startDate, endDate }
+    { body:'wkApprovedTableBody', empty:'wkApprovedEmptyState', note:'wkApprovedTotalNote', breakdown:'wkApprovedBreakdown', controls:'wkApprovedControls' },
+    { kind, startDate, endDate },
+    'week'
   );
 
   const wkSubmitted = wkTotal - wkWaiting;
@@ -2299,6 +2578,7 @@ async function renderPeriodSummary(startDate, endDate, bannerLabel, kind, prevSt
   $('wkWaiting').textContent = wkWaiting;
   $('wkSubmitted').textContent = wkSubmitted;
   $('wkApproved').textContent = wkApproved;
+  $('wkApprovedBreak').textContent = approvedCountBreakdownText(approvedInPeriod);
 
   // Branch breakdown (chi nhánh) — giới hạn theo Cơ sở đang lọc
   const branches = getBranchesForCoso(cosoFilter);
