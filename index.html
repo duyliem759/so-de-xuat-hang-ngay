@@ -2095,6 +2095,79 @@ async function getApprovedEntriesInRange(startDate, endDate, cosoFilter){
   return approved;
 }
 
+// ================== "ĐÃ DUYỆT KỲ TRƯỚC" — đề xuất tồn đọng từ kỳ trước, kỳ này mới được duyệt ==================
+// Điều kiện: isApproved===true VÀ ngayduyet nằm trong [startDate,endDate] của kỳ đang xem (như wkApprovedTableBody)
+// VÀ "Ngày đề xuất" (ngày tạo — item.__date, gắn từ document key lúc quét toàn bộ dữ liệu) < startDate của kỳ này,
+// tức được TẠO ở một kỳ TRƯỚC kỳ đang xem. Dùng để tổng hợp riêng các đề xuất tồn đọng mới được duyệt.
+async function getApprovedFromPreviousPeriod(startDate, endDate, cosoFilter){
+  const approvedInPeriod = await getApprovedEntriesInRange(startDate, endDate, cosoFilter);
+  return approvedInPeriod.filter(e => !!e.__date && e.__date < startDate);
+}
+
+// Dựng Sheet "Đã duyệt kỳ trước" bằng ExcelJS — dùng chung cho cả xuất Ngày và xuất Tuần/Tháng/Quý/Năm.
+// Màu sắc tiêu đề (nền xanh đậm, chữ trắng đậm) đồng bộ với các sheet khác trong workbook.
+// Độ rộng cột được tự động co giãn theo nội dung dài nhất của từng cột (sau khi đã đổ dữ liệu).
+function addApprovedFromPreviousPeriodSheet(wb, entries, titleText){
+  const headerFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FF15263B'} };
+  const headerFont = { color:{argb:'FFFFFFFF'}, bold:true, size:10, name:'Arial' };
+  const thinBorder = { top:{style:'thin',color:{argb:'FFC3CDD3'}}, left:{style:'thin',color:{argb:'FFC3CDD3'}}, bottom:{style:'thin',color:{argb:'FFC3CDD3'}}, right:{style:'thin',color:{argb:'FFC3CDD3'}} };
+  const greenFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFDFF3E5'} };
+  const titleFont = { bold:true, size:14, name:'Arial', color:{argb:'FF15263B'} };
+
+  const ws = wb.addWorksheet('Đã duyệt kỳ trước');
+  const cols = ['STT','Cơ sở','Chi nhánh','Khu vực','Mã đề xuất','Loại đề xuất','Nội dung đề xuất','Chi phí (VNĐ - nếu có)','Ngày duyệt','Ngày đề xuất','Người đề xuất','Đơn vị thực hiện','Đơn vị theo dõi','Ghi chú','Link đề xuất'];
+  ws.mergeCells(`A1:${ws.getColumn(cols.length).letter}1`);
+  ws.getCell('A1').value = titleText;
+  ws.getCell('A1').font = titleFont;
+  ws.getCell('A1').alignment = {horizontal:'left'};
+  ws.addRow([]);
+  const headerRow = ws.addRow(cols);
+  headerRow.eachCell(c=>{ c.fill=headerFill; c.font=headerFont; c.alignment={vertical:'middle',horizontal:'center',wrapText:true}; c.border=thinBorder; });
+  headerRow.height = 26;
+
+  const sorted = [...entries].sort((a,b)=> String(a.ngayduyet||'').localeCompare(String(b.ngayduyet||'')) || naturalMaDeXuatCompare(a.made,b.made));
+  let sumCost = 0;
+  sorted.forEach((e,idx)=>{
+    const cost = e.__loai==='incident' ? (Number(e.thuphi)||0) : materialTotalCost(e);
+    sumCost += cost;
+    const row = ws.addRow([
+      idx+1, cosoLabel(getCosoOfChiNhanhField(e.chinhanh)), e.chinhanh, e.khuvuc, e.made,
+      e.__loai==='incident' ? 'Sự cố tuyến ống' : 'Vật tư / Hóa chất', e.noidung, cost || null,
+      fmtDateVN(e.ngayduyet||''), fmtDateVN(e.__date||''), e.nguoi, e.donvithuchien, e.donvitheodoi, e.ghichu, e.link
+    ]);
+    row.eachCell(c=>{ c.border=thinBorder; c.alignment={vertical:'top',wrapText:true}; c.font={name:'Arial',size:10}; c.fill=greenFill; });
+    row.getCell(8).numFmt = '#,##0 "₫"';
+    row.getCell(9).font = {bold:true, color:{argb:'FF0E5C2C'}, name:'Arial', size:10};
+    if(e.link){ row.getCell(15).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(15).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(15).alignment = {horizontal:'center'}; }
+  });
+
+  if(sorted.length){
+    const totalRow = ws.addRow(['TỔNG CỘNG', '', '', '', '', '', '', sumCost, '', '', `${sorted.length} đề xuất tồn đọng`, '', '', '', '']);
+    totalRow.eachCell(c=>{ c.border=thinBorder; c.font={bold:true, name:'Arial', size:10}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEEF2F1'}}; });
+    totalRow.getCell(8).numFmt = '#,##0 "₫"';
+  } else {
+    ws.addRow([]);
+    const noteRow = ws.addRow(['(Không có đề xuất nào tồn đọng từ kỳ trước được Lãnh đạo đơn vị duyệt trong kỳ này)']);
+    noteRow.getCell(1).font = {italic:true, color:{argb:'FF4C5C6E'}, name:'Arial', size:10};
+  }
+
+  ws.views = [{state:'frozen', ySplit:3}];
+  ws.autoFilter = {from:{row:3,column:1}, to:{row:3,column:cols.length}};
+
+  // Tự động co giãn độ rộng cột theo nội dung dài nhất đã đổ vào (tính theo ký tự), giới hạn 8–42.
+  for(let i=1;i<=cols.length;i++){
+    let maxLen = cols[i-1].length;
+    ws.getColumn(i).eachCell({includeEmpty:false}, cell=>{
+      const raw = (cell.value && typeof cell.value==='object' && 'text' in cell.value) ? cell.value.text : cell.value;
+      const len = raw==null ? 0 : String(raw).length;
+      if(len > maxLen) maxLen = len;
+    });
+    ws.getColumn(i).width = Math.min(Math.max(maxLen + 2, 8), 42);
+  }
+  return ws;
+}
+
+
 async function renderWeeklySummary(dateStr){
   if(!dateStr) dateStr = currentDate;
   $('wkRefDate').value = dateStr;
@@ -2767,18 +2840,19 @@ async function exportExcel(){
     row.eachCell(c=>{ c.border=thinBorder; c.alignment={vertical:'top',wrapText:true}; c.font={name:'Arial',size:10}; });
   }
 
-  // ---- SHEET 1: Sự cố tuyến ống ----
-  const ws1 = wb.addWorksheet('Sự cố tuyến ống');
+  // ---- SHEET 1: sự cố tuyến ống ----
+  // Chỉ liệt kê các đề xuất có "Ngày đề xuất" (currentDate) đúng bằng ngày đang xuất — không lấy dữ liệu ngày khác.
+  const ws1 = wb.addWorksheet('sự cố tuyến ống');
   ws1.mergeCells('A1:R1');
   ws1.getCell('A1').value = `SỰ CỐ TUYẾN ỐNG — Ngày ${currentDate}`;
   ws1.getCell('A1').font = titleFont;
   ws1.getCell('A1').alignment = {horizontal:'left'};
   ws1.addRow([]);
-  const inc_cols = ['STT','Chi nhánh','Khu vực','Mã đề xuất','Người đề xuất','Nội dung đề xuất','ID','Loại ống','Đường kính (mm)','Thu phí (VNĐ)','Nguyên nhân','Tình trạng','Duyệt','Ngày duyệt','Đơn vị thực hiện','Đơn vị theo dõi','Ghi chú','Link đề xuất'];
+  const inc_cols = ['STT','Chi nhánh','Khu vực','Mã đề xuất','Ngày đề xuất','Người đề xuất','Nội dung đề xuất','ID','Loại ống','Đường kính (mm)','Thu phí (VNĐ)','Nguyên nhân','Tình trạng','Ngày duyệt','Đơn vị thực hiện','ĐV theo dõi','Ghi chú','Link đề xuất'];
   const incHeaderRow = ws1.addRow(inc_cols);
   styleHeaderRow(incHeaderRow);
   ws1.columns = [
-    {width:7},{width:14},{width:14},{width:14},{width:16},{width:32},{width:12},{width:12},{width:14},{width:14},{width:24},{width:20},{width:10},{width:14},{width:16},{width:16},{width:26},{width:22}
+    {width:7},{width:14},{width:14},{width:14},{width:14},{width:16},{width:32},{width:12},{width:12},{width:14},{width:14},{width:24},{width:20},{width:14},{width:16},{width:16},{width:26},{width:22}
   ];
   let sumFeeIncidentAll = 0, approvedIncidentCount = 0;
   incidents.forEach(e=>{
@@ -2786,36 +2860,37 @@ async function exportExcel(){
     if(isApproved) approvedIncidentCount++;
     sumFeeIncidentAll += Number(e.thuphi)||0;
     const row = ws1.addRow([
-      e.stt, e.chinhanh, e.khuvuc, e.made, e.nguoi, e.noidung, e.id, e.loaiong,
+      e.stt, e.chinhanh, e.khuvuc, e.made, fmtDateVN(currentDate), e.nguoi, e.noidung, e.id, e.loaiong,
       e.duongkinh?Number(e.duongkinh):null, e.thuphi?Number(e.thuphi):0, e.nguyennhan,
-      e.tinhtrang, isApproved?'Có':'Không', isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : '', e.donvithuchien, e.donvitheodoi, e.ghichu, e.link
+      e.tinhtrang, isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : '', e.donvithuchien, e.donvitheodoi, e.ghichu, e.link
     ]);
     applyBodyStyle(row);
-    row.getCell(10).numFmt = '#,##0 "₫"';
+    row.getCell(11).numFmt = '#,##0 "₫"';
     const isBig = Number(e.duongkinh) >= 200;
     const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
-    if(isBig){ row.getCell(9).fill = redFill; row.getCell(9).font = {bold:true, color:{argb:'FFD6362C'}, name:'Arial', size:10}; }
+    if(isBig){ row.getCell(10).fill = redFill; row.getCell(10).font = {bold:true, color:{argb:'FFD6362C'}, name:'Arial', size:10}; }
     if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); row.getCell(13).font = {bold:true, color:{argb:'FF0E5C2C'}, name:'Arial', size:10}; }
     else if(isWaiting){ row.eachCell(c=>{ c.fill = yellowFill; }); }
     if(e.link){ row.getCell(18).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(18).alignment = {horizontal:'center'}; row.getCell(18).value = {text:'Mở ↗', hyperlink:e.link}; }
   });
-  const incTotalRow = ws1.addRow(['TỔNG CỘNG', '', '', '', '', '', '', '', '', sumFeeIncidentAll, '', `${incidents.length} sự cố`, `${approvedIncidentCount} đã duyệt`, '', '', '', '', '']);
+  const incTotalRow = ws1.addRow(['TỔNG CỘNG', '', '', '', '', '', '', '', '', '', sumFeeIncidentAll, '', `${incidents.length} sự cố`, `${approvedIncidentCount} đã duyệt`, '', '', '', '']);
   incTotalRow.eachCell(c=>{ c.border=thinBorder; c.font={bold:true, name:'Arial', size:10}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEEF2F1'}}; });
-  incTotalRow.getCell(10).numFmt = '#,##0 "₫"';
+  incTotalRow.getCell(11).numFmt = '#,##0 "₫"';
   ws1.views = [{state:'frozen', ySplit:3}];
   ws1.autoFilter = {from:{row:3,column:1}, to:{row:3,column:inc_cols.length}};
 
-  // ---- SHEET 2: Vật tư / Hóa chất (mỗi vật tư 1 dòng) ----
-  const ws2 = wb.addWorksheet('Vật tư - Hóa chất');
-  ws2.mergeCells('A1:U1');
+  // ---- SHEET 2: vật tư- hoá chất-khác (mỗi vật tư 1 dòng) ----
+  // Chỉ liệt kê các đề xuất có "Ngày đề xuất" (currentDate) đúng bằng ngày đang xuất — không lấy dữ liệu ngày khác.
+  const ws2 = wb.addWorksheet('vật tư- hoá chất-khác');
+  ws2.mergeCells('A1:S1');
   ws2.getCell('A1').value = `THAY THẾ / MUA MỚI / VẬT TƯ / HÓA CHẤT — Ngày ${currentDate}`;
   ws2.getCell('A1').font = titleFont;
   ws2.addRow([]);
-  const mat_cols = ['STT','Chi nhánh','Khu vực','Mã đề xuất','Người đề xuất','Nội dung đề xuất','Tên vật tư','Phân loại','Hình thức','Xuất từ kho','Đơn vị tính','Số lượng','Chi phí (VNĐ)','Đơn vị cung ứng','Đơn vị thực hiện','Đơn vị theo dõi','Tình trạng','Duyệt','Ngày duyệt','Ghi chú','Link đề xuất'];
+  const mat_cols = ['STT','Chi nhánh','Khu vực','Mã đề xuất','Ngày đề xuất','Người đề xuất','Nội dung đề xuất','Tên vật tư','Phân Loại','Hình thức','Xuất từ kho','Số lượng','Chi phí (VNĐ)','Đơn vị thực hiện','ĐV theo dõi','Tình trạng','Ngày duyệt','Ghi chú','Link đề xuất'];
   const matHeaderRow = ws2.addRow(mat_cols);
   styleHeaderRow(matHeaderRow);
   ws2.columns = [
-    {width:7},{width:14},{width:14},{width:16},{width:16},{width:30},{width:22},{width:11},{width:16},{width:18},{width:11},{width:10},{width:14},{width:18},{width:16},{width:16},{width:18},{width:10},{width:14},{width:24},{width:22}
+    {width:7},{width:14},{width:14},{width:16},{width:14},{width:16},{width:30},{width:22},{width:11},{width:16},{width:18},{width:10},{width:14},{width:16},{width:16},{width:18},{width:14},{width:24},{width:22}
   ];
   let sumFeeMaterialAll = 0, approvedMaterialCount = 0;
   materials.forEach(e=>{
@@ -2826,22 +2901,21 @@ async function exportExcel(){
     const items = e.vattu && e.vattu.length ? e.vattu : [{}];
     items.forEach((v, idx)=>{
       const row = ws2.addRow([
-        idx===0 ? e.stt : '', idx===0 ? e.chinhanh : '', idx===0 ? e.khuvuc : '', idx===0 ? e.made : '', idx===0 ? e.nguoi : '', idx===0 ? e.noidung : '',
-        v.ten||'', v.loai||'', v.hinhthuc||'', v.khoXuat||'', v.donvi||'', v.soluong?Number(v.soluong):null, v.chiphi?Number(v.chiphi):0,
-        idx===0 ? e.cungung : '', idx===0 ? e.donvithuchien : '', idx===0 ? e.donvitheodoi : '', idx===0 ? e.tinhtrang : '',
-        idx===0 ? (isApproved?'Có':'Không') : '',
+        idx===0 ? e.stt : '', idx===0 ? e.chinhanh : '', idx===0 ? e.khuvuc : '', idx===0 ? e.made : '', idx===0 ? fmtDateVN(currentDate) : '', idx===0 ? e.nguoi : '', idx===0 ? e.noidung : '',
+        v.ten||'', v.loai||'', v.hinhthuc||'', v.khoXuat||'', v.soluong?Number(v.soluong):null, v.chiphi?Number(v.chiphi):0,
+        idx===0 ? e.donvithuchien : '', idx===0 ? e.donvitheodoi : '', idx===0 ? e.tinhtrang : '',
         idx===0 && isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : '',
         idx===0 ? e.ghichu : '', idx===0 ? e.link : ''
       ]);
       applyBodyStyle(row);
       row.getCell(13).numFmt = '#,##0 "₫"';
-      if(v.loai === 'Hóa chất'){ row.getCell(8).font = {bold:true, color:{argb:'FF6A4C93'}, name:'Arial', size:10}; }
-      if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); if(idx===0) row.getCell(18).font = {bold:true, color:{argb:'FF0E5C2C'}, name:'Arial', size:10}; }
+      if(v.loai === 'Hóa chất'){ row.getCell(9).font = {bold:true, color:{argb:'FF6A4C93'}, name:'Arial', size:10}; }
+      if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); if(idx===0) row.getCell(16).font = {bold:true, color:{argb:'FF0E5C2C'}, name:'Arial', size:10}; }
       else if(isWaiting){ row.eachCell(c=>{ c.fill = yellowFill; }); }
-      if(idx===0 && e.link){ row.getCell(21).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(21).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(21).alignment = {horizontal:'center'}; }
+      if(idx===0 && e.link){ row.getCell(19).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(19).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(19).alignment = {horizontal:'center'}; }
     });
   });
-  const matTotalRow = ws2.addRow(['TỔNG CỘNG', '', '', '', '', '', '', '', '', '', '', '', sumFeeMaterialAll, '', '', '', `${materials.length} đề xuất`, `${approvedMaterialCount} đã duyệt`, '', '', '']);
+  const matTotalRow = ws2.addRow(['TỔNG CỘNG', '', '', '', '', '', '', '', '', '', '', '', sumFeeMaterialAll, '', '', `${materials.length} đề xuất`, `${approvedMaterialCount} đã duyệt`, '', '']);
   matTotalRow.eachCell(c=>{ c.border=thinBorder; c.font={bold:true, name:'Arial', size:10}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEEF2F1'}}; });
   matTotalRow.getCell(13).numFmt = '#,##0 "₫"';
   ws2.views = [{state:'frozen', ySplit:3}];
@@ -2904,6 +2978,11 @@ async function exportExcel(){
   addFeeGroupTable(ws3, thinBorder, '📌 SỰ CỐ TUYẾN ỐNG — Thống kê Thu phí (theo Chi nhánh → Khu vực)', incidents, e=>Number(e.thuphi)||0);
   ws3.addRow([]);
   addFeeGroupTable(ws3, thinBorder, '📌 VẬT TƯ / HÓA CHẤT / THAY THẾ — Thống kê Chi phí (theo Chi nhánh → Khu vực)', materials, e=>materialTotalCost(e));
+
+  // ---- SHEET: Đã duyệt kỳ trước ----
+  // Quét TOÀN BỘ dữ liệu (giống wkApprovedTableBody), lọc: đã duyệt trong ngày hôm nay NHƯNG được TẠO trước ngày hôm nay.
+  const prevPeriodApprovedDay = await getApprovedFromPreviousPeriod(currentDate, currentDate, 'all');
+  addApprovedFromPreviousPeriodSheet(wb, prevPeriodApprovedDay, `ĐÃ DUYỆT KỲ TRƯỚC — Ngày ${currentDate}`);
 
   const buf = await wb.xlsx.writeBuffer();
   const blob = new Blob([buf], {type:'application/octet-stream'});
@@ -2976,7 +3055,13 @@ async function exportWeeklyExcel(){
   const toastMap = { week:'Đang tạo file Excel báo cáo tuần...', month:'Đang tạo file Excel báo cáo tháng...', quarter:'Đang tạo file Excel báo cáo quý...', year:'Đang tạo file Excel báo cáo năm...' };
   showToast(toastMap[reportKind] || toastMap.week);
 
-  const { incidents: wkIncidents, materials: wkMaterials, weekDates, kind, bannerLabel, cosoFilter, approvedEntries: wkApprovedEntries } = weeklyDataCache;
+  const { incidents: wkIncidentsAll, materials: wkMaterialsAll, weekDates, kind, bannerLabel, cosoFilter, approvedEntries: wkApprovedEntries } = weeklyDataCache;
+  // QUAN TRỌNG: weeklyDataCache.incidents/materials có thể đã được gộp thêm các đề xuất "duyệt trễ"
+  // (tạo ở kỳ TRƯỚC, chỉ mới được duyệt trong kỳ này) để phục vụ bảng khu vực trên màn hình.
+  // Khi XUẤT EXCEL, chỉ được liệt kê các đề xuất có "Ngày đề xuất" (__date) nằm trong đúng kỳ đang chọn
+  // [weekDates[0], weekDates[1]] — loại bỏ hoàn toàn các đề xuất có ngày thuộc kỳ trước.
+  const wkIncidents = wkIncidentsAll.filter(e => e.__date >= weekDates[0] && e.__date <= weekDates[1]);
+  const wkMaterials = wkMaterialsAll.filter(e => e.__date >= weekDates[0] && e.__date <= weekDates[1]);
   const periodWordMap = { week:'Tuần', month:'Tháng', quarter:'Quý', year:'Năm' };
   const periodWord = periodWordMap[kind] || 'Tuần';
   const pwLowerMap = { week:'tuần', month:'tháng', quarter:'quý', year:'năm' };
@@ -3024,16 +3109,16 @@ async function exportWeeklyExcel(){
     return row;
   }
 
-  // ---- SHEET 1: Sự cố tuyến ống ----
-  const ws1 = wb.addWorksheet(`Sự cố tuyến ống (${pwLower})`);
-  const inc_cols = ['STT','Chi nhánh','Cơ sở','Khu vực','Mã đề xuất','Ngày','Người đề xuất','Nội dung đề xuất','ID','Loại ống','Đường kính (mm)','Thu phí (VNĐ)','Nguyên nhân','Tình trạng','Duyệt','Ngày duyệt','Đơn vị thực hiện','Đơn vị theo dõi','Ghi chú','Link đề xuất'];
+  // ---- SHEET 1: sự cố tuyến ống ----
+  const ws1 = wb.addWorksheet('sự cố tuyến ống');
+  const inc_cols = ['STT','Chi nhánh','Khu vực','Mã đề xuất','Ngày đề xuất','Người đề xuất','Nội dung đề xuất','ID','Loại ống','Đường kính (mm)','Thu phí (VNĐ)','Nguyên nhân','Tình trạng','Ngày duyệt','Đơn vị thực hiện','ĐV theo dõi','Ghi chú','Link đề xuất'];
   ws1.mergeCells(`A1:${String.fromCharCode(64+inc_cols.length)}1`);
   ws1.getCell('A1').value = `SỰ CỐ TUYẾN ỐNG — ${periodWord} ${periodLabel}${scopeSuffix}`;
   ws1.getCell('A1').font = titleFont;
   ws1.addRow([]);
   const incHeaderRow = ws1.addRow(inc_cols);
   styleHeaderRow(incHeaderRow);
-  ws1.columns = [{width:7},{width:14},{width:22},{width:14},{width:14},{width:12},{width:16},{width:32},{width:12},{width:12},{width:14},{width:14},{width:24},{width:20},{width:10},{width:14},{width:16},{width:16},{width:26},{width:22}];
+  ws1.columns = [{width:7},{width:14},{width:14},{width:14},{width:14},{width:16},{width:32},{width:12},{width:12},{width:14},{width:14},{width:24},{width:20},{width:14},{width:16},{width:16},{width:26},{width:22}];
   const incGroups = buildCosoGroups(wkIncidents);
   let sumFeeIncidentAll = 0, approvedIncidentCount = 0;
   incGroups.forEach(group=>{
@@ -3044,35 +3129,35 @@ async function exportWeeklyExcel(){
       if(isApproved) approvedIncidentCount++;
       sumFeeIncidentAll += Number(e.thuphi)||0;
       const row = ws1.addRow([
-        idx+1, e.chinhanh, cosoLabel(getCosoOfChiNhanhField(e.chinhanh)), e.khuvuc, e.made, fmtDateVN(e.__date), e.nguoi, e.noidung, e.id, e.loaiong,
+        idx+1, e.chinhanh, e.khuvuc, e.made, fmtDateVN(e.__date), e.nguoi, e.noidung, e.id, e.loaiong,
         e.duongkinh?Number(e.duongkinh):null, e.thuphi?Number(e.thuphi):0, e.nguyennhan,
-        e.tinhtrang, isApproved?'Có':'Không', isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : '', e.donvithuchien, e.donvitheodoi, e.ghichu, e.link
+        e.tinhtrang, isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : '', e.donvithuchien, e.donvitheodoi, e.ghichu, e.link
       ]);
       applyBodyStyle(row);
-      row.getCell(12).numFmt = '#,##0 "₫"';
+      row.getCell(11).numFmt = '#,##0 "₫"';
       const isBig = Number(e.duongkinh) >= 200;
-      if(isBig){ row.getCell(11).fill = redFill; row.getCell(11).font = {bold:true, color:{argb:'FFD6362C'}, name:'Arial', size:10}; }
-      if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); row.getCell(15).font = {bold:true, color:{argb:'FF0E5C2C'}, name:'Arial', size:10}; }
+      if(isBig){ row.getCell(10).fill = redFill; row.getCell(10).font = {bold:true, color:{argb:'FFD6362C'}, name:'Arial', size:10}; }
+      if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); row.getCell(13).font = {bold:true, color:{argb:'FF0E5C2C'}, name:'Arial', size:10}; }
       else if(isWaiting){ row.eachCell(c=>{ c.fill = yellowFill; }); }
-      if(e.link){ row.getCell(20).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(20).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(20).alignment = {horizontal:'center'}; }
+      if(e.link){ row.getCell(18).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(18).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(18).alignment = {horizontal:'center'}; }
     });
   });
-  const incTotalRow = ws1.addRow(['TỔNG CỘNG', '', '', '', '', '', '', '', '', '', '', sumFeeIncidentAll, '', `${wkIncidents.length} sự cố`, `${approvedIncidentCount} đã duyệt`, '', '', '', '', '']);
+  const incTotalRow = ws1.addRow(['TỔNG CỘNG', '', '', '', '', '', '', '', '', '', sumFeeIncidentAll, '', `${wkIncidents.length} sự cố`, `${approvedIncidentCount} đã duyệt`, '', '', '', '']);
   incTotalRow.eachCell(c=>{ c.border=thinBorder; c.font={bold:true, name:'Arial', size:10}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEEF2F1'}}; });
-  incTotalRow.getCell(12).numFmt = '#,##0 "₫"';
+  incTotalRow.getCell(11).numFmt = '#,##0 "₫"';
   ws1.views = [{state:'frozen', ySplit:3}];
   ws1.autoFilter = {from:{row:3,column:1}, to:{row:3,column:inc_cols.length}};
 
-  // ---- SHEET 2: Vật tư / Hóa chất ----
-  const ws2 = wb.addWorksheet(`Vật tư - Hóa chất (${pwLower})`);
-  const mat_cols = ['STT','Chi nhánh','Cơ sở','Khu vực','Mã đề xuất','Ngày','Người đề xuất','Nội dung đề xuất','Tên vật tư','Phân loại','Hình thức','Xuất từ kho','Đơn vị tính','Số lượng','Chi phí (VNĐ)','Đơn vị cung ứng','Đơn vị thực hiện','Đơn vị theo dõi','Tình trạng','Duyệt','Ngày duyệt','Ghi chú','Link đề xuất'];
+  // ---- SHEET 2: vật tư- hoá chất-khác ----
+  const ws2 = wb.addWorksheet('vật tư- hoá chất-khác');
+  const mat_cols = ['STT','Chi nhánh','Khu vực','Mã đề xuất','Ngày đề xuất','Người đề xuất','Nội dung đề xuất','Tên vật tư','Phân Loại','Hình thức','Xuất từ kho','Số lượng','Chi phí (VNĐ)','Đơn vị thực hiện','ĐV theo dõi','Tình trạng','Ngày duyệt','Ghi chú','Link đề xuất'];
   ws2.mergeCells(`A1:${ws2.getColumn(mat_cols.length).letter}1`);
   ws2.getCell('A1').value = `THAY THẾ / MUA MỚI / VẬT TƯ / HÓA CHẤT — ${periodWord} ${periodLabel}${scopeSuffix}`;
   ws2.getCell('A1').font = titleFont;
   ws2.addRow([]);
   const matHeaderRow = ws2.addRow(mat_cols);
   styleHeaderRow(matHeaderRow);
-  ws2.columns = [{width:7},{width:14},{width:22},{width:14},{width:16},{width:12},{width:16},{width:30},{width:22},{width:11},{width:16},{width:18},{width:11},{width:10},{width:14},{width:18},{width:16},{width:16},{width:18},{width:10},{width:14},{width:24},{width:22}];
+  ws2.columns = [{width:7},{width:14},{width:14},{width:16},{width:14},{width:16},{width:30},{width:22},{width:11},{width:16},{width:18},{width:10},{width:14},{width:16},{width:16},{width:18},{width:14},{width:24},{width:22}];
   const matGroups = buildCosoGroups(wkMaterials);
   let sumFeeMaterialAll = 0, approvedMaterialCount = 0;
   matGroups.forEach(group=>{
@@ -3085,25 +3170,24 @@ async function exportWeeklyExcel(){
       const items = e.vattu && e.vattu.length ? e.vattu : [{}];
       items.forEach((v, vidx)=>{
         const row = ws2.addRow([
-          vidx===0 ? idx+1 : '', vidx===0 ? e.chinhanh : '', vidx===0 ? cosoLabel(getCosoOfChiNhanhField(e.chinhanh)) : '', vidx===0 ? e.khuvuc : '', vidx===0 ? e.made : '', vidx===0 ? fmtDateVN(e.__date) : '', vidx===0 ? e.nguoi : '', vidx===0 ? e.noidung : '',
-          v.ten||'', v.loai||'', v.hinhthuc||'', v.khoXuat||'', v.donvi||'', v.soluong?Number(v.soluong):null, v.chiphi?Number(v.chiphi):0,
-          vidx===0 ? e.cungung : '', vidx===0 ? e.donvithuchien : '', vidx===0 ? e.donvitheodoi : '', vidx===0 ? e.tinhtrang : '',
-          vidx===0 ? (isApproved?'Có':'Không') : '',
+          vidx===0 ? idx+1 : '', vidx===0 ? e.chinhanh : '', vidx===0 ? e.khuvuc : '', vidx===0 ? e.made : '', vidx===0 ? fmtDateVN(e.__date) : '', vidx===0 ? e.nguoi : '', vidx===0 ? e.noidung : '',
+          v.ten||'', v.loai||'', v.hinhthuc||'', v.khoXuat||'', v.soluong?Number(v.soluong):null, v.chiphi?Number(v.chiphi):0,
+          vidx===0 ? e.donvithuchien : '', vidx===0 ? e.donvitheodoi : '', vidx===0 ? e.tinhtrang : '',
           vidx===0 && isApproved && e.ngayduyet ? fmtDateVN(e.ngayduyet) : '',
           vidx===0 ? e.ghichu : '', vidx===0 ? e.link : ''
         ]);
         applyBodyStyle(row);
-        row.getCell(15).numFmt = '#,##0 "₫"';
-        if(v.loai === 'Hóa chất'){ row.getCell(10).font = {bold:true, color:{argb:'FF6A4C93'}, name:'Arial', size:10}; }
-        if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); if(vidx===0) row.getCell(20).font = {bold:true, color:{argb:'FF0E5C2C'}, name:'Arial', size:10}; }
+        row.getCell(13).numFmt = '#,##0 "₫"';
+        if(v.loai === 'Hóa chất'){ row.getCell(9).font = {bold:true, color:{argb:'FF6A4C93'}, name:'Arial', size:10}; }
+        if(isApproved){ row.eachCell(c=>{ c.fill = greenFill; }); if(vidx===0) row.getCell(16).font = {bold:true, color:{argb:'FF0E5C2C'}, name:'Arial', size:10}; }
         else if(isWaiting){ row.eachCell(c=>{ c.fill = yellowFill; }); }
-        if(vidx===0 && e.link){ row.getCell(23).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(23).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(23).alignment = {horizontal:'center'}; }
+        if(vidx===0 && e.link){ row.getCell(19).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(19).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(19).alignment = {horizontal:'center'}; }
       });
     });
   });
-  const matTotalRow = ws2.addRow(['TỔNG CỘNG', '', '', '', '', '', '', '', '', '', '', '', '', '', sumFeeMaterialAll, '', '', '', `${wkMaterials.length} đề xuất`, `${approvedMaterialCount} đã duyệt`, '', '', '']);
+  const matTotalRow = ws2.addRow(['TỔNG CỘNG', '', '', '', '', '', '', '', '', '', '', '', sumFeeMaterialAll, '', '', `${wkMaterials.length} đề xuất`, `${approvedMaterialCount} đã duyệt`, '', '']);
   matTotalRow.eachCell(c=>{ c.border=thinBorder; c.font={bold:true, name:'Arial', size:10}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEEF2F1'}}; });
-  matTotalRow.getCell(15).numFmt = '#,##0 "₫"';
+  matTotalRow.getCell(13).numFmt = '#,##0 "₫"';
   ws2.views = [{state:'frozen', ySplit:3}];
   ws2.autoFilter = {from:{row:3,column:1}, to:{row:3,column:mat_cols.length}};
 
@@ -3268,6 +3352,12 @@ async function exportWeeklyExcel(){
   ws3.addImage(regionImgId, { tl:{col:0, row: imgRow + 16}, ext:{width:520, height:280} });
 
   for(let i=0;i<34;i++) ws3.addRow([]);
+
+  // ---- SHEET: Đã duyệt kỳ trước ----
+  // Quét TOÀN BỘ dữ liệu (giống wkApprovedTableBody), lọc: đã duyệt trong kỳ đang xem NHƯNG được TẠO ở kỳ trước đó
+  // (Ngày đề xuất < startDate của kỳ hiện tại). weekDates[0]/weekDates[1] chính là startDate/endDate của kỳ (từ getPeriodRange).
+  const prevPeriodApprovedWk = await getApprovedFromPreviousPeriod(weekDates[0], weekDates[weekDates.length-1], cosoFilter);
+  addApprovedFromPreviousPeriodSheet(wb, prevPeriodApprovedWk, `ĐÃ DUYỆT KỲ TRƯỚC — ${periodWord} ${periodLabel}${scopeSuffix}`);
 
   const buf = await wb.xlsx.writeBuffer();
   const blob = new Blob([buf], {type:'application/octet-stream'});
