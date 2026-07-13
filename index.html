@@ -2105,56 +2105,94 @@ async function getApprovedFromPreviousPeriod(startDate, endDate, cosoFilter){
 }
 
 // Dựng Sheet "Đã duyệt kỳ trước" bằng ExcelJS — dùng chung cho cả xuất Ngày và xuất Tuần/Tháng/Quý/Năm.
-// Màu sắc tiêu đề (nền xanh đậm, chữ trắng đậm) đồng bộ với các sheet khác trong workbook.
-// Độ rộng cột được tự động co giãn theo nội dung dài nhất của từng cột (sau khi đã đổ dữ liệu).
+// Màu tiêu đề đồng bộ với các sheet khác trong workbook; phần thân dùng vân ngựa vằn (zebra) nhạt thay vì
+// tô kín màu xanh lá toàn bộ ô để đỡ rối mắt, chỉ nhấn màu ở cột "Ngày duyệt" (điểm mấu chốt của sheet này).
 function addApprovedFromPreviousPeriodSheet(wb, entries, titleText){
   const headerFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FF15263B'} };
   const headerFont = { color:{argb:'FFFFFFFF'}, bold:true, size:10, name:'Arial' };
-  const thinBorder = { top:{style:'thin',color:{argb:'FFC3CDD3'}}, left:{style:'thin',color:{argb:'FFC3CDD3'}}, bottom:{style:'thin',color:{argb:'FFC3CDD3'}}, right:{style:'thin',color:{argb:'FFC3CDD3'}} };
-  const greenFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFDFF3E5'} };
+  const thinBorder = { top:{style:'thin',color:{argb:'FFD8DEE2'}}, left:{style:'thin',color:{argb:'FFD8DEE2'}}, bottom:{style:'thin',color:{argb:'FFD8DEE2'}}, right:{style:'thin',color:{argb:'FFD8DEE2'}} };
+  const zebraFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFF4F7F6'} };
+  const ngayduyetFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFDFF3E5'} };
   const titleFont = { bold:true, size:14, name:'Arial', color:{argb:'FF15263B'} };
+  const subtitleFont = { italic:true, size:9.5, name:'Arial', color:{argb:'FF6B7A85'} };
+
+  const cols = ['STT','Cơ sở','Chi nhánh','Khu vực','Mã đề xuất','Loại đề xuất','Nội dung đề xuất','Chi phí (VNĐ - nếu có)','Ngày duyệt','Ngày đề xuất','Người đề xuất','Đơn vị thực hiện','Đơn vị theo dõi','Ghi chú','Link đề xuất'];
+  const lastColLetter = String.fromCharCode(64 + cols.length); // O
+  // Căn giữa: STT, Loại đề xuất, Ngày duyệt, Ngày đề xuất, Link | Căn phải: Chi phí | Còn lại căn trái
+  const centerCols = new Set([1,6,9,10,15]);
+  const rightCols = new Set([8]);
+  const widthBounds = [ [6,6],[12,18],[12,17],[10,16],[10,17],[15,17],[26,44],[13,17],[11,12],[11,12],[13,18],[13,18],[13,18],[18,36],[9,10] ];
 
   const ws = wb.addWorksheet('Đã duyệt kỳ trước');
-  const cols = ['STT','Cơ sở','Chi nhánh','Khu vực','Mã đề xuất','Loại đề xuất','Nội dung đề xuất','Chi phí (VNĐ - nếu có)','Ngày duyệt','Ngày đề xuất','Người đề xuất','Đơn vị thực hiện','Đơn vị theo dõi','Ghi chú','Link đề xuất'];
-  ws.mergeCells(`A1:${ws.getColumn(cols.length).letter}1`);
-  ws.getCell('A1').value = titleText;
+
+  ws.mergeCells(`A1:${lastColLetter}1`);
+  ws.getCell('A1').value = `⏱ ${titleText}`;
   ws.getCell('A1').font = titleFont;
-  ws.getCell('A1').alignment = {horizontal:'left'};
-  ws.addRow([]);
+  ws.getCell('A1').alignment = {horizontal:'left', vertical:'middle'};
+  ws.getRow(1).height = 22;
+
+  ws.mergeCells(`A2:${lastColLetter}2`);
+  ws.getCell('A2').value = 'Các đề xuất được TẠO ở kỳ trước nhưng đến kỳ này mới được Lãnh đạo đơn vị duyệt (quét toàn bộ dữ liệu theo Ngày duyệt).';
+  ws.getCell('A2').font = subtitleFont;
+  ws.getCell('A2').alignment = {horizontal:'left', vertical:'middle'};
+
   const headerRow = ws.addRow(cols);
   headerRow.eachCell(c=>{ c.fill=headerFill; c.font=headerFont; c.alignment={vertical:'middle',horizontal:'center',wrapText:true}; c.border=thinBorder; });
-  headerRow.height = 26;
+  headerRow.height = 28;
 
   const sorted = [...entries].sort((a,b)=> String(a.ngayduyet||'').localeCompare(String(b.ngayduyet||'')) || naturalMaDeXuatCompare(a.made,b.made));
   let sumCost = 0;
   sorted.forEach((e,idx)=>{
-    const cost = e.__loai==='incident' ? (Number(e.thuphi)||0) : materialTotalCost(e);
+    const isIncident = e.__loai==='incident';
+    const cost = isIncident ? (Number(e.thuphi)||0) : materialTotalCost(e);
     sumCost += cost;
     const row = ws.addRow([
       idx+1, cosoLabel(getCosoOfChiNhanhField(e.chinhanh)), e.chinhanh, e.khuvuc, e.made,
-      e.__loai==='incident' ? 'Sự cố tuyến ống' : 'Vật tư / Hóa chất', e.noidung, cost || null,
+      isIncident ? 'Sự cố tuyến ống' : 'Vật tư / Hóa chất', e.noidung, cost || null,
       fmtDateVN(e.ngayduyet||''), fmtDateVN(e.__date||''), e.nguoi, e.donvithuchien, e.donvitheodoi, e.ghichu, e.link
     ]);
-    row.eachCell(c=>{ c.border=thinBorder; c.alignment={vertical:'top',wrapText:true}; c.font={name:'Arial',size:10}; c.fill=greenFill; });
+    const zebra = idx % 2 === 1;
+    row.eachCell((c, colNum)=>{
+      c.border = thinBorder;
+      c.font = {name:'Arial', size:10};
+      c.alignment = { vertical:'middle', wrapText:true, horizontal: centerCols.has(colNum) ? 'center' : (rightCols.has(colNum) ? 'right' : 'left') };
+      if(zebra) c.fill = zebraFill;
+    });
+    row.getCell(6).font = { bold:true, size:10, name:'Arial', color:{argb: isIncident ? 'FF0A5957' : 'FF6A4C93'} };
     row.getCell(8).numFmt = '#,##0 "₫"';
-    row.getCell(9).font = {bold:true, color:{argb:'FF0E5C2C'}, name:'Arial', size:10};
-    if(e.link){ row.getCell(15).value = {text:'Mở ↗', hyperlink:e.link}; row.getCell(15).font = {color:{argb:'FF0A5957'}, underline:true, name:'Arial', size:10}; row.getCell(15).alignment = {horizontal:'center'}; }
+    row.getCell(9).fill = ngayduyetFill;
+    row.getCell(9).font = { bold:true, size:10, name:'Arial', color:{argb:'FF0E5C2C'} };
+    if(e.link){
+      row.getCell(15).value = {text:'Mở ↗', hyperlink:e.link};
+      row.getCell(15).font = { color:{argb:'FF0A5957'}, underline:true, bold:true, name:'Arial', size:10 };
+    }
   });
 
   if(sorted.length){
     const totalRow = ws.addRow(['TỔNG CỘNG', '', '', '', '', '', '', sumCost, '', '', `${sorted.length} đề xuất tồn đọng`, '', '', '', '']);
-    totalRow.eachCell(c=>{ c.border=thinBorder; c.font={bold:true, name:'Arial', size:10}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEEF2F1'}}; });
+    const n = totalRow.number;
+    ws.mergeCells(`A${n}:G${n}`);
+    ws.mergeCells(`K${n}:N${n}`);
+    totalRow.eachCell(c=>{ c.border=thinBorder; c.font={bold:true, name:'Arial', size:10, color:{argb:'FF15263B'}}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEAEFEE'}}; c.alignment={vertical:'middle', horizontal:'left'}; });
+    totalRow.getCell(1).alignment = {vertical:'middle', horizontal:'left'};
     totalRow.getCell(8).numFmt = '#,##0 "₫"';
+    totalRow.getCell(8).alignment = {vertical:'middle', horizontal:'right'};
+    totalRow.getCell(11).alignment = {vertical:'middle', horizontal:'left', italic:true};
+    totalRow.height = 22;
   } else {
-    ws.addRow([]);
-    const noteRow = ws.addRow(['(Không có đề xuất nào tồn đọng từ kỳ trước được Lãnh đạo đơn vị duyệt trong kỳ này)']);
-    noteRow.getCell(1).font = {italic:true, color:{argb:'FF4C5C6E'}, name:'Arial', size:10};
+    const emptyRow = ws.addRow(['✓ Không có đề xuất nào tồn đọng từ kỳ trước được Lãnh đạo đơn vị duyệt trong kỳ này']);
+    const n = emptyRow.number;
+    ws.mergeCells(`A${n}:${lastColLetter}${n}`);
+    emptyRow.getCell(1).font = {italic:true, color:{argb:'FF6B7A85'}, name:'Arial', size:10.5};
+    emptyRow.getCell(1).alignment = {vertical:'middle', horizontal:'left'};
+    emptyRow.height = 22;
   }
 
   ws.views = [{state:'frozen', ySplit:3}];
   ws.autoFilter = {from:{row:3,column:1}, to:{row:3,column:cols.length}};
 
-  // Tự động co giãn độ rộng cột theo nội dung dài nhất đã đổ vào (tính theo ký tự), giới hạn 8–42.
+  // Tự động co giãn độ rộng cột theo nội dung dài nhất của từng cột, trong giới hạn min/max riêng cho từng loại cột
+  // (cột ngắn như STT/Ngày không phình to, cột dài như Nội dung/Ghi chú không bị bó hẹp).
   for(let i=1;i<=cols.length;i++){
     let maxLen = cols[i-1].length;
     ws.getColumn(i).eachCell({includeEmpty:false}, cell=>{
@@ -2162,7 +2200,8 @@ function addApprovedFromPreviousPeriodSheet(wb, entries, titleText){
       const len = raw==null ? 0 : String(raw).length;
       if(len > maxLen) maxLen = len;
     });
-    ws.getColumn(i).width = Math.min(Math.max(maxLen + 2, 8), 42);
+    const [minW, maxW] = widthBounds[i-1];
+    ws.getColumn(i).width = Math.min(Math.max(maxLen + 2, minW), maxW);
   }
   return ws;
 }
