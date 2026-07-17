@@ -383,7 +383,7 @@
     <div class="header-actions">
       <div class="meta" id="headerMeta">—</div>
       <button class="btn secondary" id="migrateOldBtn" type="button" title="Gộp dữ liệu cũ còn sót trong LocalStorage lên Firebase, sau đó chuẩn hóa lại trường Tình trạng / Đã duyệt / Ngày duyệt cho toàn bộ dữ liệu cũ chưa đúng định dạng">📤 Cập nhật dữ liệu cũ</button>
-      <button class="btn secondary" id="globalSortBtn" type="button" title="Sắp xếp tăng dần theo Mã đề xuất cho TOÀN BỘ dữ liệu (mọi ngày, mọi danh mục: sự cố tuyến ống lẫn vật tư/hóa chất), sau đó đánh lại Số thứ tự (STT) liên tục từ 1">🔃 Sắp xếp theo Mã ĐX (toàn bộ)</button>
+      <button class="btn secondary" id="globalSortBtn" type="button" title="Với TỪNG ngày và TỪNG danh mục (sự cố tuyến ống / vật tư-hóa chất), sắp xếp tăng dần theo Mã đề xuất rồi đánh lại Số thứ tự (STT) bắt đầu từ 1 — chạy tự động cho tất cả các ngày, khỏi phải bấm thủ công từng ngày">🔃 Sắp xếp theo Mã ĐX (toàn bộ)</button>
       <button class="btn linkcheck" id="linkScanBtn" type="button">🔗 Kiểm tra link</button>
       <button class="btn excel" id="exportExcelBtn">⬇ Xuất Excel</button>
       <button class="btn logout-btn" id="logoutBtn" type="button">Đăng xuất</button>
@@ -1790,14 +1790,18 @@ $('matSortBtn').addEventListener('click', async ()=>{
   render();
 });
 
-// ---------- SẮP XẾP TOÀN BỘ DỮ LIỆU THEO MÃ ĐỀ XUẤT (tất cả các ngày + cả 2 danh mục) ----------
-// Quét TOÀN BỘ collection (mọi document "incidents:*" và "materials:*"), gộp chung toàn bộ đề xuất lại
-// thành 1 danh sách duy nhất, sắp xếp tăng dần theo Mã ĐX rồi đánh lại STT liên tục từ 1 cho toàn bộ.
-// Sau đó ghi ngược lại từng Document (mỗi Document vẫn giữ đúng những item vốn thuộc về nó, chỉ có STT đổi).
+// ---------- SẮP XẾP TOÀN BỘ DỮ LIỆU THEO MÃ ĐỀ XUẤT (áp dụng cho tất cả các ngày + cả 2 danh mục) ----------
+// Đây thực chất là chạy hàng loạt đúng thao tác của 2 nút "Sắp xếp" đang có sẵn ở Tab 1 (Sự cố tuyến ống)
+// và Tab 2 (Vật tư/Hóa chất) — vốn chỉ sắp xếp + đánh lại STT cho 1 ngày tại 1 thời điểm — nhưng lặp qua
+// TOÀN BỘ Document (mỗi Document = 1 ngày + 1 danh mục) để khỏi phải bấm thủ công từng ngày.
+// Trong MỖI Document: sắp xếp tăng dần theo Mã ĐX rồi đánh lại STT bắt đầu từ 1 — KHÔNG gộp chung STT
+// giữa các ngày/danh mục khác nhau (mỗi ngày, mỗi danh mục luôn có STT riêng bắt đầu lại từ 1).
 async function handleGlobalSortByMaDeXuat(){
   const ok = confirm(
-    `Thao tác này sẽ sắp xếp lại STT cho TOÀN BỘ dữ liệu (tất cả các ngày, cả Sự cố tuyến ống lẫn Vật tư/Hóa chất) `+
-    `theo Mã đề xuất tăng dần, sau đó đánh số thứ tự liên tục từ 1.\n\nSTT hiện tại sẽ bị ghi đè. Bạn có chắc muốn tiếp tục?`
+    `Thao tác này sẽ sắp xếp lại TOÀN BỘ dữ liệu (tất cả các ngày, cả Sự cố tuyến ống lẫn Vật tư/Hóa chất):\n\n`+
+    `— Trong MỖI ngày và MỖI danh mục (Sự cố tuyến ống / Vật tư-Hóa chất), sắp xếp các đề xuất tăng dần theo Mã ĐX `+
+    `rồi đánh lại STT bắt đầu từ 1 (giống hệt nút "Sắp xếp" đang có ở từng Tab, nhưng chạy tự động cho tất cả các ngày).\n\n`+
+    `STT hiện tại sẽ bị ghi đè. Bạn có chắc muốn tiếp tục?`
   );
   if(!ok) return;
   const btn = $('globalSortBtn');
@@ -1814,18 +1818,18 @@ async function handleGlobalSortByMaDeXuat(){
     }
     const docs = snap.docs
       .map(d => ({ key: d.id, items: Array.isArray(d.data().items) ? d.data().items : [] }))
-      .filter(d => d.key.startsWith('incidents:') || d.key.startsWith('materials:'));
-    const flat = [];
-    docs.forEach(d => d.items.forEach(item => flat.push(item)));
-    if(!flat.length){ showToast('Không có đề xuất nào để sắp xếp'); return; }
-    flat.sort((a,b) => naturalMaDeXuatCompare(a.made, b.made));
-    flat.forEach((item,i) => { item.stt = String(i+1); });
-    let okDocs = 0, errDocs = 0;
+      .filter(d => (d.key.startsWith('incidents:') || d.key.startsWith('materials:')) && d.items.length);
+    if(!docs.length){ showToast('Không có đề xuất nào để sắp xếp'); return; }
+    let totalItems = 0, okDocs = 0, errDocs = 0;
     for(const d of docs){
+      // Sắp xếp + đánh lại STT riêng cho từng Document (mỗi ngày + mỗi danh mục luôn bắt đầu lại từ 1).
+      d.items.sort((a,b) => naturalMaDeXuatCompare(a.made, b.made));
+      d.items.forEach((item,i) => { item.stt = String(i+1); });
+      totalItems += d.items.length;
       try{ await saveKey(d.key, d.items); okDocs++; }
       catch(e){ console.error('Lỗi ghi dữ liệu sau khi sắp xếp cho', d.key, e); errDocs++; }
     }
-    let msg = `✅ Đã sắp xếp theo Mã đề xuất và đánh lại STT liên tục cho ${flat.length} đề xuất trên ${okDocs} ngày`;
+    let msg = `✅ Đã sắp xếp theo Mã đề xuất và đánh lại STT (bắt đầu từ 1 cho mỗi ngày/danh mục) cho ${totalItems} đề xuất trên ${okDocs} ngày`;
     if(errDocs) msg += `, ${errDocs} ngày bị lỗi khi ghi (xem Console)`;
     showToast(msg + '.');
     render();
