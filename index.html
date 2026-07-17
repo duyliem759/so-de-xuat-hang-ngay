@@ -208,6 +208,22 @@
   .approved-controls .sort-group{display:flex; align-items:center; gap:6px; margin-left:auto;}
   .approved-controls select{font-size:12px; padding:5px 8px;}
 
+  /* ---- Phân trang bảng "Đã duyệt" ---- */
+  .approved-pagination{
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px;
+    margin-top:10px; padding:8px 12px; background:#FBFCFC; border:1px solid var(--line); border-radius:2px;
+    font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-soft);
+  }
+  .approved-pagination .pg-nav{display:flex; align-items:center; gap:6px;}
+  .approved-pagination .pg-btn{
+    font-family:'IBM Plex Sans Condensed',sans-serif; font-weight:700; font-size:12px; cursor:pointer;
+    padding:5px 11px; border-radius:2px; border:1px solid var(--line); background:#fff; color:var(--ink);
+  }
+  .approved-pagination .pg-btn:hover:not(:disabled){border-color:var(--teal); color:var(--teal-deep);}
+  .approved-pagination .pg-btn:disabled{opacity:.4; cursor:not-allowed;}
+  .approved-pagination .pg-pagesize{display:flex; align-items:center; gap:6px;}
+  .approved-pagination .pg-pagesize select{font-size:12px; padding:4px 6px;}
+
   .compare-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px;}
   .cmp-card{border:1px solid var(--line); border-radius:2px; padding:14px 16px;}
   .cmp-card .label{font-size:11px; text-transform:uppercase; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; letter-spacing:.06em;}
@@ -367,6 +383,7 @@
     <div class="header-actions">
       <div class="meta" id="headerMeta">—</div>
       <button class="btn secondary" id="migrateOldBtn" type="button" title="Gộp dữ liệu cũ còn sót trong LocalStorage lên Firebase, sau đó chuẩn hóa lại trường Tình trạng / Đã duyệt / Ngày duyệt cho toàn bộ dữ liệu cũ chưa đúng định dạng">📤 Cập nhật dữ liệu cũ</button>
+      <button class="btn secondary" id="globalSortBtn" type="button" title="Sắp xếp tăng dần theo Mã đề xuất cho TOÀN BỘ dữ liệu (mọi ngày, mọi danh mục: sự cố tuyến ống lẫn vật tư/hóa chất), sau đó đánh lại Số thứ tự (STT) liên tục từ 1">🔃 Sắp xếp theo Mã ĐX (toàn bộ)</button>
       <button class="btn linkcheck" id="linkScanBtn" type="button">🔗 Kiểm tra link</button>
       <button class="btn excel" id="exportExcelBtn">⬇ Xuất Excel</button>
       <button class="btn logout-btn" id="logoutBtn" type="button">Đăng xuất</button>
@@ -676,7 +693,7 @@
           <thead>
             <tr>
               <th>Ngày</th><th>Loại</th><th>STT</th><th>Chi nhánh</th><th>Khu vực</th><th>Mã ĐX</th><th>ID</th>
-              <th>Nội dung</th><th>Tình trạng</th><th>Ghi chú</th><th>Link</th><th></th>
+              <th>Nội dung</th><th>Tình trạng</th><th>Duyệt</th><th>Ngày duyệt</th><th>Ghi chú</th><th>Link</th><th></th>
             </tr>
           </thead>
           <tbody id="searchTableBody"></tbody>
@@ -813,6 +830,7 @@
         </table>
       </div>
       <div id="wkApprovedEmptyState" class="empty-state" style="display:none;">Chưa có đề xuất nào được Lãnh đạo đơn vị duyệt trong kỳ này.</div>
+      <div id="wkApprovedPagination"></div>
       <div class="sub mono" id="wkApprovedTotalNote" style="margin-top:8px; font-size:12.5px; font-weight:600;"></div>
     </div>
 
@@ -952,6 +970,7 @@
       </table>
     </div>
     <div id="dayApprovedEmptyState" class="empty-state" style="display:none;">Chưa có đề xuất nào được Lãnh đạo đơn vị duyệt trong ngày này.</div>
+    <div id="dayApprovedPagination"></div>
     <div class="sub mono" id="dayApprovedTotalNote" style="margin-top:8px; font-size:12.5px; font-weight:600;"></div>
   </div>
 
@@ -1016,8 +1035,8 @@ let activeTab = 'incident';
 
 // ---- Trạng thái Bộ lọc nhanh + Sắp xếp cho các bảng "Đã duyệt" (độc lập giữa bảng Ngày và bảng Tuần/Tháng/Quý/Năm) ----
 const approvedTableState = {
-  day:  { sortMode: 'delay_desc', filterLoai: 'all', filterCoso: 'all' },
-  week: { sortMode: 'delay_desc', filterLoai: 'all', filterCoso: 'all' }
+  day:  { sortMode: 'delay_desc', filterLoai: 'all', filterCoso: 'all', page: 1, pageSize: 15 },
+  week: { sortMode: 'delay_desc', filterLoai: 'all', filterCoso: 'all', page: 1, pageSize: 15 }
 };
 // Lưu lại dữ liệu thô (chưa lọc/sắp xếp) + thông tin kỳ của lần render gần nhất cho mỗi bảng,
 // để khi người dùng bấm đổi bộ lọc/sắp xếp thì chỉ cần vẽ lại bảng ngay tại chỗ, không cần gọi lại Firestore.
@@ -1771,6 +1790,52 @@ $('matSortBtn').addEventListener('click', async ()=>{
   render();
 });
 
+// ---------- SẮP XẾP TOÀN BỘ DỮ LIỆU THEO MÃ ĐỀ XUẤT (tất cả các ngày + cả 2 danh mục) ----------
+// Quét TOÀN BỘ collection (mọi document "incidents:*" và "materials:*"), gộp chung toàn bộ đề xuất lại
+// thành 1 danh sách duy nhất, sắp xếp tăng dần theo Mã ĐX rồi đánh lại STT liên tục từ 1 cho toàn bộ.
+// Sau đó ghi ngược lại từng Document (mỗi Document vẫn giữ đúng những item vốn thuộc về nó, chỉ có STT đổi).
+async function handleGlobalSortByMaDeXuat(){
+  const ok = confirm(
+    `Thao tác này sẽ sắp xếp lại STT cho TOÀN BỘ dữ liệu (tất cả các ngày, cả Sự cố tuyến ống lẫn Vật tư/Hóa chất) `+
+    `theo Mã đề xuất tăng dần, sau đó đánh số thứ tự liên tục từ 1.\n\nSTT hiện tại sẽ bị ghi đè. Bạn có chắc muốn tiếp tục?`
+  );
+  if(!ok) return;
+  const btn = $('globalSortBtn');
+  if(btn) btn.disabled = true;
+  showToast('Đang quét toàn bộ dữ liệu để sắp xếp, vui lòng đợi...');
+  try{
+    let snap;
+    try{
+      snap = await __db.collection(__COLLECTION).get();
+    }catch(e){
+      console.error('Lỗi quét toàn bộ dữ liệu để sắp xếp', e);
+      showToast('Lỗi quét dữ liệu, xem Console để biết chi tiết.');
+      return;
+    }
+    const docs = snap.docs
+      .map(d => ({ key: d.id, items: Array.isArray(d.data().items) ? d.data().items : [] }))
+      .filter(d => d.key.startsWith('incidents:') || d.key.startsWith('materials:'));
+    const flat = [];
+    docs.forEach(d => d.items.forEach(item => flat.push(item)));
+    if(!flat.length){ showToast('Không có đề xuất nào để sắp xếp'); return; }
+    flat.sort((a,b) => naturalMaDeXuatCompare(a.made, b.made));
+    flat.forEach((item,i) => { item.stt = String(i+1); });
+    let okDocs = 0, errDocs = 0;
+    for(const d of docs){
+      try{ await saveKey(d.key, d.items); okDocs++; }
+      catch(e){ console.error('Lỗi ghi dữ liệu sau khi sắp xếp cho', d.key, e); errDocs++; }
+    }
+    let msg = `✅ Đã sắp xếp theo Mã đề xuất và đánh lại STT liên tục cho ${flat.length} đề xuất trên ${okDocs} ngày`;
+    if(errDocs) msg += `, ${errDocs} ngày bị lỗi khi ghi (xem Console)`;
+    showToast(msg + '.');
+    render();
+    if($('tab-search').classList.contains('active')) runSearch();
+  } finally {
+    if(btn) btn.disabled = false;
+  }
+}
+$('globalSortBtn').addEventListener('click', handleGlobalSortByMaDeXuat);
+
 
 function loadIncidentIntoForm(item){
   $('i_ngay').value = currentDate; $('i_stt').value=item.stt||''; $('i_khuvuc').value=item.khuvuc||'';
@@ -2200,18 +2265,21 @@ function renderApprovedControlsBar(tableKey, ids){
   el.querySelectorAll('[data-filter-loai]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       approvedTableState[tableKey].filterLoai = btn.dataset.filterLoai;
+      approvedTableState[tableKey].page = 1;
       rerenderApprovedTable(tableKey, ids);
     });
   });
   el.querySelectorAll('[data-filter-coso]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       approvedTableState[tableKey].filterCoso = btn.dataset.filterCoso;
+      approvedTableState[tableKey].page = 1;
       rerenderApprovedTable(tableKey, ids);
     });
   });
   const sel = el.querySelector('[data-sort-select]');
   if(sel) sel.addEventListener('change', ()=>{
     approvedTableState[tableKey].sortMode = sel.value;
+    approvedTableState[tableKey].page = 1;
     rerenderApprovedTable(tableKey, ids);
   });
 }
@@ -2221,19 +2289,30 @@ function rerenderApprovedTable(tableKey, ids){
   const periodInfo = __approvedPeriodInfo[tableKey];
   renderApprovedTableRows(raw, ids, periodInfo, tableKey);
 }
-// Vẽ phần THÂN bảng (đã áp dụng Bộ lọc nhanh + Sắp xếp) + breakdown + dòng tổng kết.
+// Vẽ phần THÂN bảng (đã áp dụng Bộ lọc nhanh + Sắp xếp) + breakdown + dòng tổng kết + phân trang.
 function renderApprovedTableRows(rawEntries, ids, periodInfo, tableKey){
   const body = $(ids.body); if(!body) return;
   body.innerHTML = '';
-  const state = approvedTableState[tableKey] || { sortMode:'delay_desc', filterLoai:'all', filterCoso:'all' };
+  const state = approvedTableState[tableKey] || { sortMode:'delay_desc', filterLoai:'all', filterCoso:'all', page:1, pageSize:15 };
+  if(!state.page) state.page = 1;
+  if(!state.pageSize) state.pageSize = 15;
   const filtered = filterApprovedList(rawEntries, state);
   const list = sortApprovedList(filtered, state.sortMode);
   $(ids.empty).style.display = list.length ? 'none' : 'block';
   if(ids.breakdown) renderApprovedBreakdown(list, ids.breakdown);
+
+  // ---- Phân trang: giới hạn số dòng hiển thị/trang, tránh kéo danh sách quá dài ----
+  const totalCount = list.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / state.pageSize));
+  if(state.page > totalPages) state.page = totalPages;
+  if(state.page < 1) state.page = 1;
+  const startIdx = (state.page - 1) * state.pageSize;
+  const pageList = list.slice(startIdx, startIdx + state.pageSize);
+
   let sumCost = 0;
-  list.forEach(e=>{
+  list.forEach(e=>{ sumCost += e.__loai==='incident' ? (Number(e.thuphi)||0) : materialTotalCost(e); });
+  pageList.forEach(e=>{
     const cost = e.__loai==='incident' ? (Number(e.thuphi)||0) : materialTotalCost(e);
-    sumCost += cost;
     const nguoiOrDv = e.__loai==='incident' ? (e.nguoi||'') : (e.donvithuchien||'');
     const tr = document.createElement('tr');
     tr.classList.add('row-green');
@@ -2253,6 +2332,7 @@ function renderApprovedTableRows(rawEntries, ids, periodInfo, tableKey){
     tr.addEventListener('click', ()=> gotoAndHighlightEntry(e.__date, e.__loai, e.uid));
     body.appendChild(tr);
   });
+  if(ids.pagination) renderApprovedPagination(tableKey, ids, totalCount, totalPages);
   const approvedIncCount = list.filter(e=>e.__loai==='incident').length;
   const approvedMatCount = list.filter(e=>e.__loai==='material').length;
   const delayedCount = list.filter(e=>approvalDelayInfo(e, periodInfo)).length;
@@ -2262,11 +2342,54 @@ function renderApprovedTableRows(rawEntries, ids, periodInfo, tableKey){
     ? `→ Tổng cộng: ${list.length} đề xuất đã duyệt${filterNote} (${approvedIncCount} sự cố tuyến ống · ${approvedMatCount} vật tư/hóa chất)${delayedCount ? ` · ${delayedCount} đề xuất duyệt trễ (tạo trước kỳ đang xem)` : ''} — Tổng chi phí: ${fmtVND(sumCost)}`
     : (filterActive ? '→ Không có đề xuất nào khớp với bộ lọc hiện tại.' : '');
 }
+// Vẽ thanh phân trang (nút Trước/Sau + chọn số dòng/trang + thông tin trang hiện tại) bên dưới bảng "Đã duyệt".
+function renderApprovedPagination(tableKey, ids, totalCount, totalPages){
+  const el = $(ids.pagination);
+  if(!el) return;
+  const state = approvedTableState[tableKey];
+  if(!totalCount){ el.innerHTML = ''; return; }
+  const startIdx = (state.page - 1) * state.pageSize;
+  const fromNo = totalCount ? startIdx + 1 : 0;
+  const toNo = Math.min(startIdx + state.pageSize, totalCount);
+  const pageSizeOptions = [10, 15, 20, 50].map(n=>`<option value="${n}" ${state.pageSize===n?'selected':''}>${n}/trang</option>`).join('');
+  el.innerHTML = `
+    <div class="approved-pagination">
+      <div class="pg-nav">
+        <button type="button" class="pg-btn" data-pg="first" ${state.page<=1?'disabled':''}>« Đầu</button>
+        <button type="button" class="pg-btn" data-pg="prev" ${state.page<=1?'disabled':''}>‹ Trước</button>
+        <span>Trang <b>${state.page}</b> / ${totalPages}</span>
+        <button type="button" class="pg-btn" data-pg="next" ${state.page>=totalPages?'disabled':''}>Sau ›</button>
+        <button type="button" class="pg-btn" data-pg="last" ${state.page>=totalPages?'disabled':''}>Cuối »</button>
+      </div>
+      <div>Hiển thị ${fromNo}–${toNo} trên tổng ${totalCount} đề xuất</div>
+      <div class="pg-pagesize">
+        <span>Số dòng/trang:</span>
+        <select data-pg-pagesize>${pageSizeOptions}</select>
+      </div>
+    </div>
+  `;
+  el.querySelectorAll('[data-pg]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const act = btn.dataset.pg;
+      if(act==='first') state.page = 1;
+      else if(act==='prev') state.page = Math.max(1, state.page-1);
+      else if(act==='next') state.page = Math.min(totalPages, state.page+1);
+      else if(act==='last') state.page = totalPages;
+      rerenderApprovedTable(tableKey, ids);
+    });
+  });
+  const pgSizeSel = el.querySelector('[data-pg-pagesize]');
+  if(pgSizeSel) pgSizeSel.addEventListener('change', ()=>{
+    state.pageSize = Number(pgSizeSel.value) || 15;
+    state.page = 1;
+    rerenderApprovedTable(tableKey, ids);
+  });
+}
 // Vẽ bảng "Danh sách đề xuất Lãnh đạo đơn vị đã duyệt" — dùng chung cho cả Ngày và Tuần/Tháng/Quý/Năm.
 // Dữ liệu đầu vào (approvedEntries) luôn lấy từ getApprovedEntriesInRange(...) — tức đã quét TOÀN BỘ
 // collection và lọc theo item.isApproved===true + ngayduyet nằm trong kỳ, không phụ thuộc ngày tạo đề xuất.
 function renderApprovedTable(approvedEntries, ids, periodInfo, tableKey){
-  ids = ids || { body:'dayApprovedTableBody', empty:'dayApprovedEmptyState', note:'dayApprovedTotalNote', breakdown:'dayApprovedBreakdown', controls:'dayApprovedControls' };
+  ids = ids || { body:'dayApprovedTableBody', empty:'dayApprovedEmptyState', note:'dayApprovedTotalNote', breakdown:'dayApprovedBreakdown', controls:'dayApprovedControls', pagination:'dayApprovedPagination' };
   tableKey = tableKey || 'day';
   __approvedRawEntries[tableKey] = approvedEntries || [];
   __approvedPeriodInfo[tableKey] = periodInfo;
@@ -2275,7 +2398,7 @@ function renderApprovedTable(approvedEntries, ids, periodInfo, tableKey){
 }
 function renderDayApprovedTable(approvedEntries){
   renderApprovedTable(approvedEntries,
-    { body:'dayApprovedTableBody', empty:'dayApprovedEmptyState', note:'dayApprovedTotalNote', breakdown:'dayApprovedBreakdown', controls:'dayApprovedControls' },
+    { body:'dayApprovedTableBody', empty:'dayApprovedEmptyState', note:'dayApprovedTotalNote', breakdown:'dayApprovedBreakdown', controls:'dayApprovedControls', pagination:'dayApprovedPagination' },
     { kind:'day', startDate: currentDate, endDate: currentDate },
     'day'
   );
@@ -2563,7 +2686,7 @@ async function renderPeriodSummary(startDate, endDate, bannerLabel, kind, prevSt
   const approvedInPeriod = await getApprovedEntriesInRange(startDate, endDate, cosoFilter);
   const wkApproved = approvedInPeriod.length;
   renderApprovedTable(approvedInPeriod,
-    { body:'wkApprovedTableBody', empty:'wkApprovedEmptyState', note:'wkApprovedTotalNote', breakdown:'wkApprovedBreakdown', controls:'wkApprovedControls' },
+    { body:'wkApprovedTableBody', empty:'wkApprovedEmptyState', note:'wkApprovedTotalNote', breakdown:'wkApprovedBreakdown', controls:'wkApprovedControls', pagination:'wkApprovedPagination' },
     { kind, startDate, endDate },
     'week'
   );
@@ -3004,6 +3127,13 @@ async function runSearch(){
   renderSearchResults(results);
 }
 
+// Sinh sẵn danh sách HTML <option> Tình trạng (lấy đúng từ select mẫu #i_tinhtrang để luôn đồng bộ 2 nơi).
+function tinhtrangOptionsHtml(selected){
+  return Array.from($('i_tinhtrang').options)
+    .map(o => `<option value="${escapeHtml(o.value)}" ${o.value===selected?'selected':''}>${escapeHtml(o.value)}</option>`)
+    .join('');
+}
+
 function renderSearchResults(results){
   $('searchResultCount').textContent = `(${results.length})`;
   const body = $('searchTableBody'); body.innerHTML = '';
@@ -3011,6 +3141,7 @@ function renderSearchResults(results){
   results.forEach(e => {
     const isWaiting = e.tinhtrang === 'Chưa đưa lên đề xuất';
     const isApproved = isItemApproved(e);
+    const canApprove = !isWaiting;
     const tagCls = isWaiting ? 'tag-wait' : 'tag-other';
     const tr = document.createElement('tr');
     if(isApproved) tr.classList.add('row-green');
@@ -3020,7 +3151,21 @@ function renderSearchResults(results){
       <td>${e.__loai==='incident' ? 'Sự cố tuyến ống' : 'Vật tư / Hóa chất'}</td>
       <td class="mono">${e.stt||''}</td><td>${e.chinhanh||''}</td><td>${e.khuvuc||''}</td>
       <td class="mono">${e.made||''}</td><td class="mono">${e.__loai==='incident' ? (e.id||'') : ''}</td><td>${e.noidung||''}</td>
-      <td><span class="tag ${tagCls}">${e.tinhtrang||''}</span>${approvedBadgeHtml(isApproved)}</td>
+      <td>
+        <select class="srch-tinhtrang-select" data-date="${e.__date}" data-loai="${e.__loai}" data-uid="${e.uid}" style="font-size:12px;padding:5px 6px;">
+          ${tinhtrangOptionsHtml(normalizeTinhtrang(e.tinhtrang))}
+        </select>
+      </td>
+      <td style="text-align:center;">
+        <input type="checkbox" class="srch-approve-checkbox" data-date="${e.__date}" data-loai="${e.__loai}" data-uid="${e.uid}"
+          ${isApproved?'checked':''} ${canApprove?'':'disabled'}
+          title="${canApprove?'Tích khi Lãnh đạo đơn vị đã duyệt':'Cần đưa lên đề xuất trước khi duyệt'}"
+          style="width:17px;height:17px;cursor:${canApprove?'pointer':'not-allowed'};">
+      </td>
+      <td>
+        <input type="date" class="srch-ngayduyet-input" data-date="${e.__date}" data-loai="${e.__loai}" data-uid="${e.uid}"
+          value="${e.ngayduyet||''}" style="font-size:12px;padding:5px 6px;${isApproved?'':'display:none;'}" ${isApproved?'':'disabled'}>
+      </td>
       <td>${e.ghichu||''}</td>
       <td>${linkCellShort(e,'srch')}</td>
       <td class="mono">
@@ -3063,6 +3208,59 @@ function renderSearchResults(results){
       showToast('Đã xóa đề xuất');
       if(currentDate === btn.dataset.date) render();
       runSearch();
+    });
+  });
+
+  // ---- Sửa nhanh Tình trạng ngay tại dòng kết quả — cập nhật thẳng lên Firebase, không cần chuyển Tab ----
+  body.querySelectorAll('select.srch-tinhtrang-select').forEach(sel=>{
+    sel.addEventListener('change', async ()=>{
+      const { date, loai, uid } = sel.dataset;
+      const key = loai==='incident' ? incidentKey(date) : materialKey(date);
+      const list = await loadKey(key);
+      const item = list.find(x=>x.uid===uid);
+      if(!item) return;
+      item.tinhtrang = sel.value;
+      // Nếu chuyển về "Chưa đưa lên đề xuất" thì tự động bỏ Duyệt + xóa Ngày duyệt (đồng bộ quy tắc với Tab nhập liệu).
+      if(item.tinhtrang === 'Chưa đưa lên đề xuất'){
+        item.isApproved = false;
+        item.ngayduyet = '';
+      }
+      await saveKey(key, list);
+      showToast('Đã cập nhật Tình trạng');
+      if(currentDate === date) render();
+      runSearch();
+    });
+  });
+
+  // ---- Sửa nhanh Duyệt (checkbox) ngay tại dòng kết quả ----
+  body.querySelectorAll('input.srch-approve-checkbox').forEach(cb=>{
+    cb.addEventListener('change', async ()=>{
+      const { date, loai, uid } = cb.dataset;
+      const key = loai==='incident' ? incidentKey(date) : materialKey(date);
+      const list = await loadKey(key);
+      const item = list.find(x=>x.uid===uid);
+      if(!item) return;
+      item.isApproved = cb.checked;
+      item.ngayduyet = cb.checked ? (item.ngayduyet || todayStr()) : '';
+      await saveKey(key, list);
+      showToast(cb.checked ? 'Đã đánh dấu Lãnh đạo đơn vị đã duyệt' : 'Đã bỏ đánh dấu duyệt');
+      if(currentDate === date) render();
+      runSearch();
+    });
+  });
+
+  // ---- Sửa nhanh Ngày duyệt ngay tại dòng kết quả ----
+  body.querySelectorAll('input.srch-ngayduyet-input').forEach(inp=>{
+    inp.addEventListener('change', async ()=>{
+      const { date, loai, uid } = inp.dataset;
+      const key = loai==='incident' ? incidentKey(date) : materialKey(date);
+      const list = await loadKey(key);
+      const item = list.find(x=>x.uid===uid);
+      if(!item) return;
+      item.ngayduyet = inp.value || '';
+      await saveKey(key, list);
+      showToast('Đã cập nhật Ngày duyệt');
+      if(currentDate === date) render();
     });
   });
 }
